@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { LoaderModule } from './loader/loader.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CandleModel } from './loader/candle.model';
+import { CalculatorModule } from './calculator/calculator.module';
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { CandleModel } from './loader/candle.model';
             synchronize: true,
         }),
         LoaderModule,
+        CalculatorModule,
     ],
     controllers: [],
     providers: [],
