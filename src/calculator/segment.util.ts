@@ -5,6 +5,7 @@ export class SegmentUtil {
     private segments: Array<TSegment> = [
         {
             isUp: null,
+            isDown: null,
             size: 0,
             min: Infinity,
             max: -Infinity,
@@ -29,7 +30,7 @@ export class SegmentUtil {
                 currentSegment.endDate = prev1Candle.dateString;
                 currentSegment = null;
             }
-        } else if (currentSegment.isUp === false) {
+        } else if (currentSegment.isDown === true) {
             if (prev1Candle && prev1Candle.hma < candle.hma) {
                 currentSegment.endDate = prev1Candle.dateString;
                 currentSegment = null;
@@ -39,6 +40,7 @@ export class SegmentUtil {
         if (!currentSegment) {
             currentSegment = {
                 isUp: null,
+                isDown: null,
                 size: 0,
                 min: Infinity,
                 max: -Infinity,
@@ -57,6 +59,7 @@ export class SegmentUtil {
 
         if (prev1Candle && currentSegment.isUp === null) {
             currentSegment.isUp = prev1Candle.hma <= candle.hma;
+            currentSegment.isDown = prev1Candle.hma > candle.hma;
         }
 
         currentSegment.size++;
@@ -66,7 +69,7 @@ export class SegmentUtil {
         }
     }
 
-    isSegmentChanged(): boolean {
+    isDirectionChanged(): boolean {
         return this.getCurrentSegment().size === 1;
     }
 
@@ -76,5 +79,9 @@ export class SegmentUtil {
 
     getPrevSegment(index: number): TSegment {
         return this.segments[this.segments.length - 1 - index];
+    }
+
+    getCurrentCandle(): CandleModel {
+        return this.candles[this.candles.length - 1];
     }
 }
