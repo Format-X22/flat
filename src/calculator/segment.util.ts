@@ -11,6 +11,7 @@ export class SegmentUtil {
             max: -Infinity,
             startDate: null,
             endDate: null,
+            candles: [],
         },
     ];
     private candles: Array<CandleModel> = [];
@@ -46,6 +47,7 @@ export class SegmentUtil {
                 max: -Infinity,
                 startDate: candle.dateString,
                 endDate: null,
+                candles: [],
             };
         }
 
@@ -63,6 +65,7 @@ export class SegmentUtil {
         }
 
         currentSegment.size++;
+        currentSegment.candles.push(candle);
 
         if (this.getCurrentSegment() !== currentSegment) {
             this.segments.push(currentSegment);
@@ -83,5 +86,15 @@ export class SegmentUtil {
 
     getCurrentCandle(): CandleModel {
         return this.candles[this.candles.length - 1];
+    }
+
+    getSegments(count: number): Array<TSegment> {
+        const result = [];
+
+        for (let i = 0; i < count; i++) {
+            result.push(this.getPrevSegment(i));
+        }
+
+        return result;
     }
 }

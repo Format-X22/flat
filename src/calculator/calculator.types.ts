@@ -1,3 +1,5 @@
+import { CandleModel } from '../loader/candle.model';
+
 export type TSegment = {
     isUp: boolean;
     isDown: boolean;
@@ -6,4 +8,5 @@ export type TSegment = {
     max: number;
     startDate: string;
     endDate: string;
+    candles: Array<CandleModel>;
 };
