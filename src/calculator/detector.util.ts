@@ -260,15 +260,69 @@ export class DetectorUtil {
     }
 
     checkUpRestartTrend(): boolean {
-        // TODO -
+        const candle = this.segmentUtil.getCurrentCandle();
+        const [current, prev1, prev2, prev3] = this.segmentUtil.getSegments(4);
 
-        return false;
+        if (!prev3) {
+            return false;
+        }
+
+        const currentUpWaveMax = Math.max(current.max, prev1.max);
+        const lastUpWaveMax = Math.max(prev2.max, prev3.max);
+        const lastDownWaveMin = Math.min(prev1.min, prev2.min);
+        const fib73 = (lastUpWaveMax - lastDownWaveMin) * 0.73 + lastDownWaveMin;
+
+        if (
+            current.isDown &&
+            current.min > lastDownWaveMin &&
+            lastUpWaveMax > currentUpWaveMax &&
+            currentUpWaveMax < fib73
+        ) {
+            if (!this.upRestartTrendDetected) {
+                this.logger.verbose(`UP RESTART TREND - ${candle.dateString}`);
+            }
+
+            this.upRestartTrendDetected = true;
+
+            return true;
+        } else {
+            this.upRestartTrendDetected = false;
+
+            return false;
+        }
     }
 
     checkDownRestartTrend(): boolean {
-        // TODO -
+        const candle = this.segmentUtil.getCurrentCandle();
+        const [current, prev1, prev2, prev3] = this.segmentUtil.getSegments(4);
 
-        return false;
+        if (!prev3) {
+            return false;
+        }
+
+        const currentDownWaveMin = Math.min(current.min, prev1.min);
+        const lastDownWaveMin = Math.min(prev2.min, prev3.min);
+        const lastUpWaveMax = Math.max(prev1.max, prev2.max);
+        const fib73 = (lastUpWaveMax - lastDownWaveMin) * (1 - 0.73) + lastDownWaveMin;
+
+        if (
+            current.isUp &&
+            current.max < lastUpWaveMax &&
+            lastDownWaveMin < currentDownWaveMin &&
+            currentDownWaveMin > fib73
+        ) {
+            if (!this.downRestartTrendDetected) {
+                this.logger.verbose(`DOWN RESTART TREND - ${candle.dateString}`);
+            }
+
+            this.downRestartTrendDetected = true;
+
+            return true;
+        } else {
+            this.downRestartTrendDetected = false;
+
+            return false;
+        }
     }
 
     checkUpMicroWave(): boolean {

@@ -6,6 +6,7 @@ import { SegmentUtil } from './segment.util';
 import { DetectorUtil } from './detector.util';
 
 // TODO Filtrate flags with mass near border
+// TODO Filtrate super compact restart trend
 
 @Injectable()
 export class CalculatorService {
