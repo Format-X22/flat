@@ -234,15 +234,76 @@ export class DetectorUtil {
     }
 
     checkUpTriangleBreak(): boolean {
-        // TODO -
+        const candle = this.segmentUtil.getCurrentCandle();
+        const [current, prev1, prev2, prev3, prev4] = this.segmentUtil.getSegments(5);
 
-        return false;
+        if (!prev4) {
+            return false;
+        }
+
+        const currentUpWaveMax = Math.max(current.max, prev1.max);
+        const lastUpWaveMax = Math.max(prev2.max, prev3.max);
+        const lastDownWaveMin = Math.min(prev1.min, prev2.min);
+        const last2DownWaveMin = Math.min(prev3.min, prev4.min);
+        const fib5 = (lastUpWaveMax - last2DownWaveMin) * 0.5 + last2DownWaveMin;
+        const fib35 = (lastUpWaveMax - lastDownWaveMin) * 0.35 + lastDownWaveMin;
+
+        if (
+            current.isDown &&
+            currentUpWaveMax < lastUpWaveMax &&
+            current.min > lastDownWaveMin &&
+            last2DownWaveMin < fib35 &&
+            lastDownWaveMin < fib5
+        ) {
+            if (!this.upTriangleBreakDetected) {
+                this.logger.verbose(`UP TRIANGLE BREAD - ${candle.dateString}`);
+            }
+
+            this.upTriangleBreakDetected = true;
+
+            return true;
+        } else {
+            this.upTriangleBreakDetected = false;
+
+            return false;
+        }
     }
 
     checkDownTriangleBreak(): boolean {
-        // TODO -
+        const candle = this.segmentUtil.getCurrentCandle();
+        const [current, prev1, prev2, prev3, prev4] = this.segmentUtil.getSegments(5);
 
-        return false;
+        if (!prev4) {
+            return false;
+        }
+
+        const currentDownWaveMin = Math.min(current.min, prev1.min);
+        const lastDownWaveMin = Math.min(prev2.min, prev3.min);
+        const lastUpWaveMax = Math.max(prev1.max, prev2.max);
+        const last2UpWaveMax = Math.max(prev3.max, prev4.max);
+        const fib5 = (last2UpWaveMax - lastDownWaveMin) * 0.5 + lastDownWaveMin;
+        const fib35 = (lastUpWaveMax - lastDownWaveMin) * (1 - 0.35) + lastDownWaveMin;
+
+        if (
+            current.isUp &&
+            currentDownWaveMin > lastDownWaveMin &&
+            current.max < lastUpWaveMax &&
+            lastUpWaveMax < last2UpWaveMax &&
+            last2UpWaveMax > fib35 &&
+            lastUpWaveMax > fib5
+        ) {
+            if (!this.downTriangleBreakDetected) {
+                this.logger.verbose(`DOWN TRIANGLE BREAD - ${candle.dateString}`);
+            }
+
+            this.downTriangleBreakDetected = true;
+
+            return true;
+        } else {
+            this.downTriangleBreakDetected = false;
+
+            return false;
+        }
     }
 
     checkUpTriangleBack(): boolean {
