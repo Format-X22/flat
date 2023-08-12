@@ -14,8 +14,6 @@ export class DetectorUtil {
     private downTriangleBackDetected: boolean = false;
     private upRestartTrendDetected: boolean = false;
     private downRestartTrendDetected: boolean = false;
-    private upMicroWaveDetected: boolean = false;
-    private downMicroWaveDetected: boolean = false;
 
     constructor(private readonly segmentUtil: SegmentUtil) {}
 
@@ -323,17 +321,5 @@ export class DetectorUtil {
 
             return false;
         }
-    }
-
-    checkUpMicroWave(): boolean {
-        // TODO -
-
-        return false;
-    }
-
-    checkDownMicroWave(): boolean {
-        // TODO -
-
-        return false;
     }
 }

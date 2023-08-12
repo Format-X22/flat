@@ -41,9 +41,6 @@ export class CalculatorService {
             const upRestartTrendDetected = detectorUtil.checkUpRestartTrend();
             const downRestartTrendDetected = detectorUtil.checkDownRestartTrend();
 
-            const upMicroWaveDetected = detectorUtil.checkUpMicroWave();
-            const downMicroWaveDetected = detectorUtil.checkDownMicroWave();
-
             // TODO -
         }
 
