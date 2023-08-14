@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CandleModel } from '../loader/candle.model';
 import { Repository } from 'typeorm';
-import { SegmentUtil } from './segment.util';
-import { DetectorUtil } from './detector.util';
+import { SegmentService } from '../segment/segment.service';
+import { TradeService } from '../trade/trade.service';
 
 // TODO Filtrate flags with mass near border
 // TODO Filtrate super compact restart trend
@@ -12,39 +12,24 @@ import { DetectorUtil } from './detector.util';
 export class CalculatorService {
     private readonly logger: Logger = new Logger(CalculatorService.name);
 
-    constructor(@InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>) {}
+    constructor(
+        @InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>,
+        private readonly segmentService: SegmentService,
+        private readonly tradeService: TradeService,
+    ) {}
 
     async calc(): Promise<void> {
-        const segmentUtil = new SegmentUtil();
-        const detectorUtil = new DetectorUtil(segmentUtil);
         const candles = await this.getCandles('1d');
 
         for (const candle of candles) {
-            segmentUtil.addCandle(candle);
+            this.segmentService.addCandle(candle);
 
             if (!this.isInTestRange(candle)) {
                 continue;
             }
 
-            const upFlagDetected = detectorUtil.checkUpFlag();
-            const downFlagDetected = detectorUtil.checkDownFlag();
-
-            const upTrendBreakDetected = detectorUtil.checkUpTrendBreak();
-            const downTrendBreakDetected = detectorUtil.checkDownTrendBreak();
-
-            const upTriangleBreakDetected = detectorUtil.checkUpTriangleBreak();
-            const downTriangleBreakDetected = detectorUtil.checkDownTriangleBreak();
-
-            const upTriangleBackDetected = detectorUtil.checkUpTriangleBack();
-            const downTriangleBackDetected = detectorUtil.checkDownTriangleBack();
-
-            const upRestartTrendDetected = detectorUtil.checkUpRestartTrend();
-            const downRestartTrendDetected = detectorUtil.checkDownRestartTrend();
-
-            // TODO -
+            this.tradeService.tick();
         }
-
-        // TODO -
     }
 
     private getCandles(size: string): Promise<Array<CandleModel>> {

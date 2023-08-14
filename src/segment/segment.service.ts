@@ -1,7 +1,9 @@
-import { TSegment } from './calculator.types';
+import { Injectable } from '@nestjs/common';
 import { CandleModel } from '../loader/candle.model';
+import { TSegment } from './segment.dto';
 
-export class SegmentUtil {
+@Injectable()
+export class SegmentService {
     private segments: Array<TSegment> = [
         {
             isUp: null,
@@ -70,10 +72,6 @@ export class SegmentUtil {
         if (this.getCurrentSegment() !== currentSegment) {
             this.segments.push(currentSegment);
         }
-    }
-
-    isDirectionChanged(): boolean {
-        return this.getCurrentSegment().size === 1;
     }
 
     getCurrentSegment(): TSegment {

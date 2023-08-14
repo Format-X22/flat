@@ -3,6 +3,9 @@ import { LoaderModule } from './loader/loader.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CandleModel } from './loader/candle.model';
 import { CalculatorModule } from './calculator/calculator.module';
+import { DetectorModule } from './detector/detector.module';
+import { SegmentModule } from './segment/segment.module';
+import { TradeModule } from './trade/trade.module';
 
 @Module({
     imports: [
@@ -18,6 +21,9 @@ import { CalculatorModule } from './calculator/calculator.module';
         }),
         LoaderModule,
         CalculatorModule,
+        DetectorModule,
+        SegmentModule,
+        TradeModule,
     ],
     controllers: [],
     providers: [],

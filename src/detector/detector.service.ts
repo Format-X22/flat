@@ -1,8 +1,9 @@
-import { SegmentUtil } from './segment.util';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { SegmentService } from '../segment/segment.service';
 
-export class DetectorUtil {
-    private readonly logger: Logger = new Logger(DetectorUtil.name);
+@Injectable()
+export class DetectorService {
+    private readonly logger: Logger = new Logger(DetectorService.name);
 
     private upFlagDetected: boolean = false;
     private downFlagDetected: boolean = false;
@@ -15,11 +16,48 @@ export class DetectorUtil {
     private upRestartTrendDetected: boolean = false;
     private downRestartTrendDetected: boolean = false;
 
-    constructor(private readonly segmentUtil: SegmentUtil) {}
+    constructor(private readonly segmentService: SegmentService) {}
 
-    checkUpFlag(): boolean {
-        const candle = this.segmentUtil.getCurrentCandle();
-        const [current, prev1, prev2, prev3] = this.segmentUtil.getSegments(4);
+    detect(): {
+        upFlag: boolean;
+        downFlag: boolean;
+        upTrendBreak: boolean;
+        downTrendBreak: boolean;
+        upTriangleBreak: boolean;
+        downTriangleBreak: boolean;
+        upTriangleBack: boolean;
+        downTriangleBack: boolean;
+        upRestartTrend: boolean;
+        downRestartTrend: boolean;
+    } {
+        this.checkUpFlag();
+        this.checkDownFlag();
+        this.checkUpTrendBreak();
+        this.checkDownTrendBreak();
+        this.checkUpTriangleBreak();
+        this.checkDownTriangleBreak();
+        this.checkUpTriangleBack();
+        this.checkDownTriangleBack();
+        this.checkUpRestartTrend();
+        this.checkDownRestartTrend();
+
+        return {
+            upFlag: this.upFlagDetected,
+            downFlag: this.downFlagDetected,
+            upTrendBreak: this.upTrendBreakDetected,
+            downTrendBreak: this.downTrendBreakDetected,
+            upTriangleBreak: this.upTriangleBreakDetected,
+            downTriangleBreak: this.downTriangleBreakDetected,
+            upTriangleBack: this.upTriangleBackDetected,
+            downTriangleBack: this.downTriangleBackDetected,
+            upRestartTrend: this.upRestartTrendDetected,
+            downRestartTrend: this.downRestartTrendDetected,
+        };
+    }
+
+    private checkUpFlag(): boolean {
+        const candle = this.segmentService.getCurrentCandle();
+        const [current, prev1, prev2, prev3] = this.segmentService.getSegments(4);
 
         if (!prev3) {
             return false;
@@ -45,9 +83,9 @@ export class DetectorUtil {
         }
     }
 
-    checkDownFlag(): boolean {
-        const candle = this.segmentUtil.getCurrentCandle();
-        const [current, prev1, prev2, prev3] = this.segmentUtil.getSegments(4);
+    private checkDownFlag(): boolean {
+        const candle = this.segmentService.getCurrentCandle();
+        const [current, prev1, prev2, prev3] = this.segmentService.getSegments(4);
 
         if (!prev3) {
             return false;
@@ -73,9 +111,9 @@ export class DetectorUtil {
         }
     }
 
-    checkUpTrendBreak(): boolean {
-        const candle = this.segmentUtil.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentUtil.getSegments(5);
+    private checkUpTrendBreak(): boolean {
+        const candle = this.segmentService.getCurrentCandle();
+        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
 
         if (!prev4) {
             return false;
@@ -153,9 +191,9 @@ export class DetectorUtil {
         }
     }
 
-    checkDownTrendBreak(): boolean {
-        const candle = this.segmentUtil.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentUtil.getSegments(5);
+    private checkDownTrendBreak(): boolean {
+        const candle = this.segmentService.getCurrentCandle();
+        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
 
         if (!prev4) {
             return false;
@@ -233,9 +271,9 @@ export class DetectorUtil {
         }
     }
 
-    checkUpTriangleBreak(): boolean {
-        const candle = this.segmentUtil.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentUtil.getSegments(5);
+    private checkUpTriangleBreak(): boolean {
+        const candle = this.segmentService.getCurrentCandle();
+        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
 
         if (!prev4) {
             return false;
@@ -269,9 +307,9 @@ export class DetectorUtil {
         }
     }
 
-    checkDownTriangleBreak(): boolean {
-        const candle = this.segmentUtil.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentUtil.getSegments(5);
+    private checkDownTriangleBreak(): boolean {
+        const candle = this.segmentService.getCurrentCandle();
+        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
 
         if (!prev4) {
             return false;
@@ -306,9 +344,9 @@ export class DetectorUtil {
         }
     }
 
-    checkUpTriangleBack(): boolean {
-        const candle = this.segmentUtil.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentUtil.getSegments(5);
+    private checkUpTriangleBack(): boolean {
+        const candle = this.segmentService.getCurrentCandle();
+        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
 
         if (!prev4) {
             return false;
@@ -328,23 +366,23 @@ export class DetectorUtil {
             last2DownWaveMin < fib35 &&
             lastDownWaveMin < fib5
         ) {
-            if (!this.upTriangleBreakDetected) {
+            if (!this.upTriangleBackDetected) {
                 this.logger.verbose(`UP TRIANGLE BACK - ${candle.dateString}`);
             }
 
-            this.upTriangleBreakDetected = true;
+            this.upTriangleBackDetected = true;
 
             return true;
         } else {
-            this.upTriangleBreakDetected = false;
+            this.upTriangleBackDetected = false;
 
             return false;
         }
     }
 
-    checkDownTriangleBack(): boolean {
-        const candle = this.segmentUtil.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentUtil.getSegments(5);
+    private checkDownTriangleBack(): boolean {
+        const candle = this.segmentService.getCurrentCandle();
+        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
 
         if (!prev4) {
             return false;
@@ -365,23 +403,23 @@ export class DetectorUtil {
             last2UpWaveMax > fib35 &&
             lastUpWaveMax > fib5
         ) {
-            if (!this.downTriangleBreakDetected) {
+            if (!this.downTriangleBackDetected) {
                 this.logger.verbose(`DOWN TRIANGLE BACK - ${candle.dateString}`);
             }
 
-            this.downTriangleBreakDetected = true;
+            this.downTriangleBackDetected = true;
 
             return true;
         } else {
-            this.downTriangleBreakDetected = false;
+            this.downTriangleBackDetected = false;
 
             return false;
         }
     }
 
-    checkUpRestartTrend(): boolean {
-        const candle = this.segmentUtil.getCurrentCandle();
-        const [current, prev1, prev2, prev3] = this.segmentUtil.getSegments(4);
+    private checkUpRestartTrend(): boolean {
+        const candle = this.segmentService.getCurrentCandle();
+        const [current, prev1, prev2, prev3] = this.segmentService.getSegments(4);
 
         if (!prev3) {
             return false;
@@ -412,9 +450,9 @@ export class DetectorUtil {
         }
     }
 
-    checkDownRestartTrend(): boolean {
-        const candle = this.segmentUtil.getCurrentCandle();
-        const [current, prev1, prev2, prev3] = this.segmentUtil.getSegments(4);
+    private checkDownRestartTrend(): boolean {
+        const candle = this.segmentService.getCurrentCandle();
+        const [current, prev1, prev2, prev3] = this.segmentService.getSegments(4);
 
         if (!prev3) {
             return false;
