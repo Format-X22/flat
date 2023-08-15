@@ -95,4 +95,12 @@ export class SegmentService {
 
         return result;
     }
+
+    getFib(first: number, last: number, val: number, firstIsMax: boolean): number {
+        const zone = Math.abs(first - last);
+        const min = firstIsMax ? last : first;
+        const mul = firstIsMax ? val : 1 - val;
+
+        return zone * mul + min;
+    }
 }

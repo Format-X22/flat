@@ -30,10 +30,18 @@ export class CalculatorService {
 
             this.tradeService.tick();
         }
+
+        this.tradeService.printCapital();
     }
 
-    private getCandles(size: string): Promise<Array<CandleModel>> {
-        return this.candleRepo.find({ where: { size }, order: { timestamp: 'ASC' } });
+    private async getCandles(size: string): Promise<Array<CandleModel>> {
+        const candles = await this.candleRepo.find({ where: { size }, order: { timestamp: 'ASC' } });
+
+        return JSON.parse(JSON.stringify(candles)).map((candle) => {
+            candle.timestamp = +candle.timestamp;
+
+            return candle;
+        });
     }
 
     private isInTestRange(candle: CandleModel): boolean {
