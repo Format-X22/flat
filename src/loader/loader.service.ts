@@ -17,6 +17,11 @@ export class LoaderService {
 
     constructor(@InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>) {}
 
+    async truncate(): Promise<void> {
+        this.logger.log('Truncated');
+        await this.candleRepo.clear();
+    }
+
     async load(size: string): Promise<void> {
         const rawDataMap = new Map<number, Partial<CandleModel>>();
         const stock = new ccxt.binance();

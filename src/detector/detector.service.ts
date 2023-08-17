@@ -1,555 +1,90 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { SegmentService } from '../segment/segment.service';
 import { TDetections } from './detector.dto';
+import { DownFlagDetect, UpFlagDetect } from './detect/flag.detect';
+import { DownBreakDetect, UpBreakDetect } from './detect/break.detect';
+import { DownTriangleDetect, UpTriangleDetect } from './detect/triangle.detect';
+import { DownZigzagDetect, UpZigzagDetect } from './detect/zigzag.detect';
+import { DownRestartDetect, UpRestartDetect } from './detect/restart.detect';
 
 @Injectable()
 export class DetectorService {
-    private readonly logger: Logger = new Logger(DetectorService.name);
+    private upFlagDetect: UpFlagDetect;
+    private downFlagDetect: DownFlagDetect;
+    private upBreakDetect: UpBreakDetect;
+    private downBreakDetect: DownBreakDetect;
+    private upTriangleDetect: UpTriangleDetect;
+    private downTriangleDetect: DownTriangleDetect;
+    private upZigzagDetect: UpZigzagDetect;
+    private downZigzagDetect: DownZigzagDetect;
+    private upRestartDetect: UpRestartDetect;
+    private downRestartDetect: DownRestartDetect;
 
-    private upFlagDetected: boolean = false;
-    private downFlagDetected: boolean = false;
-    private upTrendBreakDetected: boolean = false;
-    private downTrendBreakDetected: boolean = false;
-    private upTriangleBreakDetected: boolean = false;
-    private downTriangleBreakDetected: boolean = false;
-    private upTriangleBackDetected: boolean = false;
-    private downTriangleBackDetected: boolean = false;
-    private upRestartTrendDetected: boolean = false;
-    private downRestartTrendDetected: boolean = false;
-
-    constructor(private readonly segmentService: SegmentService) {}
+    constructor(private readonly segmentService: SegmentService) {
+        this.upFlagDetect = new UpFlagDetect(segmentService);
+        this.downFlagDetect = new DownFlagDetect(segmentService);
+        this.upBreakDetect = new UpBreakDetect(segmentService);
+        this.downBreakDetect = new DownBreakDetect(segmentService);
+        this.upTriangleDetect = new UpTriangleDetect(segmentService);
+        this.downTriangleDetect = new DownTriangleDetect(segmentService);
+        this.upZigzagDetect = new UpZigzagDetect(segmentService);
+        this.downZigzagDetect = new DownZigzagDetect(segmentService);
+        this.upRestartDetect = new UpRestartDetect(segmentService);
+        this.downRestartDetect = new DownRestartDetect(segmentService);
+    }
 
     detect(): TDetections {
-        this.checkUpFlag();
-        this.checkDownFlag();
-        //this.checkUpTrendBreak();
-        //this.checkDownTrendBreak();
-        //this.checkUpTriangleBreak();
-        //this.checkDownTriangleBreak();
-        //this.checkUpTriangleBack();
-        //this.checkDownTriangleBack();
-        //this.checkUpRestartTrend();
-        //this.checkDownRestartTrend();
-
         return {
-            upFlag: this.upFlagDetected,
-            downFlag: this.downFlagDetected,
-            upTrendBreak: this.upTrendBreakDetected,
-            downTrendBreak: this.downTrendBreakDetected,
-            upTriangleBreak: this.upTriangleBreakDetected,
-            downTriangleBreak: this.downTriangleBreakDetected,
-            upTriangleBack: this.upTriangleBackDetected,
-            downTriangleBack: this.downTriangleBackDetected,
-            upRestartTrend: this.upRestartTrendDetected,
-            downRestartTrend: this.downRestartTrendDetected,
+            upFlag: this.checkUpFlag(),
+            downFlag: this.checkDownFlag(),
+            upBreak: this.checkUpBreak(),
+            downBreak: this.checkDownBreak(),
+            upTriangle: this.checkUpTriangle(),
+            downTriangle: this.checkDownTriangle(),
+            upZigzag: this.checkUpZigzag(),
+            downZigzag: this.checkDownZigzag(),
+            upRestart: this.checkUpRestart(),
+            downRestart: this.checkDownRestart(),
         };
     }
 
     private checkUpFlag(): boolean {
-        const candle = this.segmentService.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
-
-        if (!prev3) {
-            return false;
-        }
-
-        if (current.isDown) {
-            const currentUpWaveMax = Math.max(current.max, prev1.max);
-            const lastUpWaveMax = Math.max(prev2.max, prev3.max);
-            const lastDownWaveMin = Math.min(prev1.min, prev2.min);
-            const fib5 = (currentUpWaveMax - lastDownWaveMin) * 0.5 + lastDownWaveMin;
-
-            if (
-                current.size > 1 &&
-                current.min > fib5 &&
-                lastUpWaveMax < current.min &&
-                currentUpWaveMax >= current.max
-            ) {
-                if (!this.upFlagDetected) {
-                    this.logger.verbose(`UP FLAG - ${candle.dateString}`);
-                }
-
-                this.upFlagDetected = true;
-
-                return true;
-            } else {
-                if (this.upFlagDetected) {
-                    this.logger.verbose(`<< UP FLAG - ${candle.dateString}`);
-                }
-
-                this.upFlagDetected = false;
-
-                return false;
-            }
-        } else {
-            const currentDownWaveMin = Math.min(current.min, prev1.min);
-            const lastUpWaveMax = Math.max(prev1.max, prev2.max);
-            const last2UpWaveMax = Math.max(prev3.max, prev4.max);
-            const lastDownWaveMin = Math.min(prev2.min, prev3.min);
-            const fib5 = (lastUpWaveMax - lastDownWaveMin) * 0.5 + lastDownWaveMin;
-
-            if (
-                prev1.size > 1 &&
-                currentDownWaveMin > fib5 &&
-                last2UpWaveMax < currentDownWaveMin &&
-                lastUpWaveMax >= current.max
-            ) {
-                if (!this.upFlagDetected) {
-                    this.logger.verbose(`UP FLAG - ${candle.dateString}`);
-                }
-
-                this.upFlagDetected = true;
-
-                return true;
-            } else {
-                if (this.upFlagDetected) {
-                    this.logger.verbose(`<< UP FLAG - ${candle.dateString}`);
-                }
-
-                this.upFlagDetected = false;
-
-                return false;
-            }
-        }
+        return this.upFlagDetect.check();
     }
 
     private checkDownFlag(): boolean {
-        const candle = this.segmentService.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
-
-        if (!prev4) {
-            return false;
-        }
-
-        if (current.isUp) {
-            const currentDownWaveMin = Math.min(current.min, prev1.min);
-            const lastDownWaveMin = Math.min(prev2.min, prev3.min);
-            const lastUpWaveMax = Math.max(prev1.max, prev2.max);
-            const fib5 = (lastUpWaveMax - currentDownWaveMin) * 0.5 + currentDownWaveMin;
-
-            if (
-                current.size > 1 &&
-                current.max < fib5 &&
-                lastDownWaveMin > current.max &&
-                currentDownWaveMin <= current.min
-            ) {
-                if (!this.downFlagDetected) {
-                    this.logger.verbose(`DOWN FLAG - ${candle.dateString}`);
-                }
-
-                this.downFlagDetected = true;
-
-                return true;
-            } else {
-                if (this.downFlagDetected) {
-                    this.logger.verbose(`<< DOWN FLAG - ${candle.dateString}`);
-                }
-
-                this.downFlagDetected = false;
-
-                return false;
-            }
-        } else {
-            const currentUpWaveMax = Math.max(current.max, prev1.max);
-            const lastDownWaveMin = Math.min(prev1.min, prev2.min);
-            const last2DownWaveMin = Math.min(prev3.min, prev4.min);
-            const lastUpWaveMax = Math.max(prev2.max, prev3.max);
-            const fib5 = (lastUpWaveMax - lastDownWaveMin) * 0.5 + lastDownWaveMin;
-
-            if (
-                prev1.size > 1 &&
-                currentUpWaveMax < fib5 &&
-                last2DownWaveMin > currentUpWaveMax &&
-                lastDownWaveMin <= current.min
-            ) {
-                if (!this.downFlagDetected) {
-                    this.logger.verbose(`DOWN FLAG - ${candle.dateString}`);
-                }
-
-                this.downFlagDetected = true;
-
-                return true;
-            } else {
-                if (this.downFlagDetected) {
-                    this.logger.verbose(`<< DOWN FLAG - ${candle.dateString}`);
-                }
-
-                this.downFlagDetected = false;
-
-                return false;
-            }
-        }
+        return this.downFlagDetect.check();
     }
 
-    private checkUpTrendBreak(): boolean {
-        const candle = this.segmentService.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
-
-        if (!prev4) {
-            return false;
-        }
-
-        if (current.isUp) {
-            const lastUpWaveMax = Math.max(prev1.max, prev2.max);
-            const lastDownWaveMin = Math.min(current.min, prev1.min);
-            const last2DownWaveMin = Math.min(prev2.min, prev3.min);
-            const fib5 = (current.max - lastDownWaveMin) * 0.5 + lastDownWaveMin;
-            const fib62 = (current.max - lastDownWaveMin) * (1 - 0.62) + lastDownWaveMin;
-            const candlesForFibCheck = current.candles;
-            let someCandleInFib5AndNotOverflow = false;
-            let someCandleInFib5 = false;
-
-            for (const item of candlesForFibCheck) {
-                if (!someCandleInFib5 && item.low > fib5) {
-                    someCandleInFib5 = true;
-                    someCandleInFib5AndNotOverflow = true;
-                }
-
-                if (someCandleInFib5 && someCandleInFib5AndNotOverflow && item.low <= fib62) {
-                    someCandleInFib5AndNotOverflow = false;
-                }
-            }
-
-            if (current.max > lastUpWaveMax && lastDownWaveMin > last2DownWaveMin && someCandleInFib5AndNotOverflow) {
-                if (!this.upTrendBreakDetected) {
-                    this.logger.verbose(`UP TREND BREAK - ${candle.dateString}`);
-                }
-
-                this.upTrendBreakDetected = true;
-
-                return true;
-            } else {
-                this.upTrendBreakDetected = false;
-
-                return false;
-            }
-        } else {
-            const lastUpWaveMax = Math.max(prev2.max, prev3.max);
-            const lastDownWaveMin = Math.min(prev1.min, prev2.min);
-            const last2DownWaveMin = Math.min(prev3.min, prev4.min);
-            const currentUpWaveMax = Math.max(current.max, prev1.max);
-            const fib5 = (currentUpWaveMax - lastDownWaveMin) * 0.5 + lastDownWaveMin;
-            const fib62 = (currentUpWaveMax - lastDownWaveMin) * (1 - 0.62) + lastDownWaveMin;
-            const candlesForFibCheck = [...prev1.candles, ...current.candles];
-            let someCandleInFib5AndNotOverflow = false;
-            let someCandleInFib5 = false;
-
-            for (const item of candlesForFibCheck) {
-                if (!someCandleInFib5 && item.low > fib5) {
-                    someCandleInFib5 = true;
-                    someCandleInFib5AndNotOverflow = true;
-                }
-
-                if (someCandleInFib5 && someCandleInFib5AndNotOverflow && item.low <= fib62) {
-                    someCandleInFib5AndNotOverflow = false;
-                }
-            }
-
-            if (current.max > lastUpWaveMax && lastDownWaveMin > last2DownWaveMin && someCandleInFib5AndNotOverflow) {
-                if (!this.upTrendBreakDetected) {
-                    this.logger.verbose(`UP TREND BREAK - ${candle.dateString}`);
-                }
-
-                this.upTrendBreakDetected = true;
-
-                return true;
-            } else {
-                this.upTrendBreakDetected = false;
-
-                return false;
-            }
-        }
+    private checkUpBreak(): boolean {
+        return this.upBreakDetect.check();
     }
 
-    private checkDownTrendBreak(): boolean {
-        const candle = this.segmentService.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
-
-        if (!prev4) {
-            return false;
-        }
-
-        if (current.isDown) {
-            const lastDownWaveMin = Math.min(prev1.min, prev2.min);
-            const lastUpWaveMax = Math.max(current.max, prev1.max);
-            const last2UpWaveMax = Math.max(prev2.max, prev3.max);
-            const fib5 = (lastUpWaveMax - current.min) * 0.5 + current.min;
-            const fib62 = (lastUpWaveMax - current.min) * 0.62 + current.min;
-            const candlesForFibCheck = current.candles;
-            let someCandleInFib5AndNotOverflow = false;
-            let someCandleInFib5 = false;
-
-            for (const item of candlesForFibCheck) {
-                if (!someCandleInFib5 && item.high < fib5) {
-                    someCandleInFib5 = true;
-                    someCandleInFib5AndNotOverflow = true;
-                }
-
-                if (someCandleInFib5 && someCandleInFib5AndNotOverflow && item.high >= fib62) {
-                    someCandleInFib5AndNotOverflow = false;
-                }
-            }
-
-            if (current.min < lastDownWaveMin && lastUpWaveMax < last2UpWaveMax && someCandleInFib5AndNotOverflow) {
-                if (!this.downTrendBreakDetected) {
-                    this.logger.verbose(`DOWN TREND BREAK - ${candle.dateString}`);
-                }
-
-                this.downTrendBreakDetected = true;
-
-                return true;
-            } else {
-                this.downTrendBreakDetected = false;
-
-                return false;
-            }
-        } else {
-            const lastDownWaveMin = Math.min(prev2.min, prev3.min);
-            const lastUpWaveMax = Math.max(prev1.max, prev2.max);
-            const last2UpWaveMax = Math.max(prev3.max, prev4.max);
-            const currentDownWaveMin = Math.min(current.min, prev1.min);
-            const fib5 = (lastUpWaveMax - currentDownWaveMin) * 0.5 + currentDownWaveMin;
-            const fib62 = (lastUpWaveMax - currentDownWaveMin) * 0.62 + currentDownWaveMin;
-            const candlesForFibCheck = [...prev1.candles, ...current.candles];
-            let someCandleInFib5AndNotOverflow = false;
-            let someCandleInFib5 = false;
-
-            for (const item of candlesForFibCheck) {
-                if (!someCandleInFib5 && item.high < fib5) {
-                    someCandleInFib5 = true;
-                    someCandleInFib5AndNotOverflow = true;
-                }
-
-                if (someCandleInFib5 && someCandleInFib5AndNotOverflow && item.high >= fib62) {
-                    someCandleInFib5AndNotOverflow = false;
-                }
-            }
-
-            if (current.min < lastDownWaveMin && lastUpWaveMax < last2UpWaveMax && someCandleInFib5AndNotOverflow) {
-                if (!this.downTrendBreakDetected) {
-                    this.logger.verbose(`DOWN TREND BREAK - ${candle.dateString}`);
-                }
-
-                this.downTrendBreakDetected = true;
-
-                return true;
-            } else {
-                this.downTrendBreakDetected = false;
-
-                return false;
-            }
-        }
+    private checkDownBreak(): boolean {
+        return this.downBreakDetect.check();
     }
 
-    private checkUpTriangleBreak(): boolean {
-        const candle = this.segmentService.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
-
-        if (!prev4) {
-            return false;
-        }
-
-        const currentUpWaveMax = Math.max(current.max, prev1.max);
-        const lastUpWaveMax = Math.max(prev2.max, prev3.max);
-        const lastDownWaveMin = Math.min(prev1.min, prev2.min);
-        const last2DownWaveMin = Math.min(prev3.min, prev4.min);
-        const fib5 = (lastUpWaveMax - last2DownWaveMin) * 0.5 + last2DownWaveMin;
-        const fib35 = (lastUpWaveMax - lastDownWaveMin) * 0.35 + lastDownWaveMin;
-
-        if (
-            current.isDown &&
-            currentUpWaveMax < lastUpWaveMax &&
-            current.min > lastDownWaveMin &&
-            last2DownWaveMin < fib35 &&
-            lastDownWaveMin < fib5
-        ) {
-            if (!this.upTriangleBreakDetected) {
-                this.logger.verbose(`UP TRIANGLE BREAK - ${candle.dateString}`);
-            }
-
-            this.upTriangleBreakDetected = true;
-
-            return true;
-        } else {
-            this.upTriangleBreakDetected = false;
-
-            return false;
-        }
+    private checkUpTriangle(): boolean {
+        return this.upTriangleDetect.check();
     }
 
-    private checkDownTriangleBreak(): boolean {
-        const candle = this.segmentService.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
-
-        if (!prev4) {
-            return false;
-        }
-
-        const currentDownWaveMin = Math.min(current.min, prev1.min);
-        const lastDownWaveMin = Math.min(prev2.min, prev3.min);
-        const lastUpWaveMax = Math.max(prev1.max, prev2.max);
-        const last2UpWaveMax = Math.max(prev3.max, prev4.max);
-        const fib5 = (last2UpWaveMax - lastDownWaveMin) * 0.5 + lastDownWaveMin;
-        const fib35 = (lastUpWaveMax - lastDownWaveMin) * (1 - 0.35) + lastDownWaveMin;
-
-        if (
-            current.isUp &&
-            currentDownWaveMin > lastDownWaveMin &&
-            current.max < lastUpWaveMax &&
-            lastUpWaveMax < last2UpWaveMax &&
-            last2UpWaveMax > fib35 &&
-            lastUpWaveMax > fib5
-        ) {
-            if (!this.downTriangleBreakDetected) {
-                this.logger.verbose(`DOWN TRIANGLE BREAK - ${candle.dateString}`);
-            }
-
-            this.downTriangleBreakDetected = true;
-
-            return true;
-        } else {
-            this.downTriangleBreakDetected = false;
-
-            return false;
-        }
+    private checkDownTriangle(): boolean {
+        return this.downTriangleDetect.check();
     }
 
-    private checkUpTriangleBack(): boolean {
-        const candle = this.segmentService.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
-
-        if (!prev4) {
-            return false;
-        }
-
-        const currentUpWaveMax = Math.max(current.max, prev1.max);
-        const lastUpWaveMax = Math.max(prev2.max, prev3.max);
-        const lastDownWaveMin = Math.min(prev1.min, prev2.min);
-        const last2DownWaveMin = Math.min(prev3.min, prev4.min);
-        const fib5 = (lastUpWaveMax - last2DownWaveMin) * 0.5 + last2DownWaveMin;
-        const fib35 = (lastUpWaveMax - lastDownWaveMin) * 0.35 + lastDownWaveMin;
-
-        if (
-            current.isDown &&
-            currentUpWaveMax < lastUpWaveMax &&
-            current.min < lastDownWaveMin &&
-            last2DownWaveMin < fib35 &&
-            lastDownWaveMin < fib5
-        ) {
-            if (!this.upTriangleBackDetected) {
-                this.logger.verbose(`UP TRIANGLE BACK - ${candle.dateString}`);
-            }
-
-            this.upTriangleBackDetected = true;
-
-            return true;
-        } else {
-            this.upTriangleBackDetected = false;
-
-            return false;
-        }
+    private checkUpZigzag(): boolean {
+        return this.upZigzagDetect.check();
     }
 
-    private checkDownTriangleBack(): boolean {
-        const candle = this.segmentService.getCurrentCandle();
-        const [current, prev1, prev2, prev3, prev4] = this.segmentService.getSegments(5);
-
-        if (!prev4) {
-            return false;
-        }
-
-        const currentDownWaveMin = Math.min(current.min, prev1.min);
-        const lastDownWaveMin = Math.min(prev2.min, prev3.min);
-        const lastUpWaveMax = Math.max(prev1.max, prev2.max);
-        const last2UpWaveMax = Math.max(prev3.max, prev4.max);
-        const fib5 = (last2UpWaveMax - lastDownWaveMin) * 0.5 + lastDownWaveMin;
-        const fib35 = (lastUpWaveMax - lastDownWaveMin) * (1 - 0.35) + lastDownWaveMin;
-
-        if (
-            current.isUp &&
-            currentDownWaveMin > lastDownWaveMin &&
-            current.max > lastUpWaveMax &&
-            lastUpWaveMax < last2UpWaveMax &&
-            last2UpWaveMax > fib35 &&
-            lastUpWaveMax > fib5
-        ) {
-            if (!this.downTriangleBackDetected) {
-                this.logger.verbose(`DOWN TRIANGLE BACK - ${candle.dateString}`);
-            }
-
-            this.downTriangleBackDetected = true;
-
-            return true;
-        } else {
-            this.downTriangleBackDetected = false;
-
-            return false;
-        }
+    private checkDownZigzag(): boolean {
+        return this.downZigzagDetect.check();
     }
 
-    private checkUpRestartTrend(): boolean {
-        const candle = this.segmentService.getCurrentCandle();
-        const [current, prev1, prev2, prev3] = this.segmentService.getSegments(4);
-
-        if (!prev3) {
-            return false;
-        }
-
-        const currentUpWaveMax = Math.max(current.max, prev1.max);
-        const lastUpWaveMax = Math.max(prev2.max, prev3.max);
-        const lastDownWaveMin = Math.min(prev1.min, prev2.min);
-        const fib73 = (lastUpWaveMax - lastDownWaveMin) * 0.73 + lastDownWaveMin;
-
-        if (
-            current.isDown &&
-            current.min > lastDownWaveMin &&
-            lastUpWaveMax > currentUpWaveMax &&
-            currentUpWaveMax < fib73
-        ) {
-            if (!this.upRestartTrendDetected) {
-                this.logger.verbose(`UP RESTART TREND - ${candle.dateString}`);
-            }
-
-            this.upRestartTrendDetected = true;
-
-            return true;
-        } else {
-            this.upRestartTrendDetected = false;
-
-            return false;
-        }
+    private checkUpRestart(): boolean {
+        return this.upRestartDetect.check();
     }
 
-    private checkDownRestartTrend(): boolean {
-        const candle = this.segmentService.getCurrentCandle();
-        const [current, prev1, prev2, prev3] = this.segmentService.getSegments(4);
-
-        if (!prev3) {
-            return false;
-        }
-
-        const currentDownWaveMin = Math.min(current.min, prev1.min);
-        const lastDownWaveMin = Math.min(prev2.min, prev3.min);
-        const lastUpWaveMax = Math.max(prev1.max, prev2.max);
-        const fib73 = (lastUpWaveMax - lastDownWaveMin) * (1 - 0.73) + lastDownWaveMin;
-
-        if (
-            current.isUp &&
-            current.max < lastUpWaveMax &&
-            lastDownWaveMin < currentDownWaveMin &&
-            currentDownWaveMin > fib73
-        ) {
-            if (!this.downRestartTrendDetected) {
-                this.logger.verbose(`DOWN RESTART TREND - ${candle.dateString}`);
-            }
-
-            this.downRestartTrendDetected = true;
-
-            return true;
-        } else {
-            this.downRestartTrendDetected = false;
-
-            return false;
-        }
+    private checkDownRestart(): boolean {
+        return this.downRestartDetect.check();
     }
 }

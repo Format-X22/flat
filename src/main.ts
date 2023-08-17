@@ -10,6 +10,8 @@ async function bootstrap() {
 
     logger.log('App started!');
 
+    //await app.get(LoaderService).truncate();
+    //await app.get(LoaderService).load('1d');
     await app.get(CalculatorService).calc();
 }
 bootstrap().catch((error) => console.log('FATAL on start - ' + error));

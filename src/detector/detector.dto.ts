@@ -1,12 +1,12 @@
 export type TDetections = {
     upFlag: boolean;
     downFlag: boolean;
-    upTrendBreak: boolean;
-    downTrendBreak: boolean;
-    upTriangleBreak: boolean;
-    downTriangleBreak: boolean;
-    upTriangleBack: boolean;
-    downTriangleBack: boolean;
-    upRestartTrend: boolean;
-    downRestartTrend: boolean;
+    upBreak: boolean;
+    downBreak: boolean;
+    upTriangle: boolean;
+    downTriangle: boolean;
+    upZigzag: boolean;
+    downZigzag: boolean;
+    upRestart: boolean;
+    downRestart: boolean;
 };
