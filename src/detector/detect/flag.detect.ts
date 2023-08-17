@@ -33,7 +33,6 @@ export class FlagDetect extends AbstractDetect {
             const fib5 = this.getFib(lastUpWaveMax, lastDownWaveMin, 0.5, true);
 
             if (
-                this.sizeGt(current, 1) &&
                 this.gt(currentDownWaveMin, fib5) &&
                 this.lt(last2UpWaveMax, currentDownWaveMin) &&
                 this.gte(lastUpWaveMax, this.segmentMax(current))

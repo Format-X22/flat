@@ -15,6 +15,7 @@ export class RestartDetect extends AbstractDetect {
         const fib73 = this.getFib(lastUpWaveMax, lastDownWaveMin, 0.73, true);
 
         if (
+            this.sizeGt(current, 1) &&
             this.isSegmentDown(current) &&
             this.gt(this.segmentMin(current), lastDownWaveMin) &&
             this.gt(lastUpWaveMax, currentUpWaveMax) &&

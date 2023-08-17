@@ -17,6 +17,10 @@ export class TriangleDetect extends AbstractDetect {
         const fib35 = this.getFib(lastUpWaveMax, lastDownWaveMin, 0.35, true);
 
         if (
+            this.sizeGt(current, 1) &&
+            this.sizeGt(prev2, 1) &&
+            this.sizeGt(prev3, 1) &&
+            this.sizeGt(prev4, 1) &&
             this.isSegmentDown(current) &&
             this.lt(currentUpWaveMax, lastUpWaveMax) &&
             this.gt(this.segmentMin(current), lastDownWaveMin) &&

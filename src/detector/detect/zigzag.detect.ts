@@ -15,8 +15,14 @@ export class ZigzagDetect extends AbstractDetect {
         const last2DownWaveMin = this.min(prev3, prev4);
         const fib5 = this.getFib(lastUpWaveMax, last2DownWaveMin, 0.5, true);
         const fib35 = this.getFib(lastUpWaveMax, lastDownWaveMin, 0.35, true);
+        const maxSize = (prev1.size + prev2.size + prev3.size) / 2;
 
         if (
+            this.sizeGt(current, 1) &&
+            this.sizeGt(prev2, 1) &&
+            this.sizeGt(prev3, 1) &&
+            this.sizeGt(prev4, 1) &&
+            this.constLt(current.size, maxSize) &&
             this.isSegmentDown(current) &&
             this.lt(currentUpWaveMax, lastUpWaveMax) &&
             this.lt(this.segmentMin(current), lastDownWaveMin) &&

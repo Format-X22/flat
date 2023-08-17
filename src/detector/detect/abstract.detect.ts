@@ -9,7 +9,7 @@ export abstract class AbstractDetect {
 
     protected constructor(
         private name: string,
-        private readonly isNotInverted = true,
+        protected readonly isNotInverted = true,
         protected segmentService: SegmentService,
     ) {
         this.logger = new Logger(name);
@@ -129,6 +129,22 @@ export abstract class AbstractDetect {
         } else {
             return valA >= valB;
         }
+    }
+
+    protected constGt(valA: number, valB: number): boolean {
+        return valA > valB;
+    }
+
+    protected constGte(valA: number, valB: number): boolean {
+        return valA >= valB;
+    }
+
+    protected constLt(valA: number, valB: number): boolean {
+        return valA < valB;
+    }
+
+    protected constLte(valA: number, valB: number): boolean {
+        return valA <= valB;
     }
 
     protected markDetection(): boolean {
