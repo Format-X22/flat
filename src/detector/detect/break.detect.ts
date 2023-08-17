@@ -1,7 +1,10 @@
 import { AbstractDetect } from './abstract.detect';
 import { SegmentService } from '../../segment/segment.service';
+import { DetectorService } from '../detector.service';
 
 export class BreakDetect extends AbstractDetect {
+    profitMul = 2.3;
+
     check(): boolean {
         const [current, prev1, prev2, prev3, prev4] = this.getSegments(5);
 
@@ -57,16 +60,20 @@ export class BreakDetect extends AbstractDetect {
             return this.markEndDetection();
         }
     }
+
+    trade() {
+        // TODO -
+    }
 }
 
 export class UpBreakDetect extends BreakDetect {
-    constructor(segmentService: SegmentService) {
-        super('UP BREAK', true, segmentService);
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('UP BREAK', true, segmentService, detectorService);
     }
 }
 
 export class DownBreakDetect extends BreakDetect {
-    constructor(segmentService: SegmentService) {
-        super('DOWN BREAK', false, segmentService);
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('DOWN BREAK', false, segmentService, detectorService);
     }
 }

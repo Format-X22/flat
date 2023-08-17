@@ -1,7 +1,10 @@
 import { AbstractDetect } from './abstract.detect';
 import { SegmentService } from '../../segment/segment.service';
+import { DetectorService } from '../detector.service';
 
 export class ZigzagDetect extends AbstractDetect {
+    profitMul = 2.1;
+
     check(): boolean {
         const [current, prev1, prev2, prev3, prev4] = this.getSegments(5);
 
@@ -34,16 +37,20 @@ export class ZigzagDetect extends AbstractDetect {
             return this.markEndDetection();
         }
     }
+
+    trade() {
+        // TODO -
+    }
 }
 
 export class UpZigzagDetect extends ZigzagDetect {
-    constructor(segmentService: SegmentService) {
-        super('UP ZIGZAG', true, segmentService);
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('UP ZIGZAG', true, segmentService, detectorService);
     }
 }
 
 export class DownZigzagDetect extends ZigzagDetect {
-    constructor(segmentService: SegmentService) {
-        super('DOWN ZIGZAG', false, segmentService);
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('DOWN ZIGZAG', false, segmentService, detectorService);
     }
 }

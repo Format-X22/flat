@@ -1,7 +1,10 @@
 import { AbstractDetect } from './abstract.detect';
 import { SegmentService } from '../../segment/segment.service';
+import { DetectorService } from '../detector.service';
 
 export class RestartDetect extends AbstractDetect {
+    profitMul = 2;
+
     check(): boolean {
         const [current, prev1, prev2, prev3] = this.getSegments(4);
 
@@ -26,16 +29,20 @@ export class RestartDetect extends AbstractDetect {
             return this.markEndDetection();
         }
     }
+
+    trade() {
+        // TODO -
+    }
 }
 
 export class UpRestartDetect extends RestartDetect {
-    constructor(segmentService: SegmentService) {
-        super('UP RESTART', true, segmentService);
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('UP RESTART', true, segmentService, detectorService);
     }
 }
 
 export class DownRestartDetect extends RestartDetect {
-    constructor(segmentService: SegmentService) {
-        super('DOWN RESTART', false, segmentService);
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('DOWN RESTART', false, segmentService, detectorService);
     }
 }

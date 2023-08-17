@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { SegmentService } from '../segment/segment.service';
-import { TDetections } from './detector.dto';
 import { DownFlagDetect, UpFlagDetect } from './detect/flag.detect';
 import { DownBreakDetect, UpBreakDetect } from './detect/break.detect';
 import { DownTriangleDetect, UpTriangleDetect } from './detect/triangle.detect';
@@ -9,6 +8,8 @@ import { DownRestartDetect, UpRestartDetect } from './detect/restart.detect';
 
 @Injectable()
 export class DetectorService {
+    private readonly logger: Logger = new Logger(DetectorService.name);
+
     private upFlagDetect: UpFlagDetect;
     private downFlagDetect: DownFlagDetect;
     private upBreakDetect: UpBreakDetect;
@@ -20,71 +21,43 @@ export class DetectorService {
     private upRestartDetect: UpRestartDetect;
     private downRestartDetect: DownRestartDetect;
 
+    private capital = 100;
+
     constructor(private readonly segmentService: SegmentService) {
-        this.upFlagDetect = new UpFlagDetect(segmentService);
-        this.downFlagDetect = new DownFlagDetect(segmentService);
-        this.upBreakDetect = new UpBreakDetect(segmentService);
-        this.downBreakDetect = new DownBreakDetect(segmentService);
-        this.upTriangleDetect = new UpTriangleDetect(segmentService);
-        this.downTriangleDetect = new DownTriangleDetect(segmentService);
-        this.upZigzagDetect = new UpZigzagDetect(segmentService);
-        this.downZigzagDetect = new DownZigzagDetect(segmentService);
-        this.upRestartDetect = new UpRestartDetect(segmentService);
-        this.downRestartDetect = new DownRestartDetect(segmentService);
+        this.upFlagDetect = new UpFlagDetect(this.segmentService, this);
+        this.downFlagDetect = new DownFlagDetect(this.segmentService, this);
+        this.upBreakDetect = new UpBreakDetect(this.segmentService, this);
+        this.downBreakDetect = new DownBreakDetect(this.segmentService, this);
+        this.upTriangleDetect = new UpTriangleDetect(this.segmentService, this);
+        this.downTriangleDetect = new DownTriangleDetect(this.segmentService, this);
+        this.upZigzagDetect = new UpZigzagDetect(this.segmentService, this);
+        this.downZigzagDetect = new DownZigzagDetect(this.segmentService, this);
+        this.upRestartDetect = new UpRestartDetect(this.segmentService, this);
+        this.downRestartDetect = new DownRestartDetect(this.segmentService, this);
     }
 
-    detect(): TDetections {
-        return {
-            upFlag: this.checkUpFlag(),
-            downFlag: this.checkDownFlag(),
-            upBreak: this.checkUpBreak(),
-            downBreak: this.checkDownBreak(),
-            upTriangle: this.checkUpTriangle(),
-            downTriangle: this.checkDownTriangle(),
-            upZigzag: this.checkUpZigzag(),
-            downZigzag: this.checkDownZigzag(),
-            upRestart: this.checkUpRestart(),
-            downRestart: this.checkDownRestart(),
-        };
+    detect(): void {
+        this.upFlagDetect.check();
+        this.upFlagDetect.trade();
+        this.downFlagDetect.check();
+        this.downFlagDetect.trade();
+
+        // TODO Use priority
     }
 
-    private checkUpFlag(): boolean {
-        return this.upFlagDetect.check();
+    getCapital(): number {
+        return this.capital;
     }
 
-    private checkDownFlag(): boolean {
-        return this.downFlagDetect.check();
+    mulCapital(value: number): void {
+        this.capital *= value;
     }
 
-    private checkUpBreak(): boolean {
-        return this.upBreakDetect.check();
+    getPrettyCapital(): string {
+        return this.capital.toFixed(0);
     }
 
-    private checkDownBreak(): boolean {
-        return this.downBreakDetect.check();
-    }
-
-    private checkUpTriangle(): boolean {
-        return this.upTriangleDetect.check();
-    }
-
-    private checkDownTriangle(): boolean {
-        return this.downTriangleDetect.check();
-    }
-
-    private checkUpZigzag(): boolean {
-        return this.upZigzagDetect.check();
-    }
-
-    private checkDownZigzag(): boolean {
-        return this.downZigzagDetect.check();
-    }
-
-    private checkUpRestart(): boolean {
-        return this.upRestartDetect.check();
-    }
-
-    private checkDownRestart(): boolean {
-        return this.downRestartDetect.check();
+    printCapital(): void {
+        this.logger.log(`CAPITAL = ${this.getPrettyCapital()}`);
     }
 }

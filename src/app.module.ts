@@ -5,7 +5,6 @@ import { CandleModel } from './loader/candle.model';
 import { CalculatorModule } from './calculator/calculator.module';
 import { DetectorModule } from './detector/detector.module';
 import { SegmentModule } from './segment/segment.module';
-import { TradeModule } from './trade/trade.module';
 
 @Module({
     imports: [
@@ -23,7 +22,6 @@ import { TradeModule } from './trade/trade.module';
         CalculatorModule,
         DetectorModule,
         SegmentModule,
-        TradeModule,
     ],
     controllers: [],
     providers: [],

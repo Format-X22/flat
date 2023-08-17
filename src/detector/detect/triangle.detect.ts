@@ -1,7 +1,10 @@
 import { AbstractDetect } from './abstract.detect';
 import { SegmentService } from '../../segment/segment.service';
+import { DetectorService } from '../detector.service';
 
 export class TriangleDetect extends AbstractDetect {
+    profitMul = 1.5;
+
     check(): boolean {
         const [current, prev1, prev2, prev3, prev4] = this.getSegments(5);
 
@@ -32,16 +35,20 @@ export class TriangleDetect extends AbstractDetect {
             return this.markEndDetection();
         }
     }
+
+    trade() {
+        // TODO -
+    }
 }
 
 export class UpTriangleDetect extends TriangleDetect {
-    constructor(segmentService: SegmentService) {
-        super('UP TRIANGLE', true, segmentService);
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('UP TRIANGLE', true, segmentService, detectorService);
     }
 }
 
 export class DownTriangleDetect extends TriangleDetect {
-    constructor(segmentService: SegmentService) {
-        super('DOWN TRIANGLE', false, segmentService);
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('DOWN TRIANGLE', false, segmentService, detectorService);
     }
 }

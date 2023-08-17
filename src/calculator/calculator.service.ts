@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CandleModel } from '../loader/candle.model';
 import { Repository } from 'typeorm';
 import { SegmentService } from '../segment/segment.service';
-import { TradeService } from '../trade/trade.service';
+import { DetectorService } from '../detector/detector.service';
 
 // TODO Filtrate flags with mass near border
 // TODO Filtrate super compact restart trend
@@ -15,7 +15,7 @@ export class CalculatorService {
     constructor(
         @InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>,
         private readonly segmentService: SegmentService,
-        private readonly tradeService: TradeService,
+        private readonly detectorService: DetectorService,
     ) {}
 
     async calc(): Promise<void> {
@@ -28,10 +28,10 @@ export class CalculatorService {
                 continue;
             }
 
-            this.tradeService.tick();
+            this.detectorService.detect();
         }
 
-        this.tradeService.printCapital();
+        this.detectorService.printCapital();
     }
 
     private async getCandles(size: string): Promise<Array<CandleModel>> {
