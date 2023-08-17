@@ -72,14 +72,13 @@ export class TradeService {
     handleUpFlag(): void {
         const candle = this.candle;
         const detections = this.detections;
-        const order = this.upFlag;
 
-        if (order.isActive) {
+        if (this.upFlag.isActive) {
             if (this.inPosition) {
-                if (order.toZeroDate <= candle.timestamp) {
+                if (this.upFlag.toZeroDate <= candle.timestamp) {
                     if (
-                        (candle.open <= order.enter && candle.high > order.enter) ||
-                        (candle.open > order.enter && candle.low < order.enter)
+                        (candle.open <= this.upFlag.enter && candle.high > this.upFlag.enter) ||
+                        (candle.open > this.upFlag.enter && candle.low < this.upFlag.enter)
                     ) {
                         this.capital *= this.toZeroFail;
                         this.upFlag = TradeService.makeEmptyOrder();
@@ -89,7 +88,7 @@ export class TradeService {
                     }
                 }
 
-                if (order.isActive && candle.high > order.take) {
+                if (this.upFlag.isActive && candle.high > this.upFlag.take) {
                     this.capital *= this.upFlagProfit;
                     this.upFlag = TradeService.makeEmptyOrder();
                     this.inPosition = false;
@@ -97,7 +96,7 @@ export class TradeService {
                     this.printTrade('PROFIT UP FLAG');
                 }
 
-                if (order.isActive && candle.low <= order.stop) {
+                if (this.upFlag.isActive && candle.low <= this.upFlag.stop) {
                     this.capital *= this.toFail;
                     this.upFlag = TradeService.makeEmptyOrder();
                     this.inPosition = false;
@@ -105,16 +104,16 @@ export class TradeService {
                     this.printTrade('FAIL UP FLAG');
                 }
             } else {
-                if (candle.high > order.take) {
+                if (candle.high > this.upFlag.take) {
                     this.capital *= this.upFlagProfit;
                     this.upFlag = TradeService.makeEmptyOrder();
 
                     this.printTrade('PROFIT UP FLAG');
-                } else if (candle.high > order.enter) {
+                } else if (candle.high > this.upFlag.enter) {
                     this.inPosition = true;
 
-                    order.enterDate = candle.dateString;
-                    order.toZeroDate = candle.timestamp + Duration.fromObject({ day: 1 }).toMillis();
+                    this.upFlag.enterDate = candle.dateString;
+                    this.upFlag.toZeroDate = candle.timestamp + Duration.fromObject({ day: 2 }).toMillis();
                 }
             }
         }
@@ -141,12 +140,12 @@ export class TradeService {
             }
 
             if (fib_1_00 / 100 < fib_1_00 - fib_0_73) {
-                order.isActive = true;
-                order.enter = fib_1_00;
-                order.take = fib_2_00;
-                order.stop = fib_0_73;
+                this.upFlag.isActive = true;
+                this.upFlag.enter = fib_1_00;
+                this.upFlag.take = fib_2_00;
+                this.upFlag.stop = fib_0_73;
             }
-        } else if (order.isActive && !this.inPosition) {
+        } else if (this.upFlag.isActive && !this.inPosition) {
             this.upFlag = TradeService.makeEmptyOrder();
 
             this.printTrade('CANCEL UP FLAG', false);
@@ -156,14 +155,13 @@ export class TradeService {
     handleDownFlag(): void {
         const candle = this.candle;
         const detections = this.detections;
-        const order = this.downFlag;
 
-        if (order.isActive) {
+        if (this.downFlag.isActive) {
             if (this.inPosition) {
-                if (order.toZeroDate <= candle.timestamp - Duration.fromObject({ hours: 2 }).toMillis()) {
+                if (this.downFlag.toZeroDate <= candle.timestamp) {
                     if (
-                        (candle.open >= order.enter && candle.low < order.enter) ||
-                        (candle.open < order.enter && candle.high > order.enter)
+                        (candle.open >= this.downFlag.enter && candle.low < this.downFlag.enter) ||
+                        (candle.open < this.downFlag.enter && candle.high > this.downFlag.enter)
                     ) {
                         this.capital *= this.toZeroFail;
                         this.downFlag = TradeService.makeEmptyOrder();
@@ -173,7 +171,7 @@ export class TradeService {
                     }
                 }
 
-                if (order.isActive && candle.low < order.take) {
+                if (this.downFlag.isActive && candle.low < this.downFlag.take) {
                     this.capital *= this.downFlagProfit;
                     this.downFlag = TradeService.makeEmptyOrder();
                     this.inPosition = false;
@@ -181,7 +179,7 @@ export class TradeService {
                     this.printTrade('PROFIT DOWN FLAG');
                 }
 
-                if (order.isActive && candle.high >= order.stop) {
+                if (this.downFlag.isActive && candle.high >= this.downFlag.stop) {
                     this.capital *= this.toFail;
                     this.downFlag = TradeService.makeEmptyOrder();
                     this.inPosition = false;
@@ -189,16 +187,16 @@ export class TradeService {
                     this.printTrade('FAIL DOWN FLAG');
                 }
             } else {
-                if (candle.low < order.take) {
+                if (candle.low < this.downFlag.take) {
                     this.capital *= this.downFlagProfit;
                     this.downFlag = TradeService.makeEmptyOrder();
 
                     this.printTrade('PROFIT DOWN FLAG');
-                } else if (candle.low < order.enter) {
+                } else if (candle.low < this.downFlag.enter) {
                     this.inPosition = true;
 
-                    order.enterDate = candle.dateString;
-                    order.toZeroDate = candle.timestamp + Duration.fromObject({ day: 1 }).toMillis();
+                    this.downFlag.enterDate = candle.dateString;
+                    this.downFlag.toZeroDate = candle.timestamp + Duration.fromObject({ day: 2 }).toMillis();
                 }
             }
         }
@@ -225,12 +223,12 @@ export class TradeService {
             }
 
             if (fib_1_00 / 100 < fib_0_73 - fib_1_00) {
-                order.isActive = true;
-                order.enter = fib_1_00;
-                order.take = fib_2_00;
-                order.stop = fib_0_73;
+                this.downFlag.isActive = true;
+                this.downFlag.enter = fib_1_00;
+                this.downFlag.take = fib_2_00;
+                this.downFlag.stop = fib_0_73;
             }
-        } else if (order.isActive && !this.inPosition) {
+        } else if (this.downFlag.isActive && !this.inPosition) {
             this.downFlag = TradeService.makeEmptyOrder();
 
             this.printTrade('CANCEL DOWN FLAG', false);
