@@ -22,6 +22,9 @@ export class DetectorService {
     private downRestartDetect: DownRestartDetect;
 
     private capital = 100;
+    private profitCount = 0;
+    private zeroCount = 0;
+    private failCount = 0;
 
     constructor(private readonly segmentService: SegmentService) {
         this.upFlagDetect = new UpFlagDetect(this.segmentService, this);
@@ -53,11 +56,25 @@ export class DetectorService {
         this.capital *= value;
     }
 
+    addProfitCount(): void {
+        this.profitCount++;
+    }
+
+    addZeroCount(): void {
+        this.zeroCount++;
+    }
+
+    addFailCount(): void {
+        this.failCount++;
+    }
+
     getPrettyCapital(): string {
         return this.capital.toFixed(0);
     }
 
     printCapital(): void {
-        this.logger.log(`CAPITAL = ${this.getPrettyCapital()}`);
+        this.logger.log(
+            `CAPITAL = ${this.getPrettyCapital()} - P: ${this.profitCount} Z: ${this.zeroCount} F: ${this.failCount}`,
+        );
     }
 }

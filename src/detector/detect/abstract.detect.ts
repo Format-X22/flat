@@ -237,14 +237,17 @@ export abstract class AbstractDetect {
 
     protected addFailToCapital(): void {
         this.mulCapital(this.failMul);
+        this.detectorService.addFailCount();
     }
 
     protected addZeroFailToCapital(): void {
         this.mulCapital(this.zeroFailMul);
+        this.detectorService.addZeroCount();
     }
 
     protected addProfitToCapital(): void {
         this.mulCapital(this.profitMul);
+        this.detectorService.addProfitCount();
     }
 
     protected getPrettyCapital(): string {

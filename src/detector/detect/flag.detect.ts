@@ -8,7 +8,7 @@ export class FlagDetect extends AbstractDetect {
     check(): boolean {
         const [current, prev1, prev2, prev3, prev4] = this.getSegments(5);
 
-        if (!prev3) {
+        if (!prev4) {
             return false;
         }
 
@@ -36,6 +36,7 @@ export class FlagDetect extends AbstractDetect {
             const fib5 = this.getFib(lastUpWaveMax, lastDownWaveMin, 0.5, true);
 
             if (
+                this.sizeGt(prev1, 1) &&
                 this.gt(currentDownWaveMin, fib5) &&
                 this.lt(last2UpWaveMax, currentDownWaveMin) &&
                 this.gte(lastUpWaveMax, this.segmentMax(current))
@@ -57,7 +58,7 @@ export class FlagDetect extends AbstractDetect {
 
                     if (
                         (this.lte(candle.open, enter) && this.gt(this.candleMax(candle), enter)) ||
-                        (this.lt(candle.open, enter) && this.lt(this.candleMin(candle), enter))
+                        (this.gt(candle.open, enter) && this.lt(this.candleMin(candle), enter))
                     ) {
                         this.addZeroFailToCapital();
                         this.exitPosition();
@@ -85,6 +86,12 @@ export class FlagDetect extends AbstractDetect {
                     this.printProfitTrade();
                 } else if (this.gt(this.candleMax(candle), this.order.enter)) {
                     this.enterPosition(2);
+
+                    if (this.lt(this.getCandle().close, this.order.stop)) {
+                        this.addFailToCapital();
+                        this.exitPosition();
+                        this.printFailTrade();
+                    }
                 }
             }
         }
@@ -100,16 +107,16 @@ export class FlagDetect extends AbstractDetect {
                     const currentUpWaveMax = this.max(current, prev1);
                     const currentMin = this.segmentMin(current);
 
-                    fib_0_73 = this.getFib(currentUpWaveMax, currentMin, 0.73, true);
+                    fib_0_73 = this.getFib(currentUpWaveMax, currentMin, 0.5, true);
                     fib_1_00 = this.getFib(currentUpWaveMax, currentMin, 1, true);
-                    fib_2_00 = this.getFib(currentUpWaveMax, currentMin, 2, true);
+                    fib_2_00 = this.getFib(currentUpWaveMax, currentMin, 2.95, true);
                 } else {
                     const lastUpWaveMax = this.max(prev1, prev2);
                     const currentDownWaveMin = this.min(current, prev1);
 
-                    fib_0_73 = this.getFib(lastUpWaveMax, currentDownWaveMin, 0.73, true);
+                    fib_0_73 = this.getFib(lastUpWaveMax, currentDownWaveMin, 0.5, true);
                     fib_1_00 = this.getFib(lastUpWaveMax, currentDownWaveMin, 1, true);
-                    fib_2_00 = this.getFib(lastUpWaveMax, currentDownWaveMin, 2, true);
+                    fib_2_00 = this.getFib(lastUpWaveMax, currentDownWaveMin, 2.95, true);
                 }
 
                 if (this.constLt(fib_1_00 / 100, this.diff(fib_1_00, fib_0_73))) {
