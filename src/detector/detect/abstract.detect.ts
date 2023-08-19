@@ -1,4 +1,4 @@
-import { CandleModel } from '../../loader/candle.model';
+import { CandleModel, EHmaType } from '../../loader/candle.model';
 import { SegmentService } from '../../segment/segment.service';
 import { TSegment } from '../../segment/segment.dto';
 import { Logger } from '@nestjs/common';
@@ -24,6 +24,7 @@ export abstract class AbstractDetect {
     private zeroFailMul = 0.95;
     private failMul = 0.66;
 
+    protected hmaType: EHmaType = EHmaType.HMA;
     protected abstract profitMul;
     protected abstract enterFib;
     protected abstract takeFib;
@@ -50,7 +51,7 @@ export abstract class AbstractDetect {
     }
 
     protected getSegments(count: number): Array<TSegment> {
-        return this.segmentService.getSegments(count);
+        return this.segmentService.getSegments(count, this.hmaType);
     }
 
     protected isSegmentUp(segment: TSegment): boolean {
@@ -181,6 +182,26 @@ export abstract class AbstractDetect {
 
     protected constLte(valA: number, valB: number): boolean {
         return valA <= valB;
+    }
+
+    protected concat(segmentA: TSegment, segmentB: TSegment, segmentC: TSegment): TSegment {
+        let min = Math.min(segmentA.min, segmentB.min, segmentC.min);
+        let max = Math.max(segmentA.max, segmentB.max, segmentC.max);
+
+        if (!this.isNotInverted) {
+            [min, max] = [max, min];
+        }
+
+        return {
+            isUp: segmentA.isUp,
+            isDown: segmentA.isDown,
+            size: segmentA.size + segmentB.size + segmentC.size,
+            min,
+            max,
+            startDate: segmentA.startDate,
+            endDate: segmentC.endDate,
+            candles: [...segmentA.candles, ...segmentB.candles, ...segmentC.candles],
+        };
     }
 
     protected markDetection(): boolean {

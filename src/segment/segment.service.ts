@@ -1,96 +1,50 @@
 import { Injectable } from '@nestjs/common';
-import { CandleModel } from '../loader/candle.model';
+import { CandleModel, EHmaType } from '../loader/candle.model';
 import { TSegment } from './segment.dto';
+import { SegmentStorage } from './segment.storage';
 
 @Injectable()
 export class SegmentService {
-    private segments: Array<TSegment> = [
-        {
-            isUp: null,
-            isDown: null,
-            size: 0,
-            min: Infinity,
-            max: -Infinity,
-            startDate: null,
-            endDate: null,
-            candles: [],
-        },
-    ];
-    private candles: Array<CandleModel> = [];
+    private readonly segments: SegmentStorage;
+    private readonly midSegments: SegmentStorage;
+    private readonly bigSegments: SegmentStorage;
+
+    candles: Array<CandleModel> = [];
+
+    constructor() {
+        this.segments = new SegmentStorage(this.candles, EHmaType.HMA);
+        this.midSegments = new SegmentStorage(this.candles, EHmaType.MID_HMA);
+        this.bigSegments = new SegmentStorage(this.candles, EHmaType.BIG_HMA);
+    }
 
     addCandle(candle: CandleModel): void {
         this.candles.push(candle);
 
-        const prev1Candle = this.candles[this.candles.length - 2];
-        let currentSegment = this.segments[this.segments.length - 1];
-
-        if (!currentSegment.startDate) {
-            currentSegment.startDate = candle.dateString;
-        }
-
-        if (currentSegment.isUp === true) {
-            if (prev1Candle && prev1Candle.hma > candle.hma) {
-                currentSegment.endDate = prev1Candle.dateString;
-                currentSegment = null;
-            }
-        } else if (currentSegment.isDown === true) {
-            if (prev1Candle && prev1Candle.hma < candle.hma) {
-                currentSegment.endDate = prev1Candle.dateString;
-                currentSegment = null;
-            }
-        }
-
-        if (!currentSegment) {
-            currentSegment = {
-                isUp: null,
-                isDown: null,
-                size: 0,
-                min: Infinity,
-                max: -Infinity,
-                startDate: candle.dateString,
-                endDate: null,
-                candles: [],
-            };
-        }
-
-        if (currentSegment.min > candle.low) {
-            currentSegment.min = candle.low;
-        }
-
-        if (currentSegment.max < candle.high) {
-            currentSegment.max = candle.high;
-        }
-
-        if (prev1Candle && currentSegment.isUp === null) {
-            currentSegment.isUp = prev1Candle.hma <= candle.hma;
-            currentSegment.isDown = prev1Candle.hma > candle.hma;
-        }
-
-        currentSegment.size++;
-        currentSegment.candles.push(candle);
-
-        if (this.getCurrentSegment() !== currentSegment) {
-            this.segments.push(currentSegment);
-        }
-    }
-
-    getCurrentSegment(): TSegment {
-        return this.getPrevSegment(0);
-    }
-
-    getPrevSegment(index: number): TSegment {
-        return this.segments[this.segments.length - 1 - index];
+        this.segments.addCandle(candle);
+        this.midSegments.addCandle(candle);
+        this.bigSegments.addCandle(candle);
     }
 
     getCurrentCandle(): CandleModel {
         return this.candles[this.candles.length - 1];
     }
 
-    getSegments(count: number): Array<TSegment> {
+    getPrevSegment(index: number, type: EHmaType): TSegment {
+        switch (type) {
+            case EHmaType.HMA:
+                return this.segments.getPrevSegment(index);
+            case EHmaType.MID_HMA:
+                return this.midSegments.getPrevSegment(index);
+            case EHmaType.BIG_HMA:
+                return this.bigSegments.getPrevSegment(index);
+        }
+    }
+
+    getSegments(count: number, type: EHmaType): Array<TSegment> {
         const result = [];
 
         for (let i = 0; i < count; i++) {
-            result.push(this.getPrevSegment(i));
+            result.push(this.getPrevSegment(i, type));
         }
 
         return result;

@@ -2,7 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { SegmentService } from '../segment/segment.service';
 import { DownFlagDetect, UpFlagDetect } from './detect/flag.detect';
 import { DownBreakDetect, UpBreakDetect } from './detect/break.detect';
-import { DownTriangleDetect, UpTriangleDetect } from './detect/triangle.detect';
+import {
+    DownMidTriangleDetect,
+    DownTriangleDetect,
+    UpMidTriangleDetect,
+    UpTriangleDetect,
+} from './detect/triangle.detect';
 import { DownZigzagDetect, UpZigzagDetect } from './detect/zigzag.detect';
 import { DownRestartDetect, UpRestartDetect } from './detect/restart.detect';
 
@@ -16,6 +21,8 @@ export class DetectorService {
     private downBreakDetect: DownBreakDetect;
     private upTriangleDetect: UpTriangleDetect;
     private downTriangleDetect: DownTriangleDetect;
+    private upMidTriangleDetect: UpMidTriangleDetect;
+    private downMidTriangleDetect: DownMidTriangleDetect;
     private upZigzagDetect: UpZigzagDetect;
     private downZigzagDetect: DownZigzagDetect;
     private upRestartDetect: UpRestartDetect;
@@ -33,6 +40,8 @@ export class DetectorService {
         this.downBreakDetect = new DownBreakDetect(this.segmentService, this);
         this.upTriangleDetect = new UpTriangleDetect(this.segmentService, this);
         this.downTriangleDetect = new DownTriangleDetect(this.segmentService, this);
+        this.upMidTriangleDetect = new UpMidTriangleDetect(this.segmentService, this);
+        this.downMidTriangleDetect = new DownMidTriangleDetect(this.segmentService, this);
         this.upZigzagDetect = new UpZigzagDetect(this.segmentService, this);
         this.downZigzagDetect = new DownZigzagDetect(this.segmentService, this);
         this.upRestartDetect = new UpRestartDetect(this.segmentService, this);
@@ -40,10 +49,20 @@ export class DetectorService {
     }
 
     detect(): void {
-        this.upFlagDetect.check();
-        this.upFlagDetect.trade();
-        this.downFlagDetect.check();
-        this.downFlagDetect.trade();
+        //this.upFlagDetect.check();
+        //this.upFlagDetect.trade();
+        //this.downFlagDetect.check();
+        //this.downFlagDetect.trade();
+
+        this.upTriangleDetect.check();
+        this.upTriangleDetect.trade();
+        this.downTriangleDetect.check();
+        this.downTriangleDetect.trade();
+
+        this.upMidTriangleDetect.check();
+        this.upMidTriangleDetect.trade();
+        this.downMidTriangleDetect.check();
+        this.downMidTriangleDetect.trade();
 
         // TODO Use priority
     }

@@ -4,12 +4,14 @@ import * as tech from 'technicalindicators';
 import * as _ from 'lodash';
 import Exchange from 'ccxt/js/src/abstract/binance';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CandleModel } from './candle.model';
+import { CandleModel, EHmaType } from './candle.model';
 import { Repository } from 'typeorm';
 import { sleep } from '../sleep.util';
 import { DateTime } from 'luxon';
 
 const HMA_PERIOD = 7;
+const MID_HMA_PERIOD = 14;
+const BIG_HMA_PERIOD = 30;
 
 @Injectable()
 export class LoaderService {
@@ -29,7 +31,7 @@ export class LoaderService {
 
         this.logger.log('Start loading...');
 
-        fromDate.setFullYear(2017, 11, 31 - (HMA_PERIOD - 1));
+        fromDate.setFullYear(2017, 11, 1);
 
         await this.populateRawDataMap(rawDataMap, fromDate, stock, size);
 
@@ -37,10 +39,12 @@ export class LoaderService {
 
         const sorted = Array.from(rawDataMap.values()).sort((a, b) => a.timestamp - b.timestamp);
 
-        this.addHma(HMA_PERIOD, sorted);
+        this.addHma(HMA_PERIOD, sorted, EHmaType.HMA);
+        this.addHma(MID_HMA_PERIOD, sorted, EHmaType.MID_HMA);
+        this.addHma(BIG_HMA_PERIOD, sorted, EHmaType.BIG_HMA);
 
         const resultChunks = _.chunk(
-            sorted.filter((i) => i.hma),
+            sorted.filter((i) => i.bigHma),
             1000,
         );
 
@@ -109,11 +113,13 @@ export class LoaderService {
             low: item[3],
             close: item[4],
             hma: null,
+            midHma: null,
+            bigHma: null,
             size,
         }));
     }
 
-    private addHma(period: number, data: Array<Partial<CandleModel>>): void {
+    private addHma(period: number, data: Array<Partial<CandleModel>>, field: EHmaType): void {
         const halfPeriod = Math.round(period / 2);
         const sqn = Math.round(Math.sqrt(period));
         const diffs = [];
@@ -132,7 +138,7 @@ export class LoaderService {
             const values = diffs.slice(i - (sqn - 1), i + 1);
             const hmaList = tech.wma({ period: sqn, values });
 
-            data[i + period - 1].hma = hmaList[hmaList.length - 1];
+            data[i + period - 1][field] = hmaList[hmaList.length - 1];
         }
     }
 }
