@@ -4,6 +4,9 @@ import { DetectorService } from '../detector.service';
 
 export class ZigzagDetect extends AbstractDetect {
     profitMul = 2.1;
+    enterFib = 0;
+    takeFib = 0;
+    stopFib = 0;
 
     check(): boolean {
         const [current, prev1, prev2, prev3, prev4] = this.getSegments(5);

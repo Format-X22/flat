@@ -4,6 +4,9 @@ import { DetectorService } from '../detector.service';
 
 export class RestartDetect extends AbstractDetect {
     profitMul = 2;
+    enterFib = 0;
+    takeFib = 0;
+    stopFib = 0;
 
     check(): boolean {
         const [current, prev1, prev2, prev3] = this.getSegments(4);

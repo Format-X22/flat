@@ -5,7 +5,6 @@ import { Repository } from 'typeorm';
 import { SegmentService } from '../segment/segment.service';
 import { DetectorService } from '../detector/detector.service';
 
-// TODO Filtrate flags with mass near border
 // TODO Filtrate super compact restart trend
 
 @Injectable()

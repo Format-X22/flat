@@ -19,9 +19,15 @@ export abstract class AbstractDetect {
         enterDate: null,
         toZeroDate: null,
     };
+
+    protected minStopOffsetSize = 1;
     private zeroFailMul = 0.95;
     private failMul = 0.66;
+
     protected abstract profitMul;
+    protected abstract enterFib;
+    protected abstract takeFib;
+    protected abstract stopFib;
 
     protected constructor(
         private name: string,
@@ -272,5 +278,92 @@ export abstract class AbstractDetect {
 
     protected getDaysRange(count: number): number {
         return Duration.fromObject({ day: count }).toMillis();
+    }
+
+    protected handleOrder(waitDays: number): void {
+        const candle = this.getCandle();
+
+        if (this.order.isActive) {
+            if (this.isInPosition) {
+                if (this.constLte(this.order.toZeroDate, candle.timestamp)) {
+                    const enter = this.order.enter;
+
+                    if (
+                        (this.lte(candle.open, enter) && this.gt(this.candleMax(candle), enter)) ||
+                        (this.gt(candle.open, enter) && this.lt(this.candleMin(candle), enter))
+                    ) {
+                        this.addZeroFailToCapital();
+                        this.exitPosition();
+                        this.printZeroFailTrade();
+                    }
+                }
+
+                if (this.order.isActive && this.gt(this.candleMax(candle), this.order.take)) {
+                    this.addProfitToCapital();
+                    this.exitPosition();
+                    this.printProfitTrade();
+                }
+
+                if (this.order.isActive && this.lte(this.candleMin(candle), this.order.stop)) {
+                    this.addFailToCapital();
+                    this.exitPosition();
+                    this.printFailTrade();
+                }
+            } else {
+                if (this.gt(this.candleMax(candle), this.order.take)) {
+                    this.addProfitToCapital();
+                    this.enterPosition(0);
+                    this.exitPosition();
+
+                    this.printProfitTrade();
+                } else if (this.gt(this.candleMax(candle), this.order.enter)) {
+                    this.enterPosition(waitDays);
+
+                    if (this.lt(this.getCandle().close, this.order.stop)) {
+                        this.addFailToCapital();
+                        this.exitPosition();
+                        this.printFailTrade();
+                    }
+                }
+            }
+        }
+    }
+
+    protected handleTradeDetection(): void {
+        if (!this.isInPosition) {
+            if (this.isDetected) {
+                const [current, prev1, prev2] = this.getSegments(3);
+                let stopFibPrice;
+                let enterFibPrice;
+                let takeFibPrice;
+
+                let valA;
+                let valB;
+
+                if (this.isSegmentDown(current)) {
+                    valA = this.max(current, prev1);
+                    valB = this.segmentMin(current);
+                } else {
+                    valA = this.max(prev1, prev2);
+                    valB = this.min(current, prev1);
+                }
+
+                stopFibPrice = this.getFib(valA, valB, this.stopFib, true);
+                enterFibPrice = this.getFib(valA, valB, this.enterFib, true);
+                takeFibPrice = this.getFib(valA, valB, this.takeFib, true);
+
+                if (
+                    this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
+                ) {
+                    this.order.isActive = true;
+                    this.order.enter = enterFibPrice;
+                    this.order.take = takeFibPrice;
+                    this.order.stop = stopFibPrice;
+                }
+            } else if (this.order.isActive) {
+                this.resetOrder();
+                this.printCancelTrade();
+            }
+        }
     }
 }

@@ -4,6 +4,9 @@ import { DetectorService } from '../detector.service';
 
 export class BreakDetect extends AbstractDetect {
     profitMul = 2.3;
+    enterFib = 0;
+    takeFib = 0;
+    stopFib = 0;
 
     check(): boolean {
         const [current, prev1, prev2, prev3, prev4] = this.getSegments(5);
