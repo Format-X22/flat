@@ -25,6 +25,7 @@ export abstract class AbstractDetect {
     private failMul = 0.66;
 
     protected hmaType: EHmaType = EHmaType.HMA;
+    protected abstract waitDays;
     protected abstract profitMul;
     protected abstract enterFib;
     protected abstract takeFib;
@@ -120,6 +121,10 @@ export abstract class AbstractDetect {
 
     protected sizeGt(segment: TSegment, size: number): boolean {
         return segment.size > size;
+    }
+
+    protected sizeLt(segment: TSegment, size: number): boolean {
+        return segment.size < size;
     }
 
     protected getFib(first: number, last: number, val: number, firstIsMax: boolean): number {
@@ -243,6 +248,7 @@ export abstract class AbstractDetect {
 
     protected enterPosition(waitDays: number): void {
         this.isInPosition = true;
+        this.detectorService.enterPosition();
 
         this.order.enterDate = this.getCandle().dateString;
         this.order.toZeroDate = this.getCandle().timestamp + this.getDaysRange(waitDays);
@@ -250,6 +256,7 @@ export abstract class AbstractDetect {
 
     protected exitPosition(): void {
         this.isInPosition = false;
+        this.detectorService.exitPosition();
 
         this.resetOrder();
     }
@@ -301,7 +308,7 @@ export abstract class AbstractDetect {
         return Duration.fromObject({ day: count }).toMillis();
     }
 
-    protected handleOrder(waitDays: number): void {
+    protected handleOrder(): void {
         const candle = this.getCandle();
 
         if (this.order.isActive) {
@@ -338,7 +345,7 @@ export abstract class AbstractDetect {
 
                     this.printProfitTrade();
                 } else if (this.gt(this.candleMax(candle), this.order.enter)) {
-                    this.enterPosition(waitDays);
+                    this.enterPosition(this.waitDays);
 
                     if (this.lt(this.getCandle().close, this.order.stop)) {
                         this.addFailToCapital();
@@ -374,6 +381,8 @@ export abstract class AbstractDetect {
                 takeFibPrice = this.getFib(valA, valB, this.takeFib, true);
 
                 if (
+                    !this.detectorService.isInPosition() &&
+                    this.candleMax(this.getCandle()) !== enterFibPrice &&
                     this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
                 ) {
                     this.order.isActive = true;

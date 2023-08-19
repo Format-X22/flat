@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SegmentService } from '../segment/segment.service';
-import { DownFlagDetect, UpFlagDetect } from './detect/flag.detect';
+import { DownFlagDetect, DownMidFlagDetect, UpFlagDetect, UpMidFlagDetect } from './detect/flag.detect';
 import { DownBreakDetect, UpBreakDetect } from './detect/break.detect';
 import {
     DownMidTriangleDetect,
@@ -17,6 +17,8 @@ export class DetectorService {
 
     private upFlagDetect: UpFlagDetect;
     private downFlagDetect: DownFlagDetect;
+    private upMidFlagDetect: UpMidFlagDetect;
+    private downMidFlagDetect: DownMidFlagDetect;
     private upBreakDetect: UpBreakDetect;
     private downBreakDetect: DownBreakDetect;
     private upTriangleDetect: UpTriangleDetect;
@@ -33,9 +35,13 @@ export class DetectorService {
     private zeroCount = 0;
     private failCount = 0;
 
+    protected isInPositionNow: boolean = false;
+
     constructor(private readonly segmentService: SegmentService) {
         this.upFlagDetect = new UpFlagDetect(this.segmentService, this);
         this.downFlagDetect = new DownFlagDetect(this.segmentService, this);
+        this.upMidFlagDetect = new UpMidFlagDetect(this.segmentService, this);
+        this.downMidFlagDetect = new DownMidFlagDetect(this.segmentService, this);
         this.upBreakDetect = new UpBreakDetect(this.segmentService, this);
         this.downBreakDetect = new DownBreakDetect(this.segmentService, this);
         this.upTriangleDetect = new UpTriangleDetect(this.segmentService, this);
@@ -49,22 +55,39 @@ export class DetectorService {
     }
 
     detect(): void {
-        //this.upFlagDetect.check();
-        //this.upFlagDetect.trade();
-        //this.downFlagDetect.check();
-        //this.downFlagDetect.trade();
+        this.upMidFlagDetect.check();
+        this.upMidFlagDetect.trade();
+        this.downMidFlagDetect.check();
+        this.downMidFlagDetect.trade();
 
-        this.upTriangleDetect.check();
-        this.upTriangleDetect.trade();
-        this.downTriangleDetect.check();
-        this.downTriangleDetect.trade();
+        this.upFlagDetect.check();
+        this.upFlagDetect.trade();
+        this.downFlagDetect.check();
+        this.downFlagDetect.trade();
 
         this.upMidTriangleDetect.check();
         this.upMidTriangleDetect.trade();
         this.downMidTriangleDetect.check();
         this.downMidTriangleDetect.trade();
 
+        this.upTriangleDetect.check();
+        this.upTriangleDetect.trade();
+        this.downTriangleDetect.check();
+        this.downTriangleDetect.trade();
+
         // TODO Use priority
+    }
+
+    isInPosition(): boolean {
+        return this.isInPositionNow;
+    }
+
+    enterPosition(): void {
+        this.isInPositionNow = true;
+    }
+
+    exitPosition(): void {
+        this.isInPositionNow = false;
     }
 
     getCapital(): number {

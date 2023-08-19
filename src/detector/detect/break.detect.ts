@@ -7,6 +7,7 @@ export class BreakDetect extends AbstractDetect {
     enterFib = 0;
     takeFib = 0;
     stopFib = 0;
+    waitDays = 0;
 
     check(): boolean {
         const [current, prev1, prev2, prev3, prev4] = this.getSegments(5);

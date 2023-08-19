@@ -4,13 +4,13 @@ import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../loader/candle.model';
 
 export class TriangleDetect extends AbstractDetect {
-    protected profitMul = 1.4;
+    protected profitMul = 1.5;
     protected enterFib = 1;
     protected takeFib = 1.8;
-    protected stopFib = 0.5;
+    protected stopFib = 0.62;
 
-    protected minSegmentSizeMore = 1;
     protected waitDays = 4;
+    protected minSegmentSizeMore = 1;
 
     check(): boolean {
         const [current, prev1, prev2, prev3, prev4, prev5] = this.getSegments(6);
@@ -71,7 +71,7 @@ export class TriangleDetect extends AbstractDetect {
     }
 
     trade() {
-        this.handleOrder(this.waitDays);
+        this.handleOrder();
         this.handleTradeDetection();
     }
 }
