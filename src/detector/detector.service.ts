@@ -9,7 +9,8 @@ import {
     UpTriangleDetect,
 } from './detect/triangle.detect';
 import { DownZigzagDetect, UpZigzagDetect } from './detect/zigzag.detect';
-import { DownRestartDetect, UpRestartDetect } from './detect/restart.detect';
+import { DownMidRestartDetect, DownRestartDetect, UpMidRestartDetect, UpRestartDetect } from './detect/restart.detect';
+import { AbstractDetect } from './detect/abstract.detect';
 
 @Injectable()
 export class DetectorService {
@@ -29,6 +30,8 @@ export class DetectorService {
     private downZigzagDetect: DownZigzagDetect;
     private upRestartDetect: UpRestartDetect;
     private downRestartDetect: DownRestartDetect;
+    private upMidRestartDetect: UpMidRestartDetect;
+    private downMidRestartDetect: DownMidRestartDetect;
 
     private capital = 100;
     private profitCount = 0;
@@ -36,6 +39,8 @@ export class DetectorService {
     private failCount = 0;
 
     protected isInPositionNow: boolean = false;
+    protected upOrderDetector: AbstractDetect;
+    protected downOrderDetector: AbstractDetect;
 
     constructor(private readonly segmentService: SegmentService) {
         this.upFlagDetect = new UpFlagDetect(this.segmentService, this);
@@ -52,6 +57,8 @@ export class DetectorService {
         this.downZigzagDetect = new DownZigzagDetect(this.segmentService, this);
         this.upRestartDetect = new UpRestartDetect(this.segmentService, this);
         this.downRestartDetect = new DownRestartDetect(this.segmentService, this);
+        this.upMidRestartDetect = new UpMidRestartDetect(this.segmentService, this);
+        this.downMidRestartDetect = new DownMidRestartDetect(this.segmentService, this);
     }
 
     detect(): void {
@@ -64,6 +71,16 @@ export class DetectorService {
         this.upFlagDetect.trade();
         this.downFlagDetect.check();
         this.downFlagDetect.trade();
+
+        this.upMidRestartDetect.check();
+        this.upMidRestartDetect.trade();
+        this.downMidRestartDetect.check();
+        this.downMidRestartDetect.trade();
+
+        this.upRestartDetect.check();
+        this.upRestartDetect.trade();
+        this.downRestartDetect.check();
+        this.downRestartDetect.trade();
 
         this.upMidTriangleDetect.check();
         this.upMidTriangleDetect.trade();
@@ -88,6 +105,34 @@ export class DetectorService {
 
     exitPosition(): void {
         this.isInPositionNow = false;
+    }
+
+    isConcurrentUpOrder(detector: AbstractDetect): boolean {
+        return this.upOrderDetector && this.upOrderDetector !== detector;
+    }
+
+    isConcurrentDownOrder(detector: AbstractDetect): boolean {
+        return this.downOrderDetector && this.downOrderDetector !== detector;
+    }
+
+    addUpOrder(detector: AbstractDetect): void {
+        this.upOrderDetector = detector;
+    }
+
+    addDownOrder(detector: AbstractDetect): void {
+        this.downOrderDetector = detector;
+    }
+
+    removeUpOrder(detector: AbstractDetect): void {
+        if (this.upOrderDetector === detector) {
+            this.upOrderDetector = null;
+        }
+    }
+
+    removeDownOrder(detector: AbstractDetect): void {
+        if (this.downOrderDetector === detector) {
+            this.downOrderDetector = null;
+        }
     }
 
     getCapital(): number {

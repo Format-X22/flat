@@ -70,11 +70,6 @@ export class TriangleDetect extends AbstractDetect {
             }
         }
     }
-
-    trade() {
-        this.handleOrder();
-        this.handleTradeDetection();
-    }
 }
 
 export class UpTriangleDetect extends TriangleDetect {

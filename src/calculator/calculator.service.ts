@@ -5,8 +5,6 @@ import { Repository } from 'typeorm';
 import { SegmentService } from '../segment/segment.service';
 import { DetectorService } from '../detector/detector.service';
 
-// TODO Filtrate super compact restart trend
-
 @Injectable()
 export class CalculatorService {
     private readonly logger: Logger = new Logger(CalculatorService.name);
@@ -44,6 +42,6 @@ export class CalculatorService {
     }
 
     private isInTestRange(candle: CandleModel): boolean {
-        return candle.timestamp > 1659372330916;
+        return candle.timestamp > 0;
     }
 }

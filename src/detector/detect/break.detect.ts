@@ -64,10 +64,6 @@ export class BreakDetect extends AbstractDetect {
             return this.markEndDetection();
         }
     }
-
-    trade() {
-        // TODO -
-    }
 }
 
 export class UpBreakDetect extends BreakDetect {

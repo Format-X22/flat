@@ -41,10 +41,6 @@ export class ZigzagDetect extends AbstractDetect {
             return this.markEndDetection();
         }
     }
-
-    trade() {
-        // TODO -
-    }
 }
 
 export class UpZigzagDetect extends ZigzagDetect {

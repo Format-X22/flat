@@ -58,11 +58,6 @@ export class FlagDetect extends AbstractDetect {
             }
         }
     }
-
-    trade(): void {
-        this.handleOrder();
-        this.handleTradeDetection();
-    }
 }
 
 export class UpFlagDetect extends FlagDetect {

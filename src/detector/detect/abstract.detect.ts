@@ -41,7 +41,11 @@ export abstract class AbstractDetect {
     }
 
     abstract check(): boolean;
-    abstract trade(): void;
+
+    trade(): void {
+        this.handleOrder();
+        this.handleTradeDetection();
+    }
 
     protected getCandle(): CandleModel {
         return this.segmentService.getCurrentCandle();
@@ -123,8 +127,16 @@ export abstract class AbstractDetect {
         return segment.size > size;
     }
 
+    protected sizeGte(segment: TSegment, size: number): boolean {
+        return segment.size >= size;
+    }
+
     protected sizeLt(segment: TSegment, size: number): boolean {
         return segment.size < size;
+    }
+
+    protected sizeLte(segment: TSegment, size: number): boolean {
+        return segment.size <= size;
     }
 
     protected getFib(first: number, last: number, val: number, firstIsMax: boolean): number {
@@ -236,14 +248,20 @@ export abstract class AbstractDetect {
         this.order.stop = null;
         this.order.enterDate = null;
         this.order.toZeroDate = null;
+
+        if (this.isNotInverted) {
+            this.detectorService.removeUpOrder(this);
+        } else {
+            this.detectorService.removeDownOrder(this);
+        }
     }
 
     protected printDetection(): void {
-        this.logger.verbose(this.getCandle().dateString);
+        //this.logger.verbose(this.getCandle().dateString);
     }
 
     protected printDetectionEnd(): void {
-        this.logger.verbose('<< ' + this.getCandle().dateString);
+        //this.logger.verbose('<< ' + this.getCandle().dateString);
     }
 
     protected enterPosition(waitDays: number): void {
@@ -252,6 +270,8 @@ export abstract class AbstractDetect {
 
         this.order.enterDate = this.getCandle().dateString;
         this.order.toZeroDate = this.getCandle().timestamp + this.getDaysRange(waitDays);
+
+        //this.logger.log(`> Enter position - ${this.getPrettyDate()}`);
     }
 
     protected exitPosition(): void {
@@ -259,6 +279,8 @@ export abstract class AbstractDetect {
         this.detectorService.exitPosition();
 
         this.resetOrder();
+
+        //this.logger.log(`< Exit position - ${this.getPrettyDate()}`);
     }
 
     protected getCapital(): number {
@@ -380,15 +402,35 @@ export abstract class AbstractDetect {
                 enterFibPrice = this.getFib(valA, valB, this.enterFib, true);
                 takeFibPrice = this.getFib(valA, valB, this.takeFib, true);
 
+                const isUp = this.isNotInverted;
+                const isConcurrentUpOrder = this.detectorService.isConcurrentUpOrder(this);
+                const isConcurrentDownOrder = this.detectorService.isConcurrentDownOrder(this);
+                const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
+
+                if (!isNoConcurrentOrders) {
+                    this.logger.verbose(`Concurrent order - ${this.getPrettyDate()}`);
+                }
+                
                 if (
                     !this.detectorService.isInPosition() &&
+                    isNoConcurrentOrders &&
                     this.candleMax(this.getCandle()) !== enterFibPrice &&
                     this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
                 ) {
+                    if (!this.order.isActive) {
+                        this.logger.verbose(`> Place order - ${this.getPrettyDate()}`);
+                    }
+
                     this.order.isActive = true;
                     this.order.enter = enterFibPrice;
                     this.order.take = takeFibPrice;
                     this.order.stop = stopFibPrice;
+
+                    if (isUp) {
+                        this.detectorService.addUpOrder(this);
+                    } else {
+                        this.detectorService.addDownOrder(this);
+                    }
                 }
             } else if (this.order.isActive) {
                 this.resetOrder();
