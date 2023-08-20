@@ -396,4 +396,8 @@ export abstract class AbstractDetect {
             }
         }
     }
+
+    protected debugHere(dateString: string, isNotInverted: boolean): boolean {
+        return this.getPrettyDate().startsWith(dateString) && this.isNotInverted === isNotInverted;
+    }
 }
