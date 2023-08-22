@@ -323,7 +323,7 @@ export abstract class AbstractDetect {
     }
 
     protected printCancelTrade(): void {
-        this.logger.log(`CANCEL - ${this.getPrettyDate()}`);
+        //this.logger.log(`CANCEL - ${this.getPrettyDate()}`);
     }
 
     protected getDaysRange(count: number): number {

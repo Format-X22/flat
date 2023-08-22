@@ -8,7 +8,7 @@ import {
     UpMidTriangleDetect,
     UpTriangleDetect,
 } from './detect/triangle.detect';
-import { DownZigzagDetect, UpZigzagDetect } from './detect/zigzag.detect';
+import { DownMidZigzagDetect, DownZigzagDetect, UpMidZigzagDetect, UpZigzagDetect } from './detect/zigzag.detect';
 import { DownMidRestartDetect, DownRestartDetect, UpMidRestartDetect, UpRestartDetect } from './detect/restart.detect';
 import { AbstractDetect } from './detect/abstract.detect';
 
@@ -28,6 +28,8 @@ export class DetectorService {
     private downMidTriangleDetect: DownMidTriangleDetect;
     private upZigzagDetect: UpZigzagDetect;
     private downZigzagDetect: DownZigzagDetect;
+    private upMidZigzagDetect: UpMidZigzagDetect;
+    private downMidZigzagDetect: DownMidZigzagDetect;
     private upRestartDetect: UpRestartDetect;
     private downRestartDetect: DownRestartDetect;
     private upMidRestartDetect: UpMidRestartDetect;
@@ -55,6 +57,8 @@ export class DetectorService {
         this.downMidTriangleDetect = new DownMidTriangleDetect(this.segmentService, this);
         this.upZigzagDetect = new UpZigzagDetect(this.segmentService, this);
         this.downZigzagDetect = new DownZigzagDetect(this.segmentService, this);
+        this.upMidZigzagDetect = new UpMidZigzagDetect(this.segmentService, this);
+        this.downMidZigzagDetect = new DownMidZigzagDetect(this.segmentService, this);
         this.upRestartDetect = new UpRestartDetect(this.segmentService, this);
         this.downRestartDetect = new DownRestartDetect(this.segmentService, this);
         this.upMidRestartDetect = new UpMidRestartDetect(this.segmentService, this);
@@ -62,6 +66,17 @@ export class DetectorService {
     }
 
     detect(): void {
+        // TODO Filtrate double enters
+        this.upMidZigzagDetect.check();
+        this.upMidZigzagDetect.trade();
+        this.downMidZigzagDetect.check();
+        this.downMidZigzagDetect.trade();
+
+        this.upZigzagDetect.check();
+        this.upZigzagDetect.trade();
+        this.downZigzagDetect.check();
+        this.downZigzagDetect.trade();
+
         this.upMidFlagDetect.check();
         this.upMidFlagDetect.trade();
         this.downMidFlagDetect.check();
@@ -91,8 +106,6 @@ export class DetectorService {
         this.upTriangleDetect.trade();
         this.downTriangleDetect.check();
         this.downTriangleDetect.trade();
-
-        // TODO Use priority
     }
 
     isInPosition(): boolean {

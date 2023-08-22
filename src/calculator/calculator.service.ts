@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { SegmentService } from '../segment/segment.service';
 import { DetectorService } from '../detector/detector.service';
 
+// TODO Double flags and restarts
+
 @Injectable()
 export class CalculatorService {
     private readonly logger: Logger = new Logger(CalculatorService.name);
