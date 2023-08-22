@@ -28,6 +28,8 @@ export class ZigzagDetect extends AbstractDetect {
             const fib35 = this.getFib(last2DownWaveMin, lastUpWaveMax, 0.35, false);
             const fib5 = this.getFib(last2DownWaveMin, lastUpWaveMax, 0.5, false);
             const fib62 = this.getFib(currentUpWaveMax, this.segmentMin(current), 0.62, true);
+            const fib62_5 = this.getFib(currentUpWaveMax, this.segmentMin(current), 0.5, true);
+            const moveCandles = current.candles;
 
             if (
                 this.lt(this.candleMax(this.getCandle()), fib62) &&
@@ -36,6 +38,7 @@ export class ZigzagDetect extends AbstractDetect {
                 this.sizeGt(prev4, this.minSegmentSizeMore) &&
                 this.sizeGt(prev5, this.minSegmentSizeMore) &&
                 this.sizeGt(prev6, this.minSegmentSizeMore) &&
+                moveCandles.some((candle) => this.lt(this.candleMax(candle), fib62_5)) &&
                 current.size < prev1.size + prev2.size + prev3.size &&
                 this.lt(this.segmentMin(current), lastDownWaveMin) &&
                 this.lt(last2DownWaveMin, lastDownWaveMin) &&
@@ -57,6 +60,8 @@ export class ZigzagDetect extends AbstractDetect {
             const fib35 = this.getFib(last2DownWaveMin, last2UpWaveMax, 0.35, false);
             const fib5 = this.getFib(last2DownWaveMin, last2UpWaveMax, 0.5, false);
             const fib62 = this.getFib(lastUpWaveMax, currentDownWaveMin, 0.62, true);
+            const fib62_5 = this.getFib(lastUpWaveMax, currentDownWaveMin, 0.5, true);
+            const moveCandles = [...prev1.candles, ...current.candles];
 
             if (
                 this.lt(this.candleMax(this.getCandle()), fib62) &&
@@ -66,6 +71,7 @@ export class ZigzagDetect extends AbstractDetect {
                 this.sizeGt(prev6, this.minSegmentSizeMore) &&
                 this.sizeGt(prev7, this.minSegmentSizeMore) &&
                 current.size + prev1.size < prev2.size + prev3.size + prev4.size &&
+                moveCandles.some((candle) => this.lt(this.candleMax(candle), fib62_5)) &&
                 this.lt(currentDownWaveMin, lastDownWaveMin) &&
                 this.lt(last2DownWaveMin, lastDownWaveMin) &&
                 this.lt(lastUpWaveMax, last2UpWaveMax) &&
@@ -95,7 +101,6 @@ export class DownZigzagDetect extends ZigzagDetect {
 export class UpMidZigzagDetect extends ZigzagDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSizeMore = 3;
-    protected waitDays = 8;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP MID ZIGZAG', true, segmentService, detectorService);
@@ -105,7 +110,6 @@ export class UpMidZigzagDetect extends ZigzagDetect {
 export class DownMidZigzagDetect extends ZigzagDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSizeMore = 3;
-    protected waitDays = 8;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN MID ZIGZAG', false, segmentService, detectorService);

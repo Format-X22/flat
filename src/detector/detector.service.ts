@@ -66,7 +66,6 @@ export class DetectorService {
     }
 
     detect(): void {
-        // TODO Filtrate double enters
         this.upMidZigzagDetect.check();
         this.upMidZigzagDetect.trade();
         this.downMidZigzagDetect.check();
@@ -126,6 +125,14 @@ export class DetectorService {
 
     isConcurrentDownOrder(detector: AbstractDetect): boolean {
         return this.downOrderDetector && this.downOrderDetector !== detector;
+    }
+
+    getUpOrderOrigin(): AbstractDetect {
+        return this.upOrderDetector;
+    }
+
+    getDownOrderOrigin(): AbstractDetect {
+        return this.downOrderDetector;
     }
 
     addUpOrder(detector: AbstractDetect): void {
