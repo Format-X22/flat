@@ -405,11 +405,7 @@ export abstract class AbstractDetect {
                 const isUp = this.isNotInverted;
                 const isConcurrentUpOrder = this.detectorService.isConcurrentUpOrder(this);
                 const isConcurrentDownOrder = this.detectorService.isConcurrentDownOrder(this);
-                const concurrentUpOrderStop = this.detectorService.getUpOrderOrigin()?.order.stop || +Infinity;
-                const concurrentDownOrderStop = this.detectorService.getDownOrderOrigin()?.order.stop || -Infinity;
-                const isNoConcurrentOrders =
-                    (isUp && (!isConcurrentUpOrder || concurrentUpOrderStop < enterFibPrice)) ||
-                    (!isUp && (!isConcurrentDownOrder || concurrentDownOrderStop > enterFibPrice));
+                const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
 
                 if (!isNoConcurrentOrders) {
                     this.logger.verbose(`Concurrent order - ${this.getPrettyDate()}`);
