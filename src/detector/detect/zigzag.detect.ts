@@ -4,9 +4,9 @@ import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../loader/candle.model';
 
 export class ZigzagDetect extends AbstractDetect {
-    protected profitMul = 2.1;
+    protected profitMul = 2;
     protected enterFib = 0.62;
-    protected takeFib = 1.85;
+    protected takeFib = 1.8;
     protected stopFib = 0.33;
 
     protected waitDays = 4;
@@ -113,5 +113,23 @@ export class DownMidZigzagDetect extends ZigzagDetect {
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN MID ZIGZAG', false, segmentService, detectorService);
+    }
+}
+
+export class UpBigZigzagDetect extends ZigzagDetect {
+    protected hmaType = EHmaType.BIG_HMA;
+    protected minSegmentSizeMore = 5;
+
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('UP BIG ZIGZAG', true, segmentService, detectorService);
+    }
+}
+
+export class DownBigZigzagDetect extends ZigzagDetect {
+    protected hmaType = EHmaType.BIG_HMA;
+    protected minSegmentSizeMore = 5;
+
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('DOWN BIG ZIGZAG', false, segmentService, detectorService);
     }
 }

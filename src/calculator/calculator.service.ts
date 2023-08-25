@@ -4,6 +4,7 @@ import { CandleModel } from '../loader/candle.model';
 import { Repository } from 'typeorm';
 import { SegmentService } from '../segment/segment.service';
 import { DetectorService } from '../detector/detector.service';
+import { DateTime } from 'luxon';
 
 // TODO Double flags and restarts
 
@@ -18,7 +19,7 @@ export class CalculatorService {
     ) {}
 
     async calc(): Promise<void> {
-        const candles = await this.getCandles('1d');
+        const candles = await this.getCandles('4h');
 
         for (const candle of candles) {
             this.segmentService.addCandle(candle);
@@ -44,6 +45,11 @@ export class CalculatorService {
     }
 
     private isInTestRange(candle: CandleModel): boolean {
-        return candle.timestamp > 0;
+        return candle.timestamp > DateTime.fromObject({ year: 2022, month: 8, day: 25 }).toMillis();
+        /*return (
+            candle.timestamp > DateTime.fromObject({ year: 2020, month: 1, day: 1 }).toMillis() &&
+            candle.timestamp < DateTime.fromObject({ year: 2021, month: 1, day: 1 }).toMillis()
+        );*/
+        //return candle.timestamp > 0;
     }
 }

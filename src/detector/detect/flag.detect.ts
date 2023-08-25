@@ -3,6 +3,7 @@ import { SegmentService } from '../../segment/segment.service';
 import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../loader/candle.model';
 
+// TODO If candles under 0.5 - enter 0.62.. in another detector?
 export class FlagDetect extends AbstractDetect {
     protected profitMul = 2;
     protected enterFib = 1;
@@ -85,9 +86,28 @@ export class UpMidFlagDetect extends FlagDetect {
 export class DownMidFlagDetect extends FlagDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSizeMore = 3;
-    protected maxSecondSegmentSizeMore = 2;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN MID FLAG', false, segmentService, detectorService);
+    }
+}
+
+export class UpBigFlagDetect extends FlagDetect {
+    protected hmaType = EHmaType.BIG_HMA;
+    protected maxSecondSegmentSizeMore = 4;
+    protected minSegmentSizeMore = 7;
+
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('UP BIG FLAG', true, segmentService, detectorService);
+    }
+}
+
+export class DownBigFlagDetect extends FlagDetect {
+    protected hmaType = EHmaType.BIG_HMA;
+    protected maxSecondSegmentSizeMore = 4;
+    protected minSegmentSizeMore = 7;
+
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('DOWN BIG FLAG', false, segmentService, detectorService);
     }
 }

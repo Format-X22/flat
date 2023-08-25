@@ -13,15 +13,16 @@ export class TriangleDetect extends AbstractDetect {
     protected minSegmentSizeMore = 1;
 
     check(): boolean {
-        const [current, prev1, prev2, prev3, prev4, prev5] = this.getSegments(6);
+        const [current, prev1, prev2, prev3, prev4, prev5, prev6] = this.getSegments(7);
 
-        if (!prev5) {
+        if (!prev6) {
             return false;
         }
 
         if (this.isSegmentDown(current)) {
             const currentUpWaveMax = this.max(current, prev1);
             const lastUpWaveMax = this.max(prev2, prev3);
+            const last2UpWaveMax = this.max(prev4, prev5);
             const lastDownWaveMin = this.min(prev1, prev2);
             const last2DownWaveMin = this.min(prev3, prev4);
             const fib35 = this.getFib(lastUpWaveMax, lastDownWaveMin, 0.35, true);
@@ -33,9 +34,10 @@ export class TriangleDetect extends AbstractDetect {
                 this.sizeGt(prev1, this.minSegmentSizeMore) &&
                 this.sizeGt(prev2, this.minSegmentSizeMore) &&
                 this.sizeGt(prev3, this.minSegmentSizeMore) &&
-                this.sizeGt(prev4, this.minSegmentSizeMore) &&
                 this.gt(lastUpWaveMax, currentUpWaveMax) &&
+                this.gt(last2UpWaveMax, lastUpWaveMax) &&
                 this.lt(lastDownWaveMin, this.segmentMin(current)) &&
+                this.lt(last2DownWaveMin, lastDownWaveMin) &&
                 this.lt(last2DownWaveMin, fib35) &&
                 this.gt(currentUpWaveMax, fib5)
             ) {
@@ -46,6 +48,7 @@ export class TriangleDetect extends AbstractDetect {
         } else {
             const lastUpWaveMax = this.max(prev1, prev2);
             const last2UpWaveMax = this.max(prev3, prev4);
+            const last3UpWaveMax = this.max(prev5, prev6);
             const currentDownWaveMin = this.min(current, prev1);
             const lastDownWaveMin = this.min(prev2, prev3);
             const last2DownWaveMin = this.min(prev4, prev5);
@@ -58,10 +61,11 @@ export class TriangleDetect extends AbstractDetect {
                 this.sizeGt(prev2, this.minSegmentSizeMore) &&
                 this.sizeGt(prev3, this.minSegmentSizeMore) &&
                 this.sizeGt(prev4, this.minSegmentSizeMore) &&
-                this.sizeGt(prev5, this.minSegmentSizeMore) &&
                 this.gt(last2UpWaveMax, lastUpWaveMax) &&
+                this.gt(last3UpWaveMax, last2UpWaveMax) &&
                 this.lt(lastDownWaveMin, currentDownWaveMin) &&
                 this.lt(last2DownWaveMin, fib35) &&
+                this.lt(last2DownWaveMin, lastDownWaveMin) &&
                 this.gt(lastUpWaveMax, fib5)
             ) {
                 return this.markDetection();
@@ -101,5 +105,25 @@ export class DownMidTriangleDetect extends TriangleDetect {
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN MID TRIANGLE', false, segmentService, detectorService);
+    }
+}
+
+export class UpBigTriangleDetect extends TriangleDetect {
+    protected hmaType = EHmaType.BIG_HMA;
+    protected minSegmentSizeMore = 5;
+    protected waitDays = 12;
+
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('UP BIG TRIANGLE', true, segmentService, detectorService);
+    }
+}
+
+export class DownBigTriangleDetect extends TriangleDetect {
+    protected hmaType = EHmaType.BIG_HMA;
+    protected minSegmentSizeMore = 5;
+    protected waitDays = 12;
+
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('DOWN BIG TRIANGLE', false, segmentService, detectorService);
     }
 }

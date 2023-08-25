@@ -24,7 +24,7 @@ export class RestartDetect extends AbstractDetect {
             const lastUpWaveMax = this.max(prev2, prev3);
             const lastDownWaveMin = this.min(prev1, prev2);
             const fib5 = this.getFib(currentUpWaveMax, lastDownWaveMin, 0.5, true);
-            const fib73 = this.getFib(lastUpWaveMax, lastDownWaveMin, 0.73, true);
+            const fib73 = this.getFib(lastUpWaveMax, lastDownWaveMin, 0.5, true);
 
             if (
                 this.lt(this.candleMax(this.getCandle()), currentUpWaveMax) &&
@@ -45,7 +45,7 @@ export class RestartDetect extends AbstractDetect {
             const last2UpWaveMax = this.max(prev3, prev4);
             const lastDownWaveMin = this.min(prev2, prev3);
             const fib5 = this.getFib(lastUpWaveMax, lastDownWaveMin, 0.5, true);
-            const fib73 = this.getFib(last2UpWaveMax, lastDownWaveMin, 0.73, true);
+            const fib73 = this.getFib(last2UpWaveMax, lastDownWaveMin, 0.5, true);
 
             if (
                 this.lt(this.candleMax(this.getCandle()), lastUpWaveMax) &&
@@ -92,5 +92,23 @@ export class DownMidRestartDetect extends RestartDetect {
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN MID RESTART', false, segmentService, detectorService);
+    }
+}
+
+export class UpBigRestartDetect extends RestartDetect {
+    protected hmaType = EHmaType.BIG_HMA;
+    protected minSegmentSizeMore = 5;
+
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('UP BIG RESTART', true, segmentService, detectorService);
+    }
+}
+
+export class DownBigRestartDetect extends RestartDetect {
+    protected hmaType = EHmaType.BIG_HMA;
+    protected minSegmentSizeMore = 5;
+
+    constructor(segmentService: SegmentService, detectorService: DetectorService) {
+        super('DOWN BIG RESTART', false, segmentService, detectorService);
     }
 }
