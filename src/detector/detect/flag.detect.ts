@@ -11,7 +11,7 @@ export class FlagDetect extends AbstractDetect {
     protected stopFib = 0.73;
 
     protected minSegmentSize = 2;
-    protected maxSecondSegmentSize = 3;
+    protected maxSecondSegmentSize = 2;
     protected waitDays = 2;
 
     check(): boolean {
@@ -21,12 +21,22 @@ export class FlagDetect extends AbstractDetect {
             return;
         }
 
-        const fib5 = this.getFib(up1.max, down1.min, 0.5, true);
+        const trendOffset = this.getFib(up1.max, down1.min, 0.5, true);
+        const flagBodyOffset = this.getFib(up1.max, down0.min, 0.5, true);
         const notOverflow = up1.maxGte(down0.max);
+        //const candleNotInHalfDown = down0.candles.every((candle) => this.gt(this.candleMax(candle), flagBodyOffset));
 
-        if (notOverflow && down0.sizeLeft >= this.minSegmentSize && down0.minGt(fib5) && up2.maxLt(down0.min)) {
-            if (this.isCurrentSegmentDown() || down0.sizeRight <= this.maxSecondSegmentSize) {
+        if (
+            notOverflow &&
+            down0.sizeLeft >= this.minSegmentSize &&
+            down0.minGt(trendOffset) &&
+            up2.maxLt(down0.min)// &&
+            //candleNotInHalfDown
+        ) {
+            if (this.isCurrentSegmentDown() || down0.sizeRight < this.maxSecondSegmentSize) {
                 return this.markDetection();
+            } else {
+                return this.markEndDetection();
             }
         } else {
             return this.markEndDetection();
@@ -49,7 +59,7 @@ export class DownFlagDetect extends FlagDetect {
 export class UpMidFlagDetect extends FlagDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
-    protected maxSecondSegmentSize = 3;
+    protected maxSecondSegmentSize = 2;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP MID FLAG', true, segmentService, detectorService);
@@ -59,7 +69,7 @@ export class UpMidFlagDetect extends FlagDetect {
 export class DownMidFlagDetect extends FlagDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
-    protected maxSecondSegmentSize = 3;
+    protected maxSecondSegmentSize = 2;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN MID FLAG', false, segmentService, detectorService);
@@ -69,7 +79,7 @@ export class DownMidFlagDetect extends FlagDetect {
 export class UpBigFlagDetect extends FlagDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
-    protected maxSecondSegmentSize = 5;
+    protected maxSecondSegmentSize = 4;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP BIG FLAG', true, segmentService, detectorService);
@@ -79,7 +89,7 @@ export class UpBigFlagDetect extends FlagDetect {
 export class DownBigFlagDetect extends FlagDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
-    protected maxSecondSegmentSize = 5;
+    protected maxSecondSegmentSize = 4;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN BIG FLAG', false, segmentService, detectorService);
