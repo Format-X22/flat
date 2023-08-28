@@ -19,7 +19,7 @@ export class CalculatorService {
     ) {}
 
     async calc(): Promise<void> {
-        const candles = await this.getCandles('4h');
+        const candles = await this.getCandles('1d');
 
         for (const candle of candles) {
             this.segmentService.addCandle(candle);
@@ -45,11 +45,11 @@ export class CalculatorService {
     }
 
     private isInTestRange(candle: CandleModel): boolean {
-        return candle.timestamp > DateTime.fromObject({ year: 2022, month: 8, day: 25 }).toMillis();
+        //return candle.timestamp > DateTime.fromObject({ year: 2022, month: 8, day: 25 }).toMillis();
         /*return (
             candle.timestamp > DateTime.fromObject({ year: 2020, month: 1, day: 1 }).toMillis() &&
             candle.timestamp < DateTime.fromObject({ year: 2021, month: 1, day: 1 }).toMillis()
         );*/
-        //return candle.timestamp > 0;
+        return candle.timestamp > 0;
     }
 }

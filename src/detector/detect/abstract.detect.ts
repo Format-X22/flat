@@ -5,6 +5,7 @@ import { Logger } from '@nestjs/common';
 import { TOrder } from '../detector.dto';
 import { Duration } from 'luxon';
 import { DetectorService } from '../detector.service';
+import { Wave } from '../../wave/wave.util';
 
 export abstract class AbstractDetect {
     private readonly logger: Logger;
@@ -55,8 +56,42 @@ export abstract class AbstractDetect {
         return this.getCandle().dateString;
     }
 
+    protected getCurrentSegment(): TSegment {
+        return this.getSegments(1)[0];
+    }
+
     protected getSegments(count: number): Array<TSegment> {
         return this.segmentService.getSegments(count, this.hmaType);
+    }
+
+    protected getWaves(count: number, firstIsUp: boolean): Array<Wave> {
+        let required = count * 2;
+        const segments = this.getSegments(required);
+
+        if (!segments[required - 1]) {
+            return new Array(required);
+        }
+
+        const current = segments[0];
+        const waves = [];
+
+        if ((firstIsUp && this.isSegmentUp(current)) || (!firstIsUp && !this.isSegmentUp(current))) {
+            waves.push(new Wave(current, null, this.isNotInverted));
+        }
+
+        for (let i = 0; i < required - 1; i++) {
+            waves.push(new Wave(segments[i + 1], segments[i], this.isNotInverted));
+        }
+
+        return waves;
+    }
+
+    protected isCurrentSegmentUp(): boolean {
+        return this.isSegmentUp(this.getCurrentSegment());
+    }
+
+    protected isCurrentSegmentDown(): boolean {
+        return this.isSegmentDown(this.getCurrentSegment());
     }
 
     protected isSegmentUp(segment: TSegment): boolean {

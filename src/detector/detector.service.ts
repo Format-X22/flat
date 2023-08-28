@@ -105,7 +105,7 @@ export class DetectorService {
     }
 
     detect(): void {
-        this.upMidZigzagDetect.check();
+        /*this.upMidZigzagDetect.check();
         this.upMidZigzagDetect.trade();
         this.downMidZigzagDetect.check();
         this.downMidZigzagDetect.trade();
@@ -118,14 +118,14 @@ export class DetectorService {
         this.upMidFlagDetect.check();
         this.upMidFlagDetect.trade();
         this.downMidFlagDetect.check();
-        this.downMidFlagDetect.trade();
+        this.downMidFlagDetect.trade();*/
 
         this.upFlagDetect.check();
         this.upFlagDetect.trade();
         this.downFlagDetect.check();
         this.downFlagDetect.trade();
 
-        this.upMidRestartDetect.check();
+        /*this.upMidRestartDetect.check();
         this.upMidRestartDetect.trade();
         this.downMidRestartDetect.check();
         this.downMidRestartDetect.trade();
@@ -158,7 +158,7 @@ export class DetectorService {
         this.upBigRestartDetect.check();
         this.upBigRestartDetect.trade();
         this.downBigRestartDetect.check();
-        this.downBigRestartDetect.trade();
+        this.downBigRestartDetect.trade();*/
 
         this.upBigTriangleDetect.check();
         this.upBigTriangleDetect.trade();
