@@ -3,7 +3,6 @@ import { SegmentService } from '../../segment/segment.service';
 import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../loader/candle.model';
 
-// TODO If candles under 0.5 - enter 0.62.. in another detector?
 export class FlagDetect extends AbstractDetect {
     protected profitMul = 2;
     protected enterFib = 1;
@@ -24,14 +23,14 @@ export class FlagDetect extends AbstractDetect {
         const trendOffset = this.getFib(up1.max, down1.min, 0.5, true);
         const flagBodyOffset = this.getFib(up1.max, down0.min, 0.5, true);
         const notOverflow = up1.maxGte(down0.max);
-        //const candleNotInHalfDown = down0.candles.every((candle) => this.gt(this.candleMax(candle), flagBodyOffset));
+        const candleNotInHalfDown = down0.candles.every((candle) => this.gt(this.candleMax(candle), flagBodyOffset));
 
         if (
             notOverflow &&
             down0.sizeLeft >= this.minSegmentSize &&
             down0.minGt(trendOffset) &&
-            up2.maxLt(down0.min)// &&
-            //candleNotInHalfDown
+            up2.maxLt(down0.min) &&
+            candleNotInHalfDown
         ) {
             if (this.isCurrentSegmentDown() || down0.sizeRight < this.maxSecondSegmentSize) {
                 return this.markDetection();
