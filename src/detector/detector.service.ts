@@ -105,18 +105,18 @@ export class DetectorService {
     }
 
     detect(): void {
-        //this.runMidZigzag();
-        //this.runZigzag();
-        //this.runMidFlag();
-        //this.runFlag();
+        this.runMidZigzag();
+        this.runZigzag();
+        this.runMidFlag();
+        this.runFlag();
         this.runMidRestart();
         this.runRestart();
-        //this.runMidTriangle();
-        //this.runTriangle();
-        //this.runBigZigzag();
-        //this.runBigFlag();
+        this.runMidTriangle();
+        this.runTriangle();
+        this.runBigZigzag();
+        this.runBigFlag();
         this.runBigRestart();
-        //this.runBigTriangle();
+        this.runBigTriangle();
     }
 
     isInPosition(): boolean {

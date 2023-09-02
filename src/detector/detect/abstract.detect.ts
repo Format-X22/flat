@@ -443,7 +443,7 @@ export abstract class AbstractDetect {
                 const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
 
                 if (!isNoConcurrentOrders) {
-                    //this.logger.verbose(`Concurrent order - ${this.getPrettyDate()}`);
+                    this.logger.verbose(`Concurrent order - ${this.getPrettyDate()}`);
                 }
 
                 if (
