@@ -4,74 +4,34 @@ import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../loader/candle.model';
 
 export class TriangleDetect extends AbstractDetect {
-    protected profitMul = 1.5;
+    protected profitMul = 1.75;
     protected enterFib = 1;
     protected takeFib = 1.8;
-    protected stopFib = 0.62;
+    protected stopFib = 0.73;
 
-    protected waitDays = 4;
-    protected minSegmentSizeMore = 1;
+    protected waitDays = 2;
+    protected minSegmentSize = 2;
 
     check(): boolean {
-        const [current, prev1, prev2, prev3, prev4, prev5, prev6] = this.getSegments(7);
+        const [down0, up1, down1, up2, down2] = this.getWaves(5, false);
 
-        if (!prev6) {
-            return false;
+        if (!down2) {
+            return;
         }
 
-        if (this.isSegmentDown(current)) {
-            const currentUpWaveMax = this.max(current, prev1);
-            const lastUpWaveMax = this.max(prev2, prev3);
-            const last2UpWaveMax = this.max(prev4, prev5);
-            const lastDownWaveMin = this.min(prev1, prev2);
-            const last2DownWaveMin = this.min(prev3, prev4);
-            const fib35 = this.getFib(lastUpWaveMax, lastDownWaveMin, 0.35, true);
-            const fib5 = this.getFib(lastUpWaveMax, lastDownWaveMin, 0.5, true);
+        const notOverflow = down0.maxLt(up1.max);
 
-            if (
-                this.lt(this.candleMax(this.getCandle()), currentUpWaveMax) &&
-                this.sizeGt(current, this.minSegmentSizeMore) &&
-                this.sizeGt(prev1, this.minSegmentSizeMore) &&
-                this.sizeGt(prev2, this.minSegmentSizeMore) &&
-                this.sizeGt(prev3, this.minSegmentSizeMore) &&
-                this.gt(lastUpWaveMax, currentUpWaveMax) &&
-                this.gt(last2UpWaveMax, lastUpWaveMax) &&
-                this.lt(lastDownWaveMin, this.segmentMin(current)) &&
-                this.lt(last2DownWaveMin, lastDownWaveMin) &&
-                this.lt(last2DownWaveMin, fib35) &&
-                this.gt(currentUpWaveMax, fib5)
-            ) {
-                return this.markDetection();
-            } else {
-                return this.markEndDetection();
-            }
+        if (
+            notOverflow &&
+            down0.minGt(down1.min) &&
+            down1.minGt(down2.min) &&
+            up1.maxLt(up2.max) &&
+            down1.sizeLeft >= this.minSegmentSize &&
+            down1.sizeRight >= this.minSegmentSize
+        ) {
+            return this.markDetection();
         } else {
-            const lastUpWaveMax = this.max(prev1, prev2);
-            const last2UpWaveMax = this.max(prev3, prev4);
-            const last3UpWaveMax = this.max(prev5, prev6);
-            const currentDownWaveMin = this.min(current, prev1);
-            const lastDownWaveMin = this.min(prev2, prev3);
-            const last2DownWaveMin = this.min(prev4, prev5);
-            const fib35 = this.getFib(last2UpWaveMax, lastDownWaveMin, 0.35, true);
-            const fib5 = this.getFib(last2UpWaveMax, lastDownWaveMin, 0.5, true);
-
-            if (
-                this.lte(this.candleMax(this.getCandle()), lastUpWaveMax) &&
-                this.sizeGt(prev1, this.minSegmentSizeMore) &&
-                this.sizeGt(prev2, this.minSegmentSizeMore) &&
-                this.sizeGt(prev3, this.minSegmentSizeMore) &&
-                this.sizeGt(prev4, this.minSegmentSizeMore) &&
-                this.gt(last2UpWaveMax, lastUpWaveMax) &&
-                this.gt(last3UpWaveMax, last2UpWaveMax) &&
-                this.lt(lastDownWaveMin, currentDownWaveMin) &&
-                this.lt(last2DownWaveMin, fib35) &&
-                this.lt(last2DownWaveMin, lastDownWaveMin) &&
-                this.gt(lastUpWaveMax, fib5)
-            ) {
-                return this.markDetection();
-            } else {
-                return this.markEndDetection();
-            }
+            return this.markEndDetection();
         }
     }
 }
@@ -90,8 +50,7 @@ export class DownTriangleDetect extends TriangleDetect {
 
 export class UpMidTriangleDetect extends TriangleDetect {
     protected hmaType = EHmaType.MID_HMA;
-    protected minSegmentSizeMore = 3;
-    protected waitDays = 8;
+    protected waitDays = 4;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP MID TRIANGLE', true, segmentService, detectorService);
@@ -100,8 +59,7 @@ export class UpMidTriangleDetect extends TriangleDetect {
 
 export class DownMidTriangleDetect extends TriangleDetect {
     protected hmaType = EHmaType.MID_HMA;
-    protected minSegmentSizeMore = 3;
-    protected waitDays = 8;
+    protected waitDays = 4;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN MID TRIANGLE', false, segmentService, detectorService);
@@ -110,8 +68,7 @@ export class DownMidTriangleDetect extends TriangleDetect {
 
 export class UpBigTriangleDetect extends TriangleDetect {
     protected hmaType = EHmaType.BIG_HMA;
-    protected minSegmentSizeMore = 5;
-    protected waitDays = 12;
+    protected waitDays = 8;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP BIG TRIANGLE', true, segmentService, detectorService);
@@ -120,8 +77,7 @@ export class UpBigTriangleDetect extends TriangleDetect {
 
 export class DownBigTriangleDetect extends TriangleDetect {
     protected hmaType = EHmaType.BIG_HMA;
-    protected minSegmentSizeMore = 5;
-    protected waitDays = 12;
+    protected waitDays = 8;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN BIG TRIANGLE', false, segmentService, detectorService);
