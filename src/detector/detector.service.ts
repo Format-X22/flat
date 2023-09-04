@@ -42,6 +42,14 @@ import {
     UpMidPennantDetect,
     UpPennantDetect,
 } from './detect/pennant.detect';
+import {
+    DownBigHeadDetect,
+    DownHeadDetect,
+    DownMidHeadDetect,
+    UpBigHeadDetect,
+    UpHeadDetect,
+    UpMidHeadDetect,
+} from './detect/head.detect';
 
 @Injectable()
 export class DetectorService {
@@ -55,6 +63,12 @@ export class DetectorService {
     private downMidFlagDetect: DownMidFlagDetect;
     private upBigFlagDetect: UpBigFlagDetect;
     private downBigFlagDetect: DownBigFlagDetect;
+    private upHeadDetect: UpHeadDetect;
+    private downHeadDetect: DownHeadDetect;
+    private upMidHeadDetect: UpMidHeadDetect;
+    private downMidHeadDetect: DownMidHeadDetect;
+    private upBigHeadDetect: UpBigHeadDetect;
+    private downBigHeadDetect: DownBigHeadDetect;
     private upPennantDetect: UpPennantDetect;
     private downPennantDetect: DownPennantDetect;
     private upMidPennantDetect: UpMidPennantDetect;
@@ -98,6 +112,12 @@ export class DetectorService {
         this.downMidFlagDetect = new DownMidFlagDetect(this.segmentService, this);
         this.upBigFlagDetect = new UpBigFlagDetect(this.segmentService, this);
         this.downBigFlagDetect = new DownBigFlagDetect(this.segmentService, this);
+        this.upHeadDetect = new UpHeadDetect(this.segmentService, this);
+        this.downHeadDetect = new DownHeadDetect(this.segmentService, this);
+        this.upMidHeadDetect = new UpMidHeadDetect(this.segmentService, this);
+        this.downMidHeadDetect = new DownMidHeadDetect(this.segmentService, this);
+        this.upBigHeadDetect = new UpBigHeadDetect(this.segmentService, this);
+        this.downBigHeadDetect = new DownBigHeadDetect(this.segmentService, this);
         this.upPennantDetect = new UpPennantDetect(this.segmentService, this);
         this.downPennantDetect = new DownPennantDetect(this.segmentService, this);
         this.upMidPennantDetect = new UpMidPennantDetect(this.segmentService, this);
@@ -133,12 +153,15 @@ export class DetectorService {
         this.runFlag();
         this.runMidRestart();
         this.runRestart();
+        this.runMidHead();
+        this.runHead();
         this.runMidTriangle();
         this.runTriangle();
         this.runBigZigzag();
         this.runBigPennant();
         this.runBigFlag();
         this.runBigRestart();
+        this.runBigHead();
         this.runBigTriangle();
     }
 
@@ -253,16 +276,25 @@ export class DetectorService {
         this.downBigFlagDetect.trade();
     }
 
+    private runHead(): void {
+        this.upHeadDetect.check();
+        this.upHeadDetect.trade();
+        this.downHeadDetect.check();
+        this.downHeadDetect.trade();
+    }
+
     private runMidHead(): void {
-        //
+        this.upMidHeadDetect.check();
+        this.upMidHeadDetect.trade();
+        this.downMidHeadDetect.check();
+        this.downMidHeadDetect.trade();
     }
 
     private runBigHead(): void {
-        //
-    }
-
-    private runHead(): void {
-        //
+        this.upBigHeadDetect.check();
+        this.upBigHeadDetect.trade();
+        this.downBigHeadDetect.check();
+        this.downBigHeadDetect.trade();
     }
 
     private runPennant(): void {
