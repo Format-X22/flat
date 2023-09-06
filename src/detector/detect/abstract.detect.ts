@@ -443,7 +443,7 @@ export abstract class AbstractDetect {
                 const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
 
                 if (!isNoConcurrentOrders) {
-                    this.logger.verbose(`Concurrent order - ${this.getPrettyDate()}`);
+                    //this.logger.verbose(`Concurrent order - ${this.getPrettyDate()}`);
                 }
 
                 if (
@@ -453,7 +453,7 @@ export abstract class AbstractDetect {
                     this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
                 ) {
                     if (!this.order.isActive) {
-                        this.logger.verbose(`> Place order - ${this.getPrettyDate()}`);
+                        //this.logger.verbose(`> Place order - ${this.getPrettyDate()}`);
                     }
 
                     this.order.isActive = true;

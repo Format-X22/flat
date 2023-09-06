@@ -8,7 +8,10 @@ import {
     UpFlagDetect,
     UpMidFlagDetect,
 } from './detect/flag.detect';
-import { DownBreakDetect, UpBreakDetect } from './detect/break.detect';
+import {
+    DownBreakDetect,
+    UpBreakDetect,
+} from './detect/break.detect';
 import {
     DownBigTriangleDetect,
     DownMidTriangleDetect,
@@ -145,6 +148,7 @@ export class DetectorService {
     }
 
     detect(): void {
+        this.runBreak();
         this.runMidZigzag();
         this.runZigzag();
         this.runMidPennant();
@@ -183,14 +187,6 @@ export class DetectorService {
 
     isConcurrentDownOrder(detector: AbstractDetect): boolean {
         return this.downOrderDetector && this.downOrderDetector !== detector;
-    }
-
-    getUpOrderOrigin(): AbstractDetect {
-        return this.upOrderDetector;
-    }
-
-    getDownOrderOrigin(): AbstractDetect {
-        return this.downOrderDetector;
     }
 
     addUpOrder(detector: AbstractDetect): void {
@@ -234,7 +230,7 @@ export class DetectorService {
     }
 
     getPrettyCapital(): string {
-        return this.capital.toFixed(0);
+        return (this.capital / 1_000).toFixed(3);
     }
 
     printCapital(): void {
@@ -244,15 +240,10 @@ export class DetectorService {
     }
 
     private runBreak(): void {
-        //
-    }
-
-    private runMidBreak(): void {
-        //
-    }
-
-    private runBigBreak(): void {
-        //
+        this.upBreakDetect.check();
+        this.upBreakDetect.trade();
+        this.downBreakDetect.check();
+        this.downBreakDetect.trade();
     }
 
     private runFlag(): void {

@@ -1,65 +1,44 @@
 import { AbstractDetect } from './abstract.detect';
 import { SegmentService } from '../../segment/segment.service';
 import { DetectorService } from '../detector.service';
+import { Wave } from '../../wave/wave.util';
 
 export class BreakDetect extends AbstractDetect {
-    profitMul = 2.3;
-    enterFib = 0;
-    takeFib = 0;
-    stopFib = 0;
-    waitDays = 0;
+    private lastDetectedAndOverflowWave: Wave;
+
+    protected profitMul = 2.2;
+    protected enterFib = 0.62;
+    protected takeFib = 2;
+    protected stopFib = 0.33;
+
+    protected waitDays = 2;
 
     check(): boolean {
-        const [current, prev1, prev2, prev3, prev4] = this.getSegments(5);
+        const [down0, up1, down1, up2] = this.getWaves(4, false);
 
-        if (!prev4) {
-            return false;
+        if (!up2) {
+            return;
         }
 
-        let lastUpWaveMax;
-        let lastDownWaveMin;
-        let last2DownWaveMin;
-        let currentUpWaveMax;
-        let fib5;
-        let fib62;
-        let candlesForFibCheck;
-        let someCandleInFib5AndNotOverflow = false;
-        let someCandleInFib5 = false;
+        const isAlreadyFailInMove = this.lastDetectedAndOverflowWave?.startDate === down0.startDate;
 
-        if (this.isSegmentUp(current)) {
-            lastUpWaveMax = this.max(prev1, prev2);
-            lastDownWaveMin = this.min(current, prev1);
-            last2DownWaveMin = this.min(prev2, prev3);
-            fib5 = this.getFib(this.segmentMax(current), lastDownWaveMin, 0.5, true);
-            fib62 = this.getFib(lastDownWaveMin, this.segmentMax(current), 0.62, false);
-            candlesForFibCheck = current.candles;
-        } else {
-            lastUpWaveMax = this.max(prev2, prev3);
-            lastDownWaveMin = this.min(prev1, prev2);
-            last2DownWaveMin = this.min(prev3, prev4);
-            currentUpWaveMax = this.max(current, prev1);
-            fib5 = this.getFib(currentUpWaveMax, lastDownWaveMin, 0.5, true);
-            fib62 = this.getFib(lastDownWaveMin, currentUpWaveMax, 0.62, false);
-            candlesForFibCheck = [...prev1.candles, ...current.candles];
+        if (isAlreadyFailInMove) {
+            return this.markEndDetection();
         }
 
-        for (const item of candlesForFibCheck) {
-            if (!someCandleInFib5 && this.gt(this.candleMin(item), fib5)) {
-                someCandleInFib5 = true;
-                someCandleInFib5AndNotOverflow = true;
+        const breakOffset = this.getFib(up1.max, down0.min, 0.5, true);
+        const breakEnter = this.getFib(up1.max, down0.min, this.enterFib, true);
+        const lastWaveOffset = this.getFib(up1.max, down0.min, 0.25, true);
+        const notOverflow = this.lt(this.candleMax(this.getCandle()), breakEnter);
+        const anyCandleUnderOffset = down0.candles.some((candle) => this.lt(this.candleMax(candle), breakOffset));
+
+        if (down0.minLt(down1.min) && up1.maxLt(up2.max) && down1.minGt(lastWaveOffset) && anyCandleUnderOffset) {
+            if (notOverflow) {
+                return this.markDetection();
+            } else {
+                this.lastDetectedAndOverflowWave = down0;
+                return this.markEndDetection();
             }
-
-            if (someCandleInFib5 && someCandleInFib5AndNotOverflow && this.lte(this.candleMin(item), fib62)) {
-                someCandleInFib5AndNotOverflow = false;
-            }
-        }
-
-        if (
-            this.gt(this.segmentMax(current), lastUpWaveMax) &&
-            this.gt(lastDownWaveMin, last2DownWaveMin) &&
-            someCandleInFib5AndNotOverflow
-        ) {
-            return this.markDetection();
         } else {
             return this.markEndDetection();
         }
