@@ -8,10 +8,7 @@ import {
     UpFlagDetect,
     UpMidFlagDetect,
 } from './detect/flag.detect';
-import {
-    DownBreakDetect,
-    UpBreakDetect,
-} from './detect/break.detect';
+import { DownBreakDetect, UpBreakDetect } from './detect/break.detect';
 import {
     DownBigTriangleDetect,
     DownMidTriangleDetect,
@@ -167,6 +164,29 @@ export class DetectorService {
         this.runBigRestart();
         this.runBigHead();
         this.runBigTriangle();
+    }
+
+    printLastOrders(): void {
+        const upDetector = this.upOrderDetector;
+        const downDetector = this.downOrderDetector;
+        const upName = upDetector?.constructor.name;
+        const downName = downDetector?.constructor.name;
+        const upOrder = upDetector?.order;
+        const downOrder = downDetector?.order;
+        const format = (v) => JSON.stringify(v, null, 2);
+        let result;
+
+        if (upOrder && downOrder) {
+            result = [`${upName} - ${format(upOrder)}`, `${downName} - ${format(downOrder)}`].join('\n\n');
+        } else if (upOrder) {
+            result = `${upName} - ${format(upOrder)}`;
+        } else if (downOrder) {
+            result = `${downName} - ${format(downOrder)}`;
+        } else {
+            result = '\n\n~~~ No active orders ~~~';
+        }
+
+        this.logger.log(result);
     }
 
     isInPosition(): boolean {

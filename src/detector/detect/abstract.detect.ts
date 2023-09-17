@@ -8,11 +8,7 @@ import { DetectorService } from '../detector.service';
 import { Wave } from '../../wave/wave.util';
 
 export abstract class AbstractDetect {
-    private readonly logger: Logger;
-
-    protected isDetected: boolean = false;
-    protected isInPosition: boolean = false;
-    protected order: TOrder = {
+    public order: TOrder = {
         isActive: false,
         enter: null,
         take: null,
@@ -20,6 +16,11 @@ export abstract class AbstractDetect {
         enterDate: null,
         toZeroDate: null,
     };
+
+    private readonly logger: Logger;
+
+    protected isDetected: boolean = false;
+    protected isInPosition: boolean = false;
 
     protected minStopOffsetSize = 1;
     private zeroFailMul = 0.95;
@@ -306,7 +307,7 @@ export abstract class AbstractDetect {
         this.order.enterDate = this.getCandle().dateString;
         this.order.toZeroDate = this.getCandle().timestamp + this.getDaysRange(waitDays);
 
-        //this.logger.log(`> Enter position - ${this.getPrettyDate()}`);
+        this.logger.verbose(`> Enter position - ${this.getPrettyDate()}`);
     }
 
     protected exitPosition(): void {
