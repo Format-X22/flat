@@ -39,6 +39,8 @@ export class LoaderService {
 
         const sorted = Array.from(rawDataMap.values()).sort((a, b) => a.timestamp - b.timestamp);
 
+        sorted.pop();
+
         this.addHma(HMA_PERIOD, sorted, EHmaType.HMA);
         this.addHma(MID_HMA_PERIOD, sorted, EHmaType.MID_HMA);
         this.addHma(BIG_HMA_PERIOD, sorted, EHmaType.BIG_HMA);
