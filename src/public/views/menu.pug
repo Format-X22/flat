@@ -1,0 +1,13 @@
+nav.navbar.navbar-expand-lg.bg-primary.sticky-top(data-bs-theme="dark")
+    .container-sm
+        a.navbar-brand(href='/') Pavlov Finance
+        button.navbar-toggler(type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation")
+            span.navbar-toggler-icon
+        #navbar.collapse.navbar-collapse
+            ul.navbar-nav.me-auto
+                li.nav-item
+                    a.nav-link(href="/" class= isIndex ? "active" : "") Главная
+                li.nav-item
+                    a.nav-link(href="/news" class= isNews ? "active" : "") Новости
+                li.nav-item
+                    a.nav-link(href="/contacts" class= isContacts ? "active" : "") Контакты

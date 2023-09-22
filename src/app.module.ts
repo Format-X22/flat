@@ -5,6 +5,8 @@ import { CandleModel } from './loader/candle.model';
 import { CalculatorModule } from './calculator/calculator.module';
 import { DetectorModule } from './detector/detector.module';
 import { SegmentModule } from './segment/segment.module';
+import { ConfigModule } from '@nestjs/config';
+import { PublicModule } from './public/public.module';
 
 @Module({
     imports: [
@@ -22,6 +24,10 @@ import { SegmentModule } from './segment/segment.module';
         CalculatorModule,
         DetectorModule,
         SegmentModule,
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
+        PublicModule,
     ],
     controllers: [],
     providers: [],

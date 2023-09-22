@@ -1,19 +1,41 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
-import { LoaderService } from './loader/loader.service';
-import { CalculatorService } from './calculator/calculator.service';
-import * as process from 'process';
+import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { json, urlencoded } from 'express';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-    const app = await NestFactory.createApplicationContext(AppModule);
-    const logger = new Logger('MAIN');
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
+    const config = app.get(ConfigService);
+    const port = config.get<number>('F_PORT');
 
-    logger.log('App started!');
+    app.useGlobalPipes(
+        new ValidationPipe({
+            transform: true,
+            transformOptions: {
+                enableImplicitConversion: true,
+            },
+        }),
+    );
+
+    app.use(json({ limit: '50mb' }));
+    app.use(urlencoded({ extended: true, limit: '50mb' }));
+    app.useStaticAssets(join(__dirname, 'public', 'static'));
+    app.setBaseViewsDir(join(__dirname, 'public', 'views'));
+    app.setViewEngine('pug');
+
+    const swaggerConfig = new DocumentBuilder().setTitle('Pavlov Finance API').setVersion('1.0').build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+
+    SwaggerModule.setup('api-docs', app, document);
 
     //await app.get(LoaderService).truncate();
     //await app.get(LoaderService).load('1d');
-    await app.get(CalculatorService).calc();
-    process.exit(0);
+    //await app.get(CalculatorService).calc();
+
+    await app.listen(port);
 }
 bootstrap().catch((error) => console.log('FATAL on start - ' + error));
