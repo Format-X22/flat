@@ -44,7 +44,7 @@ export class CalculatorService {
     }
 
     private isInTestRange(candle: CandleModel): boolean {
-        //return candle.timestamp > DateTime.fromObject({ year: 2022, month: 8, day: 25 }).toMillis();
+        //return candle.timestamp > DateTime.fromObject({ year: 2018, month: 12, day: 1 }).toMillis();
         /*return (
              candle.timestamp > DateTime.fromObject({ year: 2022, month: 9, day: 1 }).toMillis() &&
              candle.timestamp < DateTime.fromObject({ year: 2023, month: 9, day: 1 }).toMillis()

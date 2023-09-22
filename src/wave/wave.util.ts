@@ -15,10 +15,6 @@ export class Wave implements TSegment {
     candles: Array<CandleModel>;
 
     constructor(left: TSegment, right: TSegment | null, private isNotInverted: boolean) {
-        if (!left) {
-            console.log('HAH');
-        }
-
         this.isUpOriginal = left.isUp;
         this.isDownOriginal = left.isDown;
         this.minOriginal = Math.min(left.min, right?.min || +Infinity);

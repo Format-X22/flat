@@ -229,6 +229,14 @@ export class DetectorService {
         }
     }
 
+    getUpOrderOrigin(): AbstractDetect {
+        return this.upOrderDetector;
+    }
+
+    getDownOrderOrigin(): AbstractDetect {
+        return this.downOrderDetector;
+    }
+
     getCapital(): number {
         return this.capital;
     }
