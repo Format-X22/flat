@@ -1,9 +1,12 @@
 import { Controller, Get, Render } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { ContentService } from '../content/content.service';
 
 @ApiTags('Public')
 @Controller('')
 export class PublicController {
+    constructor(private contentService: ContentService) {}
+
     @Get(['/', 'index'])
     @Render('index')
     getMain(): any {
@@ -12,8 +15,11 @@ export class PublicController {
 
     @Get('/news')
     @Render('news')
-    getNews(): any {
-        return { isNews: true };
+    async getNews(): Promise<any> {
+        return {
+            isNews: true,
+            posts: await this.contentService.getPosts({ skip: 0, limit: 100 }),
+        };
     }
 
     @Get('/contacts')

@@ -27,7 +27,15 @@ async function bootstrap() {
     app.setBaseViewsDir(join(__dirname, 'public', 'views'));
     app.setViewEngine('pug');
 
-    const swaggerConfig = new DocumentBuilder().setTitle('Pavlov Finance API').setVersion('1.0').build();
+    const swaggerConfig = new DocumentBuilder()
+        .setTitle('Pavlov Finance API')
+        .setVersion('1.0')
+        .addSecurity('session', {
+            type: 'apiKey',
+            in: 'header',
+            name: 'admin-key',
+        })
+        .build();
     const document = SwaggerModule.createDocument(app, swaggerConfig);
 
     SwaggerModule.setup('api-docs', app, document);
