@@ -27,9 +27,4 @@ export class PublicController {
     getCalculator(): any {
         return { isCalculator: true };
     }
-
-    @Get('api/status')
-    getStatus(): string {
-        return 'OK';
-    }
 }

@@ -1,18 +1,16 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { SiteModule } from './site.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { json, urlencoded } from 'express';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import { LoaderService } from './loader/loader.service';
-import { CalculatorService } from './calculator/calculator.service';
 
 async function bootstrap() {
-    const app = await NestFactory.create<NestExpressApplication>(AppModule);
+    const app = await NestFactory.create<NestExpressApplication>(SiteModule);
     const config = app.get(ConfigService);
-    const port = config.get<number>('F_PORT');
+    const port = config.get<number>('F_SITE_PORT');
 
     app.useGlobalPipes(
         new ValidationPipe({
@@ -33,10 +31,6 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, swaggerConfig);
 
     SwaggerModule.setup('api-docs', app, document);
-
-    //await app.get(LoaderService).truncate();
-    //await app.get(LoaderService).load('1d');
-    //await app.get(CalculatorService).calc();
 
     await app.listen(port);
 }

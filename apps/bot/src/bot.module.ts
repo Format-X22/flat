@@ -1,15 +1,16 @@
 import { Module } from '@nestjs/common';
-import { LoaderModule } from './loader/loader.module';
+import { StatusModule } from './status/status.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CandleModel } from './loader/candle.model';
+import { LoaderModule } from './loader/loader.module';
 import { CalculatorModule } from './calculator/calculator.module';
 import { DetectorModule } from './detector/detector.module';
 import { SegmentModule } from './segment/segment.module';
 import { ConfigModule } from '@nestjs/config';
-import { PublicModule } from './public/public.module';
 
 @Module({
     imports: [
+        StatusModule,
         TypeOrmModule.forRoot({
             type: 'postgres',
             host: 'localhost',
@@ -27,9 +28,8 @@ import { PublicModule } from './public/public.module';
         ConfigModule.forRoot({
             isGlobal: true,
         }),
-        PublicModule,
     ],
     controllers: [],
     providers: [],
 })
-export class AppModule {}
+export class BotModule {}
