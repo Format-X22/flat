@@ -22,6 +22,12 @@ export class PublicController {
         return { isContacts: true };
     }
 
+    @Get('/calculator')
+    @Render('calculator')
+    getCalculator(): any {
+        return { isCalculator: true };
+    }
+
     @Get('api/status')
     getStatus(): string {
         return 'OK';
