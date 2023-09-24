@@ -11,22 +11,22 @@ import { ContentService } from './content.service';
 export class ContentController {
     constructor(private contentService: ContentService) {}
 
-    @Get('post')
+    @Get('posts')
     async getPosts(@Query() query: PostListArgs): Promise<Array<PostDto>> {
         return this.contentService.getPosts(query);
     }
 
-    @Post('post')
+    @Post('posts')
     async addPost(@Body() post: PostArgs): Promise<void> {
         return this.contentService.addPost(post);
     }
 
-    @Patch('post/:id')
+    @Patch('posts/:id')
     async editPost(@Param('id', ParseIntPipe) id: number, @Body() post: PostArgs): Promise<void> {
         return this.contentService.editPost(id, post);
     }
 
-    @Delete('post/:id')
+    @Delete('posts/:id')
     async deletePost(@Param('id', ParseIntPipe) id: number): Promise<void> {
         return this.contentService.deletePost(id);
     }

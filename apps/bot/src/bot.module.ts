@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 import { StatusModule } from './status/status.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CandleModel } from './loader/candle.model';
-import { LoaderModule } from './loader/loader.module';
-import { CalculatorModule } from './calculator/calculator.module';
-import { DetectorModule } from './detector/detector.module';
-import { SegmentModule } from './segment/segment.module';
+import { CandleModel } from './analyzer/loader/candle.model';
 import { ConfigModule } from '@nestjs/config';
+import { AnalyzerModule } from './analyzer/analyzer.module';
+import { AdminModule } from './admin/admin.module';
+import { TraderModule } from './trader/trader.module';
 
 @Module({
     imports: [
@@ -21,13 +20,12 @@ import { ConfigModule } from '@nestjs/config';
             entities: [CandleModel],
             synchronize: true,
         }),
-        LoaderModule,
-        CalculatorModule,
-        DetectorModule,
-        SegmentModule,
         ConfigModule.forRoot({
             isGlobal: true,
         }),
+        AnalyzerModule,
+        AdminModule,
+        TraderModule,
     ],
     controllers: [],
     providers: [],
