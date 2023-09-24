@@ -9,7 +9,9 @@ export class AdminGuard implements CanActivate {
 
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
         const request = context.switchToHttp().getRequest<Request>();
+        const configKey = this.configService.get('F_BOT_ADMIN_KEY');
+        const headerKey = request.headers['admin-key'];
 
-        return this.configService.get('F_BOT_ADMIN_KEY') === request.headers['admin-key'];
+        return headerKey && configKey === headerKey;
     }
 }
