@@ -6,6 +6,7 @@ import { json, urlencoded } from 'express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoaderService } from './analyzer/loader/loader.service';
 import { CalculatorService } from './analyzer/calculator/calculator.service';
+import { BotService } from './bot.service';
 
 async function bootstrap() {
     const app = await NestFactory.create(BotModule);
@@ -36,6 +37,9 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, swaggerConfig);
 
     SwaggerModule.setup('api-docs', app, document);
+
+    // Init service
+    app.get(BotService);
 
     //await app.get(LoaderService).truncate();
     //await app.get(LoaderService).load('1d');
