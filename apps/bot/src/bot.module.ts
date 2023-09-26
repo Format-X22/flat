@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AnalyzerModule } from './analyzer/analyzer.module';
 import { AdminModule } from './admin/admin.module';
 import { TraderModule } from './trader/trader.module';
+import { BotService } from './bot.service';
 
 @Module({
     imports: [
@@ -28,6 +29,6 @@ import { TraderModule } from './trader/trader.module';
         TraderModule,
     ],
     controllers: [],
-    providers: [],
+    providers: [BotService],
 })
 export class BotModule {}

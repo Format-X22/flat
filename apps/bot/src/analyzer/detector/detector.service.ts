@@ -50,10 +50,13 @@ import {
     UpHeadDetect,
     UpMidHeadDetect,
 } from './detect/head.detect';
+import { TActualOrder } from './detector.dto';
 
 @Injectable()
 export class DetectorService {
     private readonly logger: Logger = new Logger(DetectorService.name);
+
+    isSilent: boolean;
 
     private upBreakDetect: UpBreakDetect;
     private downBreakDetect: DownBreakDetect;
@@ -144,7 +147,9 @@ export class DetectorService {
         this.downBigRestartDetect = new DownBigRestartDetect(this.segmentService, this);
     }
 
-    detect(): void {
+    detect(isSilent = false): void {
+        this.isSilent = isSilent;
+
         this.runBreak();
         this.runMidZigzag();
         this.runZigzag();
@@ -164,6 +169,13 @@ export class DetectorService {
         this.runBigRestart();
         this.runBigHead();
         this.runBigTriangle();
+    }
+
+    getOrders(): TActualOrder {
+        return {
+            up: this.upOrderDetector?.order,
+            down: this.downOrderDetector?.order,
+        };
     }
 
     printLastOrders(): void {
@@ -268,135 +280,97 @@ export class DetectorService {
     }
 
     private runBreak(): void {
-        this.upBreakDetect.check();
-        this.upBreakDetect.trade();
-        this.downBreakDetect.check();
-        this.downBreakDetect.trade();
+        this.upBreakDetect.analyze();
+        this.downBreakDetect.analyze();
     }
 
     private runFlag(): void {
-        this.upFlagDetect.check();
-        this.upFlagDetect.trade();
-        this.downFlagDetect.check();
-        this.downFlagDetect.trade();
+        this.upFlagDetect.analyze();
+        this.downFlagDetect.analyze();
     }
 
     private runMidFlag(): void {
-        this.upMidFlagDetect.check();
-        this.upMidFlagDetect.trade();
-        this.downMidFlagDetect.check();
-        this.downMidFlagDetect.trade();
+        this.upMidFlagDetect.analyze();
+        this.downMidFlagDetect.analyze();
     }
 
     private runBigFlag(): void {
-        this.upBigFlagDetect.check();
-        this.upBigFlagDetect.trade();
-        this.downBigFlagDetect.check();
-        this.downBigFlagDetect.trade();
+        this.upBigFlagDetect.analyze();
+        this.downBigFlagDetect.analyze();
     }
 
     private runHead(): void {
-        this.upHeadDetect.check();
-        this.upHeadDetect.trade();
-        this.downHeadDetect.check();
-        this.downHeadDetect.trade();
+        this.upHeadDetect.analyze();
+        this.downHeadDetect.analyze();
     }
 
     private runMidHead(): void {
-        this.upMidHeadDetect.check();
-        this.upMidHeadDetect.trade();
-        this.downMidHeadDetect.check();
-        this.downMidHeadDetect.trade();
+        this.upMidHeadDetect.analyze();
+        this.downMidHeadDetect.analyze();
     }
 
     private runBigHead(): void {
-        this.upBigHeadDetect.check();
-        this.upBigHeadDetect.trade();
-        this.downBigHeadDetect.check();
-        this.downBigHeadDetect.trade();
+        this.upBigHeadDetect.analyze();
+        this.downBigHeadDetect.analyze();
     }
 
     private runPennant(): void {
-        this.upPennantDetect.check();
-        this.upPennantDetect.trade();
-        this.downPennantDetect.check();
-        this.downPennantDetect.trade();
+        this.upPennantDetect.analyze();
+        this.downPennantDetect.analyze();
     }
 
     private runMidPennant(): void {
-        this.upMidPennantDetect.check();
-        this.upMidPennantDetect.trade();
-        this.downMidPennantDetect.check();
-        this.downMidPennantDetect.trade();
+        this.upMidPennantDetect.analyze();
+        this.downMidPennantDetect.analyze();
     }
 
     private runBigPennant(): void {
-        this.upBigPennantDetect.check();
-        this.upBigPennantDetect.trade();
-        this.downBigPennantDetect.check();
-        this.downBigPennantDetect.trade();
+        this.upBigPennantDetect.analyze();
+        this.downBigPennantDetect.analyze();
     }
 
     private runRestart(): void {
-        this.upRestartDetect.check();
-        this.upRestartDetect.trade();
-        this.downRestartDetect.check();
-        this.downRestartDetect.trade();
+        this.upRestartDetect.analyze();
+        this.downRestartDetect.analyze();
     }
 
     private runMidRestart(): void {
-        this.upMidRestartDetect.check();
-        this.upMidRestartDetect.trade();
-        this.downMidRestartDetect.check();
-        this.downMidRestartDetect.trade();
+        this.upMidRestartDetect.analyze();
+        this.downMidRestartDetect.analyze();
     }
 
     private runBigRestart(): void {
-        this.upBigRestartDetect.check();
-        this.upBigRestartDetect.trade();
-        this.downBigRestartDetect.check();
-        this.downBigRestartDetect.trade();
+        this.upBigRestartDetect.analyze();
+        this.downBigRestartDetect.analyze();
     }
 
     private runTriangle(): void {
-        this.upTriangleDetect.check();
-        this.upTriangleDetect.trade();
-        this.downTriangleDetect.check();
-        this.downTriangleDetect.trade();
+        this.upTriangleDetect.analyze();
+        this.downTriangleDetect.analyze();
     }
 
     private runMidTriangle(): void {
-        this.upMidTriangleDetect.check();
-        this.upMidTriangleDetect.trade();
-        this.downMidTriangleDetect.check();
-        this.downMidTriangleDetect.trade();
+        this.upMidTriangleDetect.analyze();
+        this.downMidTriangleDetect.analyze();
     }
 
     private runBigTriangle(): void {
-        this.upBigTriangleDetect.check();
-        this.upBigTriangleDetect.trade();
-        this.downBigTriangleDetect.check();
-        this.downBigTriangleDetect.trade();
+        this.upBigTriangleDetect.analyze();
+        this.downBigTriangleDetect.analyze();
     }
 
     private runZigzag(): void {
-        this.upZigzagDetect.check();
-        this.upZigzagDetect.trade();
-        this.downZigzagDetect.check();
-        this.downZigzagDetect.trade();
+        this.upZigzagDetect.analyze();
+        this.downZigzagDetect.analyze();
     }
 
     private runMidZigzag(): void {
-        this.upMidZigzagDetect.check();
-        this.upMidZigzagDetect.trade();
-        this.downMidZigzagDetect.check();
-        this.downMidZigzagDetect.trade();
+        this.upMidZigzagDetect.analyze();
+        this.downMidZigzagDetect.analyze();
     }
 
     private runBigZigzag(): void {
-        this.upBigZigzagDetect.check();
-        this.upBigZigzagDetect.trade();
-        this.downBigZigzagDetect.check();
-        this.downBigZigzagDetect.trade();
+        this.upBigZigzagDetect.analyze();
+        this.downBigZigzagDetect.analyze();
     }
 }

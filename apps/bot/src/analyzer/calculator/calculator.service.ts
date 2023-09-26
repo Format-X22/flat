@@ -4,7 +4,7 @@ import { CandleModel } from '../loader/candle.model';
 import { Repository } from 'typeorm';
 import { SegmentService } from '../segment/segment.service';
 import { DetectorService } from '../detector/detector.service';
-import { DateTime } from 'luxon';
+import { TActualOrder } from '../detector/detector.dto';
 
 @Injectable()
 export class CalculatorService {
@@ -16,7 +16,7 @@ export class CalculatorService {
         private readonly detectorService: DetectorService,
     ) {}
 
-    async calc(): Promise<void> {
+    async calc(isSilent = false): Promise<TActualOrder> {
         const candles = await this.getCandles('1d');
 
         for (const candle of candles) {
@@ -26,11 +26,13 @@ export class CalculatorService {
                 continue;
             }
 
-            this.detectorService.detect();
+            this.detectorService.detect(isSilent);
         }
 
         this.detectorService.printCapital();
         this.detectorService.printLastOrders();
+
+        return this.detectorService.getOrders();
     }
 
     private async getCandles(size: string): Promise<Array<CandleModel>> {

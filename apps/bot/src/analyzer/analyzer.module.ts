@@ -6,5 +6,6 @@ import { SegmentModule } from './segment/segment.module';
 
 @Module({
     imports: [LoaderModule, CalculatorModule, DetectorModule, SegmentModule],
+    exports: [CalculatorModule, LoaderModule],
 })
 export class AnalyzerModule {}

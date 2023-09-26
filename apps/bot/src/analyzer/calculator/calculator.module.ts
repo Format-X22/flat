@@ -8,5 +8,6 @@ import { DetectorModule } from '../detector/detector.module';
 @Module({
     imports: [TypeOrmModule.forFeature([CandleModel]), DetectorModule, SegmentModule],
     providers: [CalculatorService],
+    exports: [CalculatorService],
 })
 export class CalculatorModule {}

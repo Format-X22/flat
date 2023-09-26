@@ -41,7 +41,7 @@ export class SegmentService {
     }
 
     getSegments(count: number, type: EHmaType): Array<TSegment> {
-        const result = [];
+        const result: Array<TSegment> = [];
 
         for (let i = 0; i < count; i++) {
             result.push(this.getPrevSegment(i, type));

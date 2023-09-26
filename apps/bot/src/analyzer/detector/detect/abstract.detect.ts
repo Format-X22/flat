@@ -44,9 +44,14 @@ export abstract class AbstractDetect {
 
     abstract check(): boolean;
 
-    trade(): void {
+    doVirtualTrade(): void {
         this.handleOrder();
         this.handleTradeDetection();
+    }
+
+    analyze(): void {
+        this.check();
+        this.doVirtualTrade();
     }
 
     protected getCandle(): CandleModel {
@@ -446,9 +451,13 @@ export abstract class AbstractDetect {
                 const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
 
                 if (!isNoConcurrentOrders) {
-                    this.logger.verbose(
-                        `Concurrent order - ${this.getPrettyDate()} - ${upOrderOrigin?.name} | ${downOrderOrigin?.name}`,
-                    );
+                    if (!this.detectorService.isSilent) {
+                        this.logger.verbose(
+                            `Concurrent order - ${this.getPrettyDate()} - ${upOrderOrigin?.name} | ${
+                                downOrderOrigin?.name
+                            }`,
+                        );
+                    }
                 }
 
                 if (
@@ -465,8 +474,6 @@ export abstract class AbstractDetect {
                     this.order.enter = enterFibPrice;
                     this.order.take = takeFibPrice;
                     this.order.stop = stopFibPrice;
-
-                    //console.log({ ...this.order, candles: null });
 
                     if (isUp) {
                         this.detectorService.addUpOrder(this);

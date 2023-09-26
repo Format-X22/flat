@@ -20,18 +20,29 @@ export class LoaderService {
     constructor(@InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>) {}
 
     async truncate(): Promise<void> {
-        this.logger.log('Truncated');
         await this.candleRepo.clear();
+
+        this.logger.log('Truncated');
     }
 
-    async load(size: string): Promise<void> {
+    async loadLastActual(size: string): Promise<void> {
+        const fromForce = DateTime.fromObject({ year: 2023, day: 1, month: 1 }).toJSDate();
+
+        await this.load(size, fromForce);
+    }
+
+    async load(size: string, fromForce?: Date): Promise<void> {
         const rawDataMap = new Map<number, Partial<CandleModel>>();
         const stock = new ccxt.binance();
-        const fromDate = new Date();
+        let fromDate: Date;
 
         this.logger.log('Start loading...');
 
-        fromDate.setFullYear(2017, 11, 1);
+        if (fromForce) {
+            fromDate = fromForce;
+        } else {
+            fromDate = DateTime.fromObject({ year: 2017, day: 11, month: 1 }).toJSDate();
+        }
 
         await this.populateRawDataMap(rawDataMap, fromDate, stock, size);
 
@@ -93,7 +104,7 @@ export class LoaderService {
             } catch (error) {
                 this.logger.error('On load - ' + error);
             } finally {
-                await sleep(1000);
+                await sleep(5000);
             }
         }
     }
