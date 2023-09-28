@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CandleModel, EHmaType } from '../loader/candle.model';
+import { CandleModel, EHmaType } from '../../data/candle.model';
 import { TSegment } from './segment.dto';
 import { SegmentStorage } from './segment.storage';
 

@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CandleModel } from '../loader/candle.model';
+import { CandleModel } from '../../data/candle.model';
 import { Repository } from 'typeorm';
 import { SegmentService } from '../segment/segment.service';
 import { DetectorService } from '../detector/detector.service';
 import { TActualOrder } from '../detector/detector.dto';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class CalculatorService {
@@ -46,11 +47,11 @@ export class CalculatorService {
     }
 
     private isInTestRange(candle: CandleModel): boolean {
-        //return candle.timestamp > DateTime.fromObject({ year: 2018, month: 12, day: 1 }).toMillis();
+        return candle.timestamp > DateTime.fromObject({ year: 2018, month: 1, day: 1 }).toMillis();
         /*return (
-             candle.timestamp > DateTime.fromObject({ year: 2022, month: 9, day: 1 }).toMillis() &&
-             candle.timestamp < DateTime.fromObject({ year: 2023, month: 9, day: 1 }).toMillis()
+             candle.timestamp > DateTime.fromObject({ year: 2023, month: 1, day: 1 }).toMillis() &&
+             candle.timestamp < DateTime.fromObject({ year: 2024, month: 1, day: 1 }).toMillis()
         );*/
-        return candle.timestamp > 0;
+        //return candle.timestamp > 0;
     }
 }

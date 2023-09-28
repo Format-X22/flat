@@ -1,5 +1,5 @@
 import { TSegment } from '../segment/segment.dto';
-import { CandleModel } from '../loader/candle.model';
+import { CandleModel } from '../../data/candle.model';
 
 export class Wave implements TSegment {
     private readonly isUpOriginal: boolean;

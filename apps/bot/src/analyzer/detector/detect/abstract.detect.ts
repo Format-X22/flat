@@ -1,4 +1,4 @@
-import { CandleModel, EHmaType } from '../../loader/candle.model';
+import { CandleModel, EHmaType } from '../../../data/candle.model';
 import { SegmentService } from '../../segment/segment.service';
 import { TSegment } from '../../segment/segment.dto';
 import { Logger } from '@nestjs/common';

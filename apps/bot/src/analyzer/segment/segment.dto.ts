@@ -1,4 +1,4 @@
-import { CandleModel } from '../loader/candle.model';
+import { CandleModel } from '../../data/candle.model';
 
 export type TSegment = {
     isUp: boolean;

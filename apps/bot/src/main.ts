@@ -43,7 +43,7 @@ async function bootstrap() {
 
     //await app.get(LoaderService).truncate();
     //await app.get(LoaderService).load('1d');
-    //await app.get(CalculatorService).calc();
+    await app.get(CalculatorService).calc();
 
     await app.listen(port);
 }

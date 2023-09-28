@@ -1,5 +1,5 @@
 import { TSegment } from './segment.dto';
-import { CandleModel, EHmaType } from '../loader/candle.model';
+import { CandleModel, EHmaType } from '../../data/candle.model';
 
 export class SegmentStorage {
     private segments: Array<TSegment> = [

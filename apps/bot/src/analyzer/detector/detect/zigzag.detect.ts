@@ -1,7 +1,7 @@
 import { AbstractDetect } from './abstract.detect';
 import { SegmentService } from '../../segment/segment.service';
 import { DetectorService } from '../detector.service';
-import { EHmaType } from '../../loader/candle.model';
+import { EHmaType } from '../../../data/candle.model';
 import { Wave } from '../../wave/wave.util';
 
 export class ZigzagDetect extends AbstractDetect {

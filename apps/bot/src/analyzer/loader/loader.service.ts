@@ -4,7 +4,7 @@ import * as tech from 'technicalindicators';
 import * as _ from 'lodash';
 import Exchange from 'ccxt/js/src/abstract/binance';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CandleModel, EHmaType } from './candle.model';
+import { CandleModel, EHmaType } from '../../data/candle.model';
 import { Repository } from 'typeorm';
 import { sleep } from '@app/shared/sleep.util';
 import { DateTime } from 'luxon';
