@@ -3,10 +3,22 @@ import { AddBotArgs, EditBotArgs, GetBotListArgs, RegisterPayArgs } from './admi
 import { InjectRepository } from '@nestjs/typeorm';
 import { BotModel, EState, EStock } from '../data/bot.model';
 import { Repository } from 'typeorm';
+import { scrypt, randomFill, createCipheriv } from 'node:crypto';
+import { ConfigService } from '@nestjs/config';
+
+const CIPHER_TYPE = 'aes-256-cbc';
+const CIPHER_SALT = 'Y&31#.azp,$D!!*22ds_E4@';
 
 @Injectable()
 export class AdminService {
-    constructor(@InjectRepository(BotModel) private botRepo: Repository<BotModel>) {}
+    private readonly cipherKey: string;
+
+    constructor(
+        @InjectRepository(BotModel) private botRepo: Repository<BotModel>,
+        private configService: ConfigService,
+    ) {
+        this.cipherKey = this.configService.get('F_BOT_KEY_PASS');
+    }
 
     async startBot(id: number): Promise<void> {
         const result = await this.botRepo.update({ id }, { isActive: true });
@@ -28,14 +40,14 @@ export class AdminService {
         let isNotFound = false;
 
         await this.botRepo.manager.transaction(async (entityManager) => {
-            const bot = await this.botRepo.findOne({ where: { id } });
+            const bot = await entityManager.findOne(BotModel, { where: { id } });
 
             if (!bot) {
                 isNotFound = true;
                 return;
             }
 
-            await this.botRepo.update({ id }, { payAmount: bot.payAmount - body.amount });
+            await entityManager.update(BotModel, { id }, { payAmount: bot.payAmount - body.amount });
         });
 
         if (isNotFound) {
@@ -56,6 +68,8 @@ export class AdminService {
     }
 
     async addBot(body: AddBotArgs): Promise<BotModel['id']> {
+        body.apiKey = await this.makeCipherKey(body.apiKey);
+
         const bot = await this.botRepo.save(
             this.botRepo.create({
                 ...body,
@@ -68,6 +82,10 @@ export class AdminService {
     }
 
     async editBot(id: number, body: EditBotArgs): Promise<void> {
+        if (body.apiKey) {
+            body.apiKey = await this.makeCipherKey(body.apiKey);
+        }
+
         const result = await this.botRepo.update({ id }, body);
 
         if (!result.affected) {
@@ -91,5 +109,31 @@ export class AdminService {
 
     private throwNotFound(id: BotModel['id']): never {
         throw new NotFoundException(`Unknown bot ${id}`);
+    }
+
+    private makeCipherKey(apiKey: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            scrypt(this.cipherKey, CIPHER_SALT, 32, (error, key) => {
+                if (error) {
+                    reject(error);
+                }
+
+                randomFill(new Uint8Array(16), (error, iv) => {
+                    if (error) {
+                        reject(error);
+                    }
+
+                    const cipher = createCipheriv(CIPHER_TYPE, key, iv);
+
+                    let encrypted = '';
+
+                    cipher.setEncoding('hex');
+                    cipher.on('data', (chunk) => (encrypted += chunk));
+                    cipher.on('end', () => resolve(encrypted));
+                    cipher.write(apiKey);
+                    cipher.end();
+                });
+            });
+        });
     }
 }

@@ -127,4 +127,15 @@ describe('AdminService', () => {
 
         await deleteBot(id);
     });
+
+    it('should cipher keys', async () => {
+        const { id, apiKey: apiKeyOrigin } = await createBot();
+        const apiKey = 'cipher-test';
+
+        await service.editBot(id, { apiKey });
+        const bot = await service.getBot(id);
+        expect(bot.apiKey).not.toBe(apiKeyOrigin);
+
+        await deleteBot(id);
+    });
 });
