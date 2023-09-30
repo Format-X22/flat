@@ -113,4 +113,18 @@ describe('AdminService', () => {
             expect(error instanceof NotFoundException).toBe(true);
         }
     });
+
+    it('should add owner and comment', async () => {
+        const { id } = await createBot();
+        const owner = 'test owner';
+        const comment = 'test comment';
+
+        await service.editBot(id, { owner, comment });
+
+        const bot = await service.getBot(id);
+        expect(bot.owner).toBe(owner);
+        expect(bot.comment).toBe(comment);
+
+        await deleteBot(id);
+    });
 });

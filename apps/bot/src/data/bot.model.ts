@@ -41,4 +41,10 @@ export class BotModel {
 
     @Column()
     state: EState;
+
+    @Column({ nullable: true })
+    owner: string;
+
+    @Column({ nullable: true })
+    comment: string;
 }

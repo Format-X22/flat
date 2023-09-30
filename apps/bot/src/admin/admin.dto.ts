@@ -39,6 +39,16 @@ export class AddBotArgs {
     @ApiProperty()
     @IsString()
     apiKey: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    owner?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    comment?: string;
 }
 
 export class EditBotArgs {
@@ -70,4 +80,14 @@ export class EditBotArgs {
     @IsOptional()
     @IsString()
     apiKey?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    owner?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    comment?: string;
 }
