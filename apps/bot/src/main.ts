@@ -41,8 +41,8 @@ async function bootstrap() {
     // Init service
     app.get(BotService);
 
-    //await app.get(LoaderService).truncate();
-    //await app.get(LoaderService).load('1d');
+    await app.get(LoaderService).truncate();
+    await app.get(LoaderService).load('1d');
     await app.get(CalculatorService).calc();
 
     await app.listen(port);

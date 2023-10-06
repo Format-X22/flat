@@ -16,7 +16,6 @@ export class TraderStater {
         private readonly executor: TraderExecutor,
     ) {}
 
-    // TODO Handle isActive changed
     async run(): Promise<void> {
         while (true) {
             try {
@@ -143,66 +142,178 @@ export class TraderStater {
     }
 
     private async onInitialInitial(): Promise<void> {
-        // TODO -
+        if (!this.bot.isActive) {
+            this.bot.stateSection = EStateSection.INITIAL;
+            this.bot.state = EState.DEACTIVATED;
+            return;
+        }
+
+        this.bot.stateSection = EStateSection.WORKING;
+        this.bot.state = EState.WAITING;
     }
 
     private async onInitialDeactivated(): Promise<void> {
-        // TODO -
+        if (this.bot.isActive) {
+            this.bot.stateSection = EStateSection.INITIAL;
+            this.bot.state = EState.INITIAL;
+            return;
+        }
     }
 
     private async onErrorError(): Promise<void> {
-        // TODO -
+        if (this.bot.isActive) {
+            this.bot.stateSection = EStateSection.INITIAL;
+            this.bot.state = EState.INITIAL;
+            return;
+        }
     }
 
     private async onErrorEmergencyStop(): Promise<void> {
         // TODO -
+
+        this.bot.isActive = false;
+        this.bot.stateSection = EStateSection.ERROR;
+        this.bot.state = EState.ERROR;
     }
 
     private async onWorkingWaiting(): Promise<void> {
+        if (!this.bot.isActive) {
+            // TODO cancel all
+            this.bot.stateSection = EStateSection.INITIAL;
+            this.bot.state = EState.DEACTIVATED;
+            return;
+        }
+
+        // TODO Check time to handle candle
+        // lastHandledCandle
+
         // TODO -
+
+        this.bot.state = EState.CHECK_POSITION_COLLISION;
     }
 
     private async onWorkingCheckPositionCollision(): Promise<void> {
+        if (!this.bot.isActive) {
+            this.bot.stateSection = EStateSection.WORKING;
+            this.bot.state = EState.WAITING;
+            return;
+        }
+
         // TODO -
+
+        this.bot.state = EState.CHECK_BALANCE_CHANGE;
     }
 
     private async onWorkingCheckBalanceChange(): Promise<void> {
+        if (!this.bot.isActive) {
+            this.bot.stateSection = EStateSection.WORKING;
+            this.bot.state = EState.WAITING;
+            return;
+        }
+
         // TODO -
+
+        this.bot.state = EState.CHECK_PAYMENT_REQUIRES;
     }
 
     private async onWorkingCheckPaymentRequires(): Promise<void> {
+        if (!this.bot.isActive) {
+            this.bot.stateSection = EStateSection.WORKING;
+            this.bot.state = EState.WAITING;
+            return;
+        }
+
         // TODO -
+
+        this.bot.state = EState.WAITING;
     }
 
     private async onHandleCandleCheckAnalytics(): Promise<void> {
+        if (!this.bot.isActive) {
+            this.bot.stateSection = EStateSection.WORKING;
+            this.bot.state = EState.WAITING;
+            return;
+        }
+
         // TODO -
+
+        this.bot.state = EState.CHECK_POSITION_WRONG_EXISTS;
     }
 
     private async onHandleCandleCheckPositionWrongExists(): Promise<void> {
+        if (!this.bot.isActive) {
+            this.bot.stateSection = EStateSection.WORKING;
+            this.bot.state = EState.WAITING;
+            return;
+        }
+
         // TODO -
+
+        this.bot.state = EState.CANCEL_UP_ORDER;
     }
 
     private async onHandleCandleCancelUpOrder(): Promise<void> {
+        if (!this.bot.isActive) {
+            this.bot.stateSection = EStateSection.WORKING;
+            this.bot.state = EState.WAITING;
+            return;
+        }
+
         // Do not cancel if no changes
         // Edit only size if size changes
         // For save position in glass
         // TODO -
+
+        this.bot.state = EState.CANCEL_DOWN_ORDER;
     }
 
     private async onHandleCandleCancelDownOrder(): Promise<void> {
+        if (!this.bot.isActive) {
+            this.bot.stateSection = EStateSection.WORKING;
+            this.bot.state = EState.WAITING;
+            return;
+        }
+
         // TODO -
+
+        this.bot.state = EState.PLACE_UP_ORDER;
     }
 
     private async onHandleCandlePlaceOpOrder(): Promise<void> {
+        if (!this.bot.isActive) {
+            this.bot.stateSection = EStateSection.WORKING;
+            this.bot.state = EState.WAITING;
+            return;
+        }
+
         // TODO -
+
+        this.bot.state = EState.PLACE_DOWN_ORDER;
     }
 
     private async onHandleCandlePlaceDownOrder(): Promise<void> {
+        if (!this.bot.isActive) {
+            this.bot.stateSection = EStateSection.WORKING;
+            this.bot.state = EState.WAITING;
+            return;
+        }
+
         // TODO -
+
+        this.bot.state = EState.REPLACE_STOP;
     }
 
     private async onHandleCandleReplaceStop(): Promise<void> {
+        if (!this.bot.isActive) {
+            this.bot.stateSection = EStateSection.WORKING;
+            this.bot.state = EState.WAITING;
+            return;
+        }
+
         // TODO -
+
+        this.bot.stateSection = EStateSection.WORKING;
+        this.bot.state = EState.WAITING;
     }
 
     private async emergencyDrop(message: string): Promise<void> {

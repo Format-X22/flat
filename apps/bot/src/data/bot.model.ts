@@ -80,6 +80,9 @@ export class BotModel {
     @Column()
     errorMessage: string;
 
+    @Column('timestamp')
+    lastHandledCandle: number;
+
     @Column({ nullable: true })
     owner: string;
 
