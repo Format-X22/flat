@@ -85,15 +85,15 @@ html(lang="ru")
                         .row
                             label.col-sm-5.col-form-label(for="calc-deals-success") Процент успешных
                             .col-sm-7
-                                input#calc-deals-success.form-control-plaintext(type="text" readonly value="45.1")
+                                input#calc-deals-success.form-control-plaintext(type="text" readonly value="45.1 %")
                         .row
                             label.col-sm-5.col-form-label(for="calc-deals-fail") Процент не успешных
                             .col-sm-7
-                                input#calc-deals-fail.form-control-plaintext(type="text" readonly value="21.6")
+                                input#calc-deals-fail.form-control-plaintext(type="text" readonly value="21.6 %")
                         .row
                             label.col-sm-5.col-form-label(for="calc-deals-zero") Процент выхода в 0
                             .col-sm-7
-                                input#calc-deals-zero.form-control-plaintext(type="text" readonly value="33,3")
+                                input#calc-deals-zero.form-control-plaintext(type="text" readonly value="33,3 %")
                         .row
                             label.col-sm-5.col-form-label(for="calc-squeeze") Скольжение
                             .col-sm-7
@@ -107,7 +107,7 @@ html(lang="ru")
                                 br
                                 | + комиссии биржи и биржевой фандинг
 
-            .row
+            .row(style="display: none")
                 .col-md-6.offset-md-3(style="text-align: justify")
                     hr
                     h4 Пояснения
