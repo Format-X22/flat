@@ -1,5 +1,14 @@
+export enum EDirection {
+    UP = 'UP',
+    DOWN = 'DOWN',
+}
+
 export type TOrder = {
-    // TODO -
+    direction: EDirection;
+    enter: number;
+    take: number;
+    stop: number;
+    amount: number;
 };
 
 export type TStockOrderId = string | number;

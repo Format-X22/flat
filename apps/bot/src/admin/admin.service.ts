@@ -74,7 +74,7 @@ export class AdminService {
             this.botRepo.create({
                 ...body,
                 payAmount: 0,
-                state: EState.INITIAL,
+                state: EState.INITIAL_INITIAL,
             }),
         );
 
