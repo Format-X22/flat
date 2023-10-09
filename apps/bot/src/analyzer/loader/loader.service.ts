@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { sleep } from '@app/shared/sleep.util';
 import { DateTime } from 'luxon';
 
+const MICRO_HMA_PERIOD = 4;
 const HMA_PERIOD = 7;
 const MID_HMA_PERIOD = 14;
 const BIG_HMA_PERIOD = 30;
@@ -52,6 +53,7 @@ export class LoaderService {
 
         sorted.pop();
 
+        this.addHma(MICRO_HMA_PERIOD, sorted, EHmaType.MICRO_HMA);
         this.addHma(HMA_PERIOD, sorted, EHmaType.HMA);
         this.addHma(MID_HMA_PERIOD, sorted, EHmaType.MID_HMA);
         this.addHma(BIG_HMA_PERIOD, sorted, EHmaType.BIG_HMA);
@@ -125,6 +127,7 @@ export class LoaderService {
             high: item[2],
             low: item[3],
             close: item[4],
+            microHma: null,
             hma: null,
             midHma: null,
             bigHma: null,

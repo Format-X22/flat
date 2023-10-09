@@ -1,6 +1,7 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum EHmaType {
+    MICRO_HMA = 'microHma',
     HMA = 'hma',
     MID_HMA = 'midHma',
     BIG_HMA = 'bigHma',
@@ -28,6 +29,9 @@ export class CandleModel {
 
     @Column('float')
     close: number;
+
+    @Column('float', { nullable: true })
+    microHma: number;
 
     @Column('float')
     hma: number;

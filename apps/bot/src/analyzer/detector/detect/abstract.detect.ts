@@ -66,13 +66,27 @@ export abstract class AbstractDetect {
         return this.getSegments(1)[0];
     }
 
+    protected getSmallCurrentSegment(): TSegment {
+        return this.getSmallSegments(1)[0];
+    }
+
     protected getSegments(count: number): Array<TSegment> {
         return this.segmentService.getSegments(count, this.hmaType);
     }
 
-    protected getWaves(count: number, firstIsUp: boolean): Array<Wave> {
-        let required = count * 2;
-        const segments = this.getSegments(required);
+    protected getSmallSegments(count: number): Array<TSegment> {
+        return this.segmentService.getSmallSegments(count, this.hmaType);
+    }
+
+    protected getWaves(count: number, firstIsUp: boolean, small = false): Array<Wave> {
+        const required = count * 2;
+        let segments;
+
+        if (small) {
+            segments = this.getSmallSegments(required);
+        } else {
+            segments = this.getSegments(required);
+        }
 
         if (!segments[required - 1]) {
             return new Array(required);
@@ -92,12 +106,24 @@ export abstract class AbstractDetect {
         return waves;
     }
 
+    protected getSmallWaves(count: number, firstIsUp: boolean): Array<Wave> {
+        return this.getWaves(count, firstIsUp, true);
+    }
+
     protected isCurrentSegmentUp(): boolean {
         return this.isSegmentUp(this.getCurrentSegment());
     }
 
     protected isCurrentSegmentDown(): boolean {
         return this.isSegmentDown(this.getCurrentSegment());
+    }
+
+    protected isSmallCurrentSegmentUp(): boolean {
+        return this.isSegmentUp(this.getSmallCurrentSegment());
+    }
+
+    protected isSmallCurrentSegmentDown(): boolean {
+        return this.isSegmentDown(this.getSmallCurrentSegment());
     }
 
     protected isSegmentUp(segment: TSegment): boolean {
@@ -162,22 +188,6 @@ export abstract class AbstractDetect {
         } else {
             return candle.high;
         }
-    }
-
-    protected sizeGt(segment: TSegment, size: number): boolean {
-        return segment.size > size;
-    }
-
-    protected sizeGte(segment: TSegment, size: number): boolean {
-        return segment.size >= size;
-    }
-
-    protected sizeLt(segment: TSegment, size: number): boolean {
-        return segment.size < size;
-    }
-
-    protected sizeLte(segment: TSegment, size: number): boolean {
-        return segment.size <= size;
     }
 
     protected getFib(first: number, last: number, val: number, firstIsMax: boolean): number {
@@ -364,7 +374,7 @@ export abstract class AbstractDetect {
     }
 
     protected printCancelTrade(): void {
-        //this.logger.log(`CANCEL - ${this.getPrettyDate()}`);
+        this.logger.log(`CANCEL - ${this.getPrettyDate()}`);
     }
 
     protected getDaysRange(count: number): number {
@@ -374,117 +384,117 @@ export abstract class AbstractDetect {
     protected handleOrder(): void {
         const candle = this.getCandle();
 
-        if (this.order.isActive) {
-            if (this.isInPosition) {
-                if (this.constLte(this.order.toZeroDate, candle.timestamp)) {
-                    const enter = this.order.enter;
+        if (!this.order.isActive) {
+            return;
+        }
 
-                    if (
-                        (this.lte(candle.open, enter) && this.gt(this.candleMax(candle), enter)) ||
-                        (this.gt(candle.open, enter) && this.lt(this.candleMin(candle), enter))
-                    ) {
-                        this.addZeroFailToCapital();
-                        this.exitPosition();
-                        this.printZeroFailTrade();
-                    }
-                }
+        if (this.isInPosition) {
+            if (this.constLte(this.order.toZeroDate, candle.timestamp)) {
+                const enter = this.order.enter;
 
-                if (this.order.isActive && this.gt(this.candleMax(candle), this.order.take)) {
-                    this.addProfitToCapital();
+                if (
+                    (this.lte(candle.open, enter) && this.gt(this.candleMax(candle), enter)) ||
+                    (this.gt(candle.open, enter) && this.lt(this.candleMin(candle), enter))
+                ) {
+                    this.addZeroFailToCapital();
                     this.exitPosition();
-                    this.printProfitTrade();
+                    this.printZeroFailTrade();
                 }
+            }
 
-                if (this.order.isActive && this.lte(this.candleMin(candle), this.order.stop)) {
+            if (this.order.isActive && this.gt(this.candleMax(candle), this.order.take)) {
+                this.addProfitToCapital();
+                this.exitPosition();
+                this.printProfitTrade();
+            }
+
+            if (this.order.isActive && this.lte(this.candleMin(candle), this.order.stop)) {
+                this.addFailToCapital();
+                this.exitPosition();
+                this.printFailTrade();
+            }
+        } else {
+            if (this.gt(this.candleMax(candle), this.order.take)) {
+                this.addProfitToCapital();
+                this.enterPosition(0);
+                this.exitPosition();
+
+                this.printProfitTrade();
+            } else if (this.gt(this.candleMax(candle), this.order.enter)) {
+                this.enterPosition(this.waitDays);
+
+                if (this.lt(this.getCandle().close, this.order.stop)) {
                     this.addFailToCapital();
                     this.exitPosition();
                     this.printFailTrade();
-                }
-            } else {
-                if (this.gt(this.candleMax(candle), this.order.take)) {
-                    this.addProfitToCapital();
-                    this.enterPosition(0);
-                    this.exitPosition();
-
-                    this.printProfitTrade();
-                } else if (this.gt(this.candleMax(candle), this.order.enter)) {
-                    this.enterPosition(this.waitDays);
-
-                    if (this.lt(this.getCandle().close, this.order.stop)) {
-                        this.addFailToCapital();
-                        this.exitPosition();
-                        this.printFailTrade();
-                    }
                 }
             }
         }
     }
 
     protected handleTradeDetection(): void {
-        if (!this.isInPosition) {
-            if (this.isDetected) {
-                const [current, prev1, prev2] = this.getSegments(3);
-                let stopFibPrice;
-                let enterFibPrice;
-                let takeFibPrice;
+        if (this.isInPosition) {
+            return;
+        }
 
-                let valA;
-                let valB;
+        if (this.isDetected) {
+            const [current, prev1, prev2] = this.getSegments(3);
+            let valA;
+            let valB;
 
-                if (this.isSegmentDown(current)) {
-                    valA = this.max(current, prev1);
-                    valB = this.segmentMin(current);
-                } else {
-                    valA = this.max(prev1, prev2);
-                    valB = this.min(current, prev1);
-                }
-
-                stopFibPrice = this.getFib(valA, valB, this.stopFib, true);
-                enterFibPrice = this.getFib(valA, valB, this.enterFib, true);
-                takeFibPrice = this.getFib(valA, valB, this.takeFib, true);
-
-                const isUp = this.isNotInverted;
-                const isConcurrentUpOrder = this.detectorService.isConcurrentUpOrder(this);
-                const upOrderOrigin = this.detectorService.getUpOrderOrigin();
-                const downOrderOrigin = this.detectorService.getDownOrderOrigin();
-                const isConcurrentDownOrder = this.detectorService.isConcurrentDownOrder(this);
-                const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
-
-                if (!isNoConcurrentOrders) {
-                    if (!this.detectorService.isSilent) {
-                        this.logger.verbose(
-                            `Concurrent order - ${this.getPrettyDate()} - ${upOrderOrigin?.name} | ${
-                                downOrderOrigin?.name
-                            }`,
-                        );
-                    }
-                }
-
-                if (
-                    !this.detectorService.isInPosition() &&
-                    isNoConcurrentOrders &&
-                    this.candleMax(this.getCandle()) !== enterFibPrice &&
-                    this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
-                ) {
-                    if (!this.order.isActive) {
-                        this.logger.verbose(`> Place order - ${this.getPrettyDate()}`);
-                    }
-
-                    this.order.isActive = true;
-                    this.order.enter = enterFibPrice;
-                    this.order.take = takeFibPrice;
-                    this.order.stop = stopFibPrice;
-
-                    if (isUp) {
-                        this.detectorService.addUpOrder(this);
-                    } else {
-                        this.detectorService.addDownOrder(this);
-                    }
-                }
-            } else if (this.order.isActive) {
-                this.resetOrder();
-                this.printCancelTrade();
+            if (this.isSegmentDown(current)) {
+                valA = this.max(current, prev1);
+                valB = this.segmentMin(current);
+            } else {
+                valA = this.max(prev1, prev2);
+                valB = this.min(current, prev1);
             }
+
+            const stopFibPrice = this.getFib(valA, valB, this.stopFib, true);
+            const enterFibPrice = this.getFib(valA, valB, this.enterFib, true);
+            const takeFibPrice = this.getFib(valA, valB, this.takeFib, true);
+
+            const isUp = this.isNotInverted;
+            const isConcurrentUpOrder = this.detectorService.isConcurrentUpOrder(this);
+            const upOrderOrigin = this.detectorService.getUpOrderOrigin();
+            const downOrderOrigin = this.detectorService.getDownOrderOrigin();
+            const isConcurrentDownOrder = this.detectorService.isConcurrentDownOrder(this);
+            const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
+
+            if (!isNoConcurrentOrders) {
+                if (!this.detectorService.isSilent) {
+                    this.logger.verbose(
+                        `Concurrent order - ${this.getPrettyDate()} - ${upOrderOrigin?.name} | ${
+                            downOrderOrigin?.name
+                        }`,
+                    );
+                }
+            }
+
+            if (
+                !this.detectorService.isInPosition() &&
+                isNoConcurrentOrders &&
+                this.candleMax(this.getCandle()) !== enterFibPrice &&
+                this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
+            ) {
+                if (!this.order.isActive) {
+                    this.logger.verbose(`> Place order - ${this.getPrettyDate()}`);
+                }
+
+                this.order.isActive = true;
+                this.order.enter = enterFibPrice;
+                this.order.take = takeFibPrice;
+                this.order.stop = stopFibPrice;
+
+                if (isUp) {
+                    this.detectorService.addUpOrder(this);
+                } else {
+                    this.detectorService.addDownOrder(this);
+                }
+            }
+        } else if (this.order.isActive) {
+            this.resetOrder();
+            this.printCancelTrade();
         }
     }
 
