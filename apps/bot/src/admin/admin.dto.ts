@@ -1,5 +1,9 @@
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 import { EPair, EStock } from '../data/bot.model';
+import { Context } from 'telegraf';
+import { Message, Update } from 'telegraf/types';
+
+export type TContext = Context<Update.MessageUpdate<Message.TextMessage>>;
 
 export class GetBotListArgs {
     @IsOptional()
@@ -19,21 +23,11 @@ export class AddBotArgs {
     @IsEnum(EPair)
     pair: EPair;
 
-    @IsNumber()
-    @Min(0)
-    @Max(33)
-    coldPercent: number;
-
     @IsString()
     apiKey: string;
 
-    @IsOptional()
     @IsString()
     owner?: string;
-
-    @IsOptional()
-    @IsString()
-    comment?: string;
 }
 
 export class EditBotArgs {
@@ -52,20 +46,10 @@ export class EditBotArgs {
     pair?: EPair;
 
     @IsOptional()
-    @IsNumber()
-    @Min(0)
-    @Max(33)
-    coldPercent?: number;
-
-    @IsOptional()
     @IsString()
     apiKey?: string;
 
     @IsOptional()
     @IsString()
     owner?: string;
-
-    @IsOptional()
-    @IsString()
-    comment?: string;
 }
