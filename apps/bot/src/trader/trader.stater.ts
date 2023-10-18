@@ -1,7 +1,7 @@
 import { BotModel, EState } from '../data/bot.model';
 import { Repository } from 'typeorm';
 import { Logger } from '@nestjs/common';
-import { sleep } from '@app/shared/sleep.util';
+import { sleep } from '../utils/sleep.util';
 import { TraderExecutor } from './trader.executor';
 
 const ITERATION_TIMEOUT = 10_000;

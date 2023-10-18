@@ -6,7 +6,7 @@ import Exchange from 'ccxt/js/src/abstract/binance';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CandleModel, EHmaType } from '../../data/candle.model';
 import { Repository } from 'typeorm';
-import { sleep } from '@app/shared/sleep.util';
+import { sleep } from '../../utils/sleep.util';
 import { DateTime } from 'luxon';
 
 const MICRO_HMA_PERIOD = 4;

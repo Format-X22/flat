@@ -8,10 +8,6 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
-    "start-site": "nest start site",
-    "start-site:dev": "nest start site --watch",
-    "start-site:debug": "nest start site --debug --watch",
-    "start-site:prod": "node dist/apps/site/main",
     "start-bot": "nest start bot",
     "start-bot:dev": "nest start bot --watch",
     "start-bot:debug": "nest start bot --debug --watch",
@@ -34,7 +30,6 @@
     "luxon": "^3.3.0",
     "moment-timezone": "^0.5.43",
     "pg": "^8.11.2",
-    "pug": "^3.0.2",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "technicalindicators": "^3.1.0",

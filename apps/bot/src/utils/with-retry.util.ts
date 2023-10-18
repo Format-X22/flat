@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { sleep } from '@app/shared/sleep.util';
+import { sleep } from './sleep.util';
 
 export type TCallWithRetryArgs<TData> = {
     fn: () => Promise<TData>;
