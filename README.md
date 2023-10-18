@@ -8,11 +8,11 @@ $ npm install
 
 ```bash
 # development
-$ npm run start
+$ npm run start-bot
 
 # watch mode
-$ npm run start:dev
+$ npm run start-bot:dev
 
 # production mode
-$ npm run start:prod
+$ npm run start-bot:prod
 ```

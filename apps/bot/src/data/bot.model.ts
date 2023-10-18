@@ -43,13 +43,7 @@ export class BotModel {
     pair: EPair;
 
     @Column()
-    coldPercent: number;
-
-    @Column()
     apiKey: string;
-
-    @Column()
-    payAmount: number;
 
     @Column()
     state: EState;
@@ -60,12 +54,9 @@ export class BotModel {
     @Column()
     errorMessage: string;
 
-    @Column('timestamp')
+    @Column('integer')
     lastHandledCandle: number;
 
-    @Column({ nullable: true })
+    @Column()
     owner: string;
-
-    @Column({ nullable: true })
-    comment: string;
 }

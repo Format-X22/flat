@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { AddBotArgs, EditBotArgs, GetBotListArgs, RegisterPayArgs } from './admin.dto';
+import { AddBotArgs, EditBotArgs, GetBotListArgs } from './admin.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BotModel, EState, EStock } from '../data/bot.model';
 import { Repository } from 'typeorm';
@@ -36,25 +36,6 @@ export class AdminService {
         }
     }
 
-    async registerPay(id: number, body: RegisterPayArgs): Promise<void> {
-        let isNotFound = false;
-
-        await this.botRepo.manager.transaction(async (entityManager) => {
-            const bot = await entityManager.findOne(BotModel, { where: { id } });
-
-            if (!bot) {
-                isNotFound = true;
-                return;
-            }
-
-            await entityManager.update(BotModel, { id }, { payAmount: bot.payAmount - body.amount });
-        });
-
-        if (isNotFound) {
-            this.throwNotFound(id);
-        }
-    }
-
     async getBots(body: GetBotListArgs): Promise<Array<BotModel>> {
         if (typeof body?.isActive === 'boolean') {
             return this.botRepo.find({ where: { isActive: true } });
@@ -73,7 +54,6 @@ export class AdminService {
         const bot = await this.botRepo.save(
             this.botRepo.create({
                 ...body,
-                payAmount: 0,
                 state: EState.INITIAL_INITIAL,
             }),
         );

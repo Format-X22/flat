@@ -4,7 +4,7 @@
   "sourceRoot": "apps/bot/src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "assets": [],
+    "assets": ["base.db"],
     "webpack": true,
     "tsConfigPath": "apps/bot/tsconfig.app.json"
   },

@@ -12,34 +12,34 @@ export class CandleModel {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column('bigint')
+    @Column('integer')
     timestamp: number;
 
     @Column()
     dateString: string;
 
-    @Column('float')
+    @Column('real')
     open: number;
 
-    @Column('float')
+    @Column('real')
     high: number;
 
-    @Column('float')
+    @Column('real')
     low: number;
 
-    @Column('float')
+    @Column('real')
     close: number;
 
-    @Column('float', { nullable: true })
+    @Column('real')
     microHma: number;
 
-    @Column('float')
+    @Column('real')
     hma: number;
 
-    @Column('float')
+    @Column('real')
     midHma: number;
 
-    @Column('float')
+    @Column('real')
     bigHma: number;
 
     @Index()

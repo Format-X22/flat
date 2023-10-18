@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CalculatorService } from './analyzer/calculator/calculator.service';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { LoaderService } from './analyzer/loader/loader.service';
 
 @Injectable()
@@ -9,7 +8,6 @@ export class BotService {
 
     constructor(private calculatorService: CalculatorService, private loaderService: LoaderService) {}
 
-    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { timeZone: 'UTC' })
     async exec(): Promise<void> {
         this.logger.log('Start day iteration');
         this.logger.log('Prepare data...');
