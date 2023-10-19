@@ -1,12 +1,21 @@
 import { Ctx, Hears, Update } from 'nestjs-telegraf';
-import { TContext } from './admin.dto';
+import { AddBotArgs, EditBotArgs, GetLogsArgs, TContext } from './admin.dto';
 import { AdminService } from './admin.service';
+import { ConfigService } from '@nestjs/config';
+import { plainToInstance } from 'class-transformer';
+import { validateOrReject, ValidationError } from 'class-validator';
+import { EPair, EStock } from '../data/bot.model';
+import { ELogType } from '../data/bot-log.model';
 
 @Update()
 export class AdminScenario {
-    constructor(private adminService: AdminService) {}
+    private readonly admin: number;
 
-    @Hears(/help/i)
+    constructor(private adminService: AdminService, configService: ConfigService) {
+        this.admin = Number(configService.get('F_TG_ADMIN'));
+    }
+
+    @Hears(/^help/i)
     async printHelp(@Ctx() ctx: TContext): Promise<void> {
         await this.handle(
             ctx,
@@ -15,81 +24,130 @@ export class AdminScenario {
                     [
                         'Commands:',
                         '',
-                        '>> status - print status',
-                        '',
                         '>> bot [id] - get bot data',
                         '',
-                        '>> bots - get all bots data',
-                        'isActive: boolean',
+                        '>> bots - get active bots data',
+                        '>> bots all - get all bots data',
+                        '',
+                        '>> logs [ALL | VERBOSE | ERROR | TECH | TRADE]',
+                        '[limit] [skip] - print typed logs',
                         '',
                         '>> start [id] - start bot by id',
+                        '>> bot [id] start',
                         '',
                         '>> stop [id] - stop bot by id',
+                        '>> bot [id] stop',
                         '',
                         '>> add - add new bot',
+                        '>> bot add',
                         'isActive: boolean',
                         'stock: BINANCE | BYBIT',
                         'pair: BTCUSDT',
                         'apiKey: string',
                         'owner: string',
                         '',
-                        '>> edit - edit bot',
+                        '>> edit [id] - edit bot',
+                        '>> bot [id] edit',
                         'isActive?: boolean',
                         'stock?: BINANCE | BYBIT',
                         'pair?: BTCUSDT',
                         'apiKey?: string',
                         'owner?: string',
                     ].join('\n'),
-                    { reply_markup: { keyboard: [['help'], ['status']] } },
+                    {
+                        reply_markup: {
+                            keyboard: [['help'], ['bots'], ['logs']],
+                            resize_keyboard: true,
+                        },
+                    },
                 );
             },
             true,
         );
     }
 
-    @Hears(/status/i)
-    async printStatus(@Ctx() ctx: TContext): Promise<void> {
+    @Hears(/^logs/)
+    async printLogs(@Ctx() ctx: TContext): Promise<void> {
         await this.handle(ctx, async () => {
-            return 'TODO';
+            const raw = this.getRawCommandInline(ctx);
+            const data: GetLogsArgs = {
+                type: (raw[1]?.toUpperCase() as ELogType) || ELogType.ALL,
+                limit: Number(raw[2]) || 100,
+                skip: Number(raw[3]) || 0,
+            };
+
+            await validateOrReject(plainToInstance(GetLogsArgs, data));
+
+            return await this.adminService.getLogs(data);
         });
     }
 
-    @Hears(/start/i)
+    @Hears([/^start/i, /^bot .+ start/i])
     async startBot(@Ctx() ctx: TContext): Promise<void> {
         await this.handle(ctx, async () => {
             await this.adminService.startBot(this.getId(ctx));
         });
     }
 
-    @Hears(/stop/i)
+    @Hears([/^start/i, /^bot .+ stop/i])
     async stopBot(@Ctx() ctx: TContext): Promise<void> {
         await this.handle(ctx, async () => {
             await this.adminService.stopBot(this.getId(ctx));
         });
     }
 
-    @Hears(/add/i)
+    @Hears([/^add/i, /^bot add/i])
     async addBot(@Ctx() ctx: TContext): Promise<void> {
         await this.handle(ctx, async () => {
-            return 'TODO';
+            const raw = this.getRawCommand(ctx);
+            const data: AddBotArgs = {
+                isActive: JSON.parse(raw[1]),
+                stock: raw[2] as EStock,
+                pair: raw[3] as EPair,
+                apiKey: raw[4],
+                owner: raw[5],
+            };
+
+            await validateOrReject(plainToInstance(AddBotArgs, data));
+
+            return await this.adminService.addBot(data);
         });
     }
 
-    @Hears(/edit/i)
+    @Hears([/^edit/i, /^bot .+ edit/])
     async editBot(@Ctx() ctx: TContext): Promise<void> {
         await this.handle(ctx, async () => {
-            return 'TODO';
+            const raw = this.getRawCommand(ctx);
+            const id = this.getId(ctx);
+            const data: EditBotArgs = {
+                isActive: JSON.parse(raw[1]),
+                stock: raw[2] as EStock,
+                pair: raw[3] as EPair,
+                apiKey: raw[4],
+                owner: raw[5],
+            };
+
+            await validateOrReject(plainToInstance(AddBotArgs, data));
+
+            return await this.adminService.editBot(id, data);
         });
     }
 
-    @Hears(/bots/i)
+    @Hears(/^bots all/i)
+    async printAllBotList(@Ctx() ctx: TContext): Promise<void> {
+        await this.handle(ctx, async () => {
+            return this.adminService.getBots({ isActive: false });
+        });
+    }
+
+    @Hears(/^bots/i)
     async printBotList(@Ctx() ctx: TContext): Promise<void> {
         await this.handle(ctx, async () => {
-            return 'TODO';
+            return this.adminService.getBots({ isActive: true });
         });
     }
 
-    @Hears(/bot/i)
+    @Hears(/^bot/i)
     async printBot(@Ctx() ctx: TContext): Promise<void> {
         await this.handle(ctx, async () => {
             return await this.adminService.getBot(this.getId(ctx));
@@ -121,10 +179,13 @@ export class AdminScenario {
 
     private async handle(
         ctx: TContext,
-        fn: () => Promise<void | string | Record<string, any>>,
+        fn: () => Promise<void | string | number | Record<string, any>>,
         silent = false,
     ): Promise<void> {
-        // TODO Auth middleware
+        if (ctx.from.id !== this.admin) {
+            await ctx.reply('error');
+            return;
+        }
 
         try {
             const result = await fn();
@@ -137,11 +198,22 @@ export class AdminScenario {
                 }
             } else if (typeof result === 'string') {
                 await ctx.reply(result);
+            } else if (typeof result === 'number') {
+                await ctx.reply(String(result));
             } else {
                 await this.replyJSON(ctx, result);
             }
         } catch (error) {
-            await ctx.reply(error.message);
+            if (Array.isArray(error) && error[0] instanceof ValidationError) {
+                await this.replyJSON(
+                    ctx,
+                    error.map((item: ValidationError) => ({
+                        [item.property]: item.constraints,
+                    })),
+                );
+            } else {
+                await ctx.reply(error.message || String(error) || 'Empty error');
+            }
         }
     }
 }

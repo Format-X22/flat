@@ -8,6 +8,7 @@ import { TraderModule } from './trader/trader.module';
 import { BotService } from './bot.service';
 import { BotModel } from './data/bot.model';
 import { TelegrafModule } from 'nestjs-telegraf';
+import { BotLogModel } from './data/bot-log.model';
 
 @Module({
     imports: [
@@ -26,7 +27,7 @@ import { TelegrafModule } from 'nestjs-telegraf';
                 type: 'sqlite',
                 database: 'base.db',
                 key: configService.get('F_DB_KEY'),
-                entities: [CandleModel, BotModel],
+                entities: [CandleModel, BotModel, BotLogModel],
                 synchronize: true,
             }),
         }),

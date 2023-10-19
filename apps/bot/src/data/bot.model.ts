@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { BotLogModel } from './bot-log.model';
 
 export enum EStock {
     TEST = 'TEST',
@@ -20,7 +21,6 @@ export enum EState {
     WORKING_DEACTIVATE = 'WORKING_DEACTIVATE',
     WORKING_CHECK_POSITION_COLLISION = 'WORKING_CHECK_POSITION_COLLISION',
     WORKING_CHECK_BALANCE_CHANGE = 'WORKING_CHECK_BALANCE_CHANGE',
-    WORKING_CHECK_PAYMENT_REQUIRES = 'WORKING_CHECK_PAYMENT_REQUIRES',
     CANDLE_CHECK_ANALYTICS = 'CANDLE_CHECK_ANALYTICS',
     CANDLE_CHECK_POSITION_WRONG_EXISTS = 'CANDLE_CHECK_WRONG_POSITION_EXISTS',
     CANDLE_CANCEL_ORDERS = 'CANDLE_CANCEL_ORDERS',
@@ -42,21 +42,24 @@ export class BotModel {
     @Column()
     pair: EPair;
 
-    @Column()
+    @Column({ select: false })
     apiKey: string;
 
     @Column()
     state: EState;
 
-    @Column()
+    @Column({ nullable: true })
     errorOnState: EState;
 
-    @Column()
+    @Column({ nullable: true })
     errorMessage: string;
 
-    @Column('integer')
+    @Column('integer', { nullable: true })
     lastHandledCandle: number;
 
     @Column()
     owner: string;
+
+    @OneToMany(() => BotLogModel, (botLog) => botLog.bot)
+    logs: Array<BotLogModel>;
 }

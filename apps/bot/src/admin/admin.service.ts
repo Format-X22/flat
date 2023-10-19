@@ -1,10 +1,11 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { AddBotArgs, EditBotArgs, GetBotListArgs } from './admin.dto';
+import { AddBotArgs, EditBotArgs, GetBotListArgs, GetLogsArgs } from './admin.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BotModel, EState, EStock } from '../data/bot.model';
-import { Repository } from 'typeorm';
-import { scrypt, randomFill, createCipheriv } from 'node:crypto';
+import { FindOptionsWhere, Repository } from 'typeorm';
+import { createCipheriv, randomFill, scrypt } from 'node:crypto';
 import { ConfigService } from '@nestjs/config';
+import { BotLogModel, ELogType } from '../data/bot-log.model';
 
 const CIPHER_TYPE = 'aes-256-cbc';
 const CIPHER_SALT = 'Y&31#.azp,$D!!*22ds_E4@';
@@ -15,9 +16,32 @@ export class AdminService {
 
     constructor(
         @InjectRepository(BotModel) private botRepo: Repository<BotModel>,
+        @InjectRepository(BotLogModel) private botLogRepo: Repository<BotLogModel>,
         private configService: ConfigService,
     ) {
         this.cipherKey = this.configService.get('F_BOT_KEY_PASS');
+    }
+
+    async getLogs({ skip, limit, type }: GetLogsArgs): Promise<Array<string>> {
+        const where: FindOptionsWhere<BotLogModel> = {};
+
+        if (type !== ELogType.ALL) {
+            where.type = type;
+        }
+
+        const logs = await this.botLogRepo.find({ skip, take: limit, where, order: { date: 'DESC' } });
+
+        return logs.map(
+            (model) =>
+                `[${new Intl.DateTimeFormat('ru', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    second: 'numeric',
+                }).format(model.date)}] - ${model.message}`,
+        );
     }
 
     async startBot(id: number): Promise<void> {
@@ -37,11 +61,7 @@ export class AdminService {
     }
 
     async getBots(body: GetBotListArgs): Promise<Array<BotModel>> {
-        if (typeof body?.isActive === 'boolean') {
-            return this.botRepo.find({ where: { isActive: true } });
-        } else {
-            return this.botRepo.find();
-        }
+        return this.botRepo.find({ where: { isActive: body.isActive } });
     }
 
     async getBot(id: number): Promise<BotModel> {

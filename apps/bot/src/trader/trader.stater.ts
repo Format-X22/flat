@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { Logger } from '@nestjs/common';
 import { sleep } from '../utils/sleep.util';
 import { TraderExecutor } from './trader.executor';
+import { BotLogModel, ELogType } from '../data/bot-log.model';
 
 const ITERATION_TIMEOUT = 10_000;
 const DB_RETRY_TIMEOUT = 30_000;
@@ -11,12 +12,15 @@ export class TraderStater {
     private readonly logger: Logger = new Logger(TraderStater.name);
 
     constructor(
-        private readonly bot: BotModel,
+        private bot: BotModel,
         private readonly botRepo: Repository<BotModel>,
+        private readonly botLogRepo: Repository<BotLogModel>,
         private readonly executor: TraderExecutor,
     ) {}
 
     async run(): Promise<void> {
+        await this.tryLog(ELogType.VERBOSE, 'Started');
+
         while (true) {
             try {
                 await this.next();
@@ -30,7 +34,7 @@ export class TraderStater {
             }
 
             try {
-                await this.saveBot();
+                await this.syncBot();
             } catch (error) {
                 if (this.bot.state === EState.ERROR_EMERGENCY_STOP) {
                     this.logger.error(
@@ -41,7 +45,7 @@ export class TraderStater {
                     await sleep(DB_RETRY_TIMEOUT);
 
                     try {
-                        await this.saveBot();
+                        await this.syncBot();
                     } catch (error) {
                         this.logger.error('CRITICAL on save bot after retry, just go without db sync for now');
                     }
@@ -70,6 +74,7 @@ export class TraderStater {
             case EState.ERROR_EMERGENCY_STOP:
                 await this.onErrorEmergencyStop();
                 break;
+
             case EState.WORKING_WAITING:
                 await this.onWorkingWaiting();
                 break;
@@ -82,9 +87,7 @@ export class TraderStater {
             case EState.WORKING_CHECK_BALANCE_CHANGE:
                 await this.onWorkingCheckBalanceChange();
                 break;
-            case EState.WORKING_CHECK_PAYMENT_REQUIRES:
-                await this.onWorkingCheckPaymentRequires();
-                break;
+
             case EState.CANDLE_CHECK_ANALYTICS:
                 await this.onHandleCandleCheckAnalytics();
                 break;
@@ -175,17 +178,6 @@ export class TraderStater {
 
         // TODO -
 
-        this.bot.state = EState.WORKING_CHECK_PAYMENT_REQUIRES;
-    }
-
-    private async onWorkingCheckPaymentRequires(): Promise<void> {
-        if (!this.bot.isActive) {
-            this.bot.state = EState.WORKING_DEACTIVATE;
-            return;
-        }
-
-        // TODO -
-
         this.bot.state = EState.WORKING_WAITING;
     }
 
@@ -254,7 +246,27 @@ export class TraderStater {
         this.bot.state = EState.ERROR_EMERGENCY_STOP;
     }
 
-    private async saveBot(): Promise<void> {
-        await this.botRepo.save(this.bot);
+    private async syncBot(): Promise<void> {
+        await this.botRepo.update(this.bot.id, {
+            state: this.bot.state,
+            errorOnState: this.bot.errorOnState,
+        });
+
+        this.bot = await this.botRepo.findOneBy({ id: this.bot.id });
+    }
+
+    private async tryLog(type: ELogType, message: string): Promise<void> {
+        try {
+            const log = this.botLogRepo.create({
+                bot: this.bot,
+                type,
+                message,
+                date: new Date(),
+            });
+
+            await this.botLogRepo.save(log);
+        } catch (error) {
+            this.logger.error('Cant write to log - ' + error);
+        }
     }
 }

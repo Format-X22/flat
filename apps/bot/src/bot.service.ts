@@ -1,30 +1,27 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { CalculatorService } from './analyzer/calculator/calculator.service';
-import { LoaderService } from './analyzer/loader/loader.service';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { TraderService } from './trader/trader.service';
+import * as process from 'process';
+import { InjectBot } from 'nestjs-telegraf';
+import { Context, Telegraf } from 'telegraf';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class BotService {
+export class BotService implements OnApplicationBootstrap {
     private readonly logger: Logger = new Logger(BotService.name);
 
-    constructor(private calculatorService: CalculatorService, private loaderService: LoaderService) {}
+    constructor(
+        private configService: ConfigService,
+        private tradeService: TraderService,
+        @InjectBot() private bot: Telegraf<Context>,
+    ) {}
 
-    async exec(): Promise<void> {
-        this.logger.log('Start day iteration');
-        this.logger.log('Prepare data...');
+    async onApplicationBootstrap(): Promise<void> {
+        const admin = Number(this.configService.get('F_TG_ADMIN'));
 
-        await this.loaderService.truncate();
-        await this.loaderService.loadLastActual('1d');
-        await this.loaderService.loadLastActual('1h');
-
-        this.logger.log('All data loaded, extract orders');
-
-        const actualOrders = await this.calculatorService.calc();
-
-        this.logger.log('Orders extracted, compare and trade');
-
-        // TODO -
-        console.log(actualOrders);
-
-        this.logger.log('Done!');
+        await this.bot.telegram.sendMessage(admin, 'Started!');
+        this.tradeService.start().catch((error) => {
+            this.logger.error(error);
+            process.exit(1);
+        });
     }
 }
