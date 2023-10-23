@@ -4,9 +4,9 @@ import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
 
 export class HeadDetect extends AbstractDetect {
-    protected profitMul = 1.75;
+    protected profitMul = 2;
     protected enterFib = 1;
-    protected takeFib = 1.8;
+    protected takeFib = 2;
     protected stopFib = 0.73;
 
     protected minSegmentSize = 2;
@@ -23,6 +23,8 @@ export class HeadDetect extends AbstractDetect {
         const minRightLevel = this.getFib(up2.max, down1.min, 0.73, true);
         const maxRightLevel = this.getFib(up2.max, down1.min, 1.43, true);
         const minHeadOffset = this.getFib(up1.max, down1.min, 0.15, true);
+        const headBodyOffset = this.getFib(up1.max, down0.min, 0.5, true);
+        const candleInHalfDown = down0.candles.some((candle) => this.lt(this.candleMax(candle), headBodyOffset));
 
         if (
             notOverflow &&
@@ -32,6 +34,7 @@ export class HeadDetect extends AbstractDetect {
             up1.maxGt(minRightLevel) &&
             up1.maxLt(maxRightLevel) &&
             down0.minGt(minHeadOffset) &&
+            candleInHalfDown &&
             up1.sizeLeft >= this.minSegmentSize &&
             up1.sizeRight >= this.minSegmentSize &&
             up2.sizeLeft >= this.minSegmentSize &&

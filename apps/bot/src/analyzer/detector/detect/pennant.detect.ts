@@ -4,9 +4,9 @@ import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
 
 export class PennantDetect extends AbstractDetect {
-    protected profitMul = 2.3;
+    protected profitMul = 2.8;
     protected enterFib = 0.85;
-    protected takeFib = 2;
+    protected takeFib = 2.35;
     protected stopFib = 0.62;
 
     protected minSegmentSize = 2;

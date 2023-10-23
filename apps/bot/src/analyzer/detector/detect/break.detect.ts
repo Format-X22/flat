@@ -11,7 +11,7 @@ export class BreakDetect extends AbstractDetect {
     protected takeFib = 2;
     protected stopFib = 0.33;
 
-    protected waitDays = 2;
+    protected waitDays = 3;
 
     check(): boolean {
         const [down0, up1, down1, up2] = this.getWaves(4, false);

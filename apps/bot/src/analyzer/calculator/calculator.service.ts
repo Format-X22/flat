@@ -47,11 +47,11 @@ export class CalculatorService {
     }
 
     private isInTestRange(candle: CandleModel): boolean {
-        return candle.timestamp > DateTime.fromObject({ year: 2018, month: 1, day: 1 }).toMillis();
-        /*return (
-             candle.timestamp > DateTime.fromObject({ year: 2023, month: 1, day: 1 }).toMillis() &&
-             candle.timestamp < DateTime.fromObject({ year: 2024, month: 1, day: 1 }).toMillis()
-        );*/
+        //return candle.timestamp > DateTime.fromObject({ year: 2022, month: 1, day: 1 }).toMillis();
+        return (
+            candle.timestamp > DateTime.fromObject({ year: 2018, month: 1, day: 1 }).toMillis() &&
+            candle.timestamp < DateTime.fromObject({ year: 2024, month: 1, day: 1 }).toMillis()
+        );
         //return candle.timestamp > 0;
     }
 }

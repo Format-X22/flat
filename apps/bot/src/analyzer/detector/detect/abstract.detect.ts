@@ -44,14 +44,144 @@ export abstract class AbstractDetect {
 
     abstract check(): boolean;
 
-    doVirtualTrade(): void {
-        this.handleOrder();
-        this.handleTradeDetection();
+    handleOrder(): void {
+        const candle = this.getCandle();
+
+        if (!this.order.isActive) {
+            return;
+        }
+
+        if (this.isInPosition) {
+            if (this.constLte(this.order.toZeroDate, candle.timestamp)) {
+                const enter = this.order.enter;
+
+                if (
+                    (this.lte(candle.open, enter) && this.gt(this.candleMax(candle), enter)) ||
+                    (this.gt(candle.open, enter) && this.lt(this.candleMin(candle), enter))
+                ) {
+                    this.addZeroFailToCapital();
+                    this.exitPosition();
+                    this.printZeroFailTrade();
+                }
+            }
+
+            if (this.order.isActive && this.gt(this.candleMax(candle), this.order.take)) {
+                this.addProfitToCapital();
+                this.exitPosition();
+                this.printProfitTrade();
+            }
+
+            if (this.order.isActive && this.lte(this.candleMin(candle), this.order.stop)) {
+                this.addFailToCapital();
+                this.exitPosition();
+                this.printFailTrade();
+            }
+        } else {
+            if (this.gt(this.candleMax(candle), this.order.take)) {
+                this.addProfitToCapital();
+                this.enterPosition(0);
+                this.exitPosition();
+
+                this.printProfitTrade();
+            } else if (this.gt(this.candleMax(candle), this.order.enter)) {
+                this.enterPosition(this.waitDays);
+
+                if (this.lt(this.getCandle().close, this.order.stop)) {
+                    this.addFailToCapital();
+                    this.exitPosition();
+                    this.printFailTrade();
+                }
+            }
+        }
     }
 
-    analyze(): void {
-        this.check();
-        this.doVirtualTrade();
+    handleTradeDetection(): void {
+        if (this.isInPosition) {
+            return;
+        }
+
+        if (this.isDetected) {
+            const [current, prev1, prev2] = this.getSegments(3);
+            let valA;
+            let valB;
+
+            if (this.isSegmentDown(current)) {
+                valA = this.max(current, prev1);
+                valB = this.segmentMin(current);
+            } else {
+                valA = this.max(prev1, prev2);
+                valB = this.min(current, prev1);
+            }
+
+            const stopFibPrice = this.getFib(valA, valB, this.stopFib, true);
+            const enterFibPrice = this.getFib(valA, valB, this.enterFib, true);
+            const takeFibPrice = this.getFib(valA, valB, this.takeFib, true);
+
+            const isUp = this.isNotInverted;
+            const isConcurrentUpOrder = this.detectorService.isConcurrentUpOrder(this);
+            const upOrderOrigin = this.detectorService.getUpOrderOrigin();
+            const downOrderOrigin = this.detectorService.getDownOrderOrigin();
+            const isConcurrentDownOrder = this.detectorService.isConcurrentDownOrder(this);
+            const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
+
+            if (!isNoConcurrentOrders) {
+                if (!this.detectorService.isSilent) {
+                    /*this.logger.verbose(
+                        `Concurrent order - ${this.getPrettyDate()} - ${upOrderOrigin?.name} | ${
+                            downOrderOrigin?.name
+                        }`,
+                    );*/
+                }
+            }
+
+            if (
+                !this.detectorService.isInPosition() &&
+                isNoConcurrentOrders &&
+                this.candleMax(this.getCandle()) !== enterFibPrice &&
+                this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
+            ) {
+                if (!this.order.isActive) {
+                    //this.logger.verbose(`> Place order - ${this.getPrettyDate()}`);
+                }
+
+                this.order.isActive = true;
+                this.order.enter = enterFibPrice;
+                this.order.take = takeFibPrice;
+                this.order.stop = stopFibPrice;
+
+                if (isUp) {
+                    this.detectorService.addUpOrder(this);
+                } else {
+                    this.detectorService.addDownOrder(this);
+                }
+            }
+        } else if (this.order.isActive) {
+            this.resetOrder();
+            this.printCancelTrade();
+        }
+    }
+
+    resetOrderIfNoPosition(): void {
+        if (this.isInPosition) {
+            return;
+        }
+
+        this.resetOrder();
+    }
+
+    resetOrder(): void {
+        this.order.isActive = false;
+        this.order.enter = null;
+        this.order.take = null;
+        this.order.stop = null;
+        this.order.enterDate = null;
+        this.order.toZeroDate = null;
+
+        if (this.isNotInverted) {
+            this.detectorService.removeUpOrder(this);
+        } else {
+            this.detectorService.removeDownOrder(this);
+        }
     }
 
     protected getCandle(): CandleModel {
@@ -292,21 +422,6 @@ export abstract class AbstractDetect {
         return false;
     }
 
-    protected resetOrder(): void {
-        this.order.isActive = false;
-        this.order.enter = null;
-        this.order.take = null;
-        this.order.stop = null;
-        this.order.enterDate = null;
-        this.order.toZeroDate = null;
-
-        if (this.isNotInverted) {
-            this.detectorService.removeUpOrder(this);
-        } else {
-            this.detectorService.removeDownOrder(this);
-        }
-    }
-
     protected printDetection(): void {
         //this.logger.verbose(this.getCandle().dateString);
     }
@@ -374,128 +489,11 @@ export abstract class AbstractDetect {
     }
 
     protected printCancelTrade(): void {
-        this.logger.log(`CANCEL - ${this.getPrettyDate()}`);
+        //this.logger.log(`CANCEL - ${this.getPrettyDate()}`);
     }
 
     protected getDaysRange(count: number): number {
         return Duration.fromObject({ day: count }).toMillis();
-    }
-
-    protected handleOrder(): void {
-        const candle = this.getCandle();
-
-        if (!this.order.isActive) {
-            return;
-        }
-
-        if (this.isInPosition) {
-            if (this.constLte(this.order.toZeroDate, candle.timestamp)) {
-                const enter = this.order.enter;
-
-                if (
-                    (this.lte(candle.open, enter) && this.gt(this.candleMax(candle), enter)) ||
-                    (this.gt(candle.open, enter) && this.lt(this.candleMin(candle), enter))
-                ) {
-                    this.addZeroFailToCapital();
-                    this.exitPosition();
-                    this.printZeroFailTrade();
-                }
-            }
-
-            if (this.order.isActive && this.gt(this.candleMax(candle), this.order.take)) {
-                this.addProfitToCapital();
-                this.exitPosition();
-                this.printProfitTrade();
-            }
-
-            if (this.order.isActive && this.lte(this.candleMin(candle), this.order.stop)) {
-                this.addFailToCapital();
-                this.exitPosition();
-                this.printFailTrade();
-            }
-        } else {
-            if (this.gt(this.candleMax(candle), this.order.take)) {
-                this.addProfitToCapital();
-                this.enterPosition(0);
-                this.exitPosition();
-
-                this.printProfitTrade();
-            } else if (this.gt(this.candleMax(candle), this.order.enter)) {
-                this.enterPosition(this.waitDays);
-
-                if (this.lt(this.getCandle().close, this.order.stop)) {
-                    this.addFailToCapital();
-                    this.exitPosition();
-                    this.printFailTrade();
-                }
-            }
-        }
-    }
-
-    protected handleTradeDetection(): void {
-        if (this.isInPosition) {
-            return;
-        }
-
-        if (this.isDetected) {
-            const [current, prev1, prev2] = this.getSegments(3);
-            let valA;
-            let valB;
-
-            if (this.isSegmentDown(current)) {
-                valA = this.max(current, prev1);
-                valB = this.segmentMin(current);
-            } else {
-                valA = this.max(prev1, prev2);
-                valB = this.min(current, prev1);
-            }
-
-            const stopFibPrice = this.getFib(valA, valB, this.stopFib, true);
-            const enterFibPrice = this.getFib(valA, valB, this.enterFib, true);
-            const takeFibPrice = this.getFib(valA, valB, this.takeFib, true);
-
-            const isUp = this.isNotInverted;
-            const isConcurrentUpOrder = this.detectorService.isConcurrentUpOrder(this);
-            const upOrderOrigin = this.detectorService.getUpOrderOrigin();
-            const downOrderOrigin = this.detectorService.getDownOrderOrigin();
-            const isConcurrentDownOrder = this.detectorService.isConcurrentDownOrder(this);
-            const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
-
-            if (!isNoConcurrentOrders) {
-                if (!this.detectorService.isSilent) {
-                    this.logger.verbose(
-                        `Concurrent order - ${this.getPrettyDate()} - ${upOrderOrigin?.name} | ${
-                            downOrderOrigin?.name
-                        }`,
-                    );
-                }
-            }
-
-            if (
-                !this.detectorService.isInPosition() &&
-                isNoConcurrentOrders &&
-                this.candleMax(this.getCandle()) !== enterFibPrice &&
-                this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
-            ) {
-                if (!this.order.isActive) {
-                    this.logger.verbose(`> Place order - ${this.getPrettyDate()}`);
-                }
-
-                this.order.isActive = true;
-                this.order.enter = enterFibPrice;
-                this.order.take = takeFibPrice;
-                this.order.stop = stopFibPrice;
-
-                if (isUp) {
-                    this.detectorService.addUpOrder(this);
-                } else {
-                    this.detectorService.addDownOrder(this);
-                }
-            }
-        } else if (this.order.isActive) {
-            this.resetOrder();
-            this.printCancelTrade();
-        }
     }
 
     protected debugHere(dateString: string, isNotInverted: boolean): boolean {

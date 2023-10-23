@@ -18,7 +18,7 @@ export class BotService implements OnApplicationBootstrap {
     async onApplicationBootstrap(): Promise<void> {
         const admin = Number(this.configService.get('F_TG_ADMIN'));
 
-        await this.bot.telegram.sendMessage(admin, 'Started!');
+        //await this.bot.telegram.sendMessage(admin, 'Started!');
         this.tradeService.start().catch((error) => {
             this.logger.error(error);
             process.exit(1);

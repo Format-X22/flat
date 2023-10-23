@@ -4,12 +4,12 @@ import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
 
 export class TriangleDetect extends AbstractDetect {
-    protected profitMul = 1.75;
+    protected profitMul = 1.45;
     protected enterFib = 1;
     protected takeFib = 1.8;
-    protected stopFib = 0.73;
+    protected stopFib = 0.5;
 
-    protected waitDays = 2;
+    protected waitDays = 4;
     protected minSegmentSize = 2;
 
     check(): boolean {

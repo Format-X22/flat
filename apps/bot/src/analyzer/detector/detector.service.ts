@@ -150,25 +150,161 @@ export class DetectorService {
     detect(isSilent = false): void {
         this.isSilent = isSilent;
 
-        this.runBreak();
-        this.runMidZigzag();
-        this.runZigzag();
-        this.runMidPennant();
-        this.runPennant();
-        this.runMidFlag();
-        this.runFlag();
-        this.runMidRestart();
-        this.runRestart();
-        this.runMidHead();
-        this.runHead();
-        this.runMidTriangle();
-        this.runTriangle();
-        this.runBigZigzag();
-        this.runBigPennant();
-        this.runBigFlag();
-        this.runBigRestart();
-        this.runBigHead();
-        this.runBigTriangle();
+        this.upBreakDetect.check();
+        this.downBreakDetect.check();
+        this.upMidZigzagDetect.check();
+        this.downMidZigzagDetect.check();
+        this.upZigzagDetect.check();
+        this.downZigzagDetect.check();
+        this.upMidPennantDetect.check();
+        this.downMidPennantDetect.check();
+        this.upPennantDetect.check();
+        this.downPennantDetect.check();
+        this.upMidFlagDetect.check();
+        this.downMidFlagDetect.check();
+        this.upFlagDetect.check();
+        this.downFlagDetect.check();
+        this.upMidRestartDetect.check();
+        this.downMidRestartDetect.check();
+        this.upRestartDetect.check();
+        this.downRestartDetect.check();
+        this.upMidHeadDetect.check();
+        this.downMidHeadDetect.check();
+        this.upHeadDetect.check();
+        this.downHeadDetect.check();
+        this.upMidTriangleDetect.check();
+        this.downMidTriangleDetect.check();
+        this.upTriangleDetect.check();
+        this.downTriangleDetect.check();
+        this.upBigZigzagDetect.check();
+        this.downBigZigzagDetect.check();
+        this.upBigPennantDetect.check();
+        this.downBigPennantDetect.check();
+        this.upBigFlagDetect.check();
+        this.downBigFlagDetect.check();
+        this.upBigRestartDetect.check();
+        this.downBigRestartDetect.check();
+        this.upBigHeadDetect.check();
+        this.downBigHeadDetect.check();
+        this.upBigTriangleDetect.check();
+        this.downBigTriangleDetect.check();
+
+        this.upBreakDetect.handleOrder();
+        this.downBreakDetect.handleOrder();
+        this.upMidZigzagDetect.handleOrder();
+        this.downMidZigzagDetect.handleOrder();
+        this.upZigzagDetect.handleOrder();
+        this.downZigzagDetect.handleOrder();
+        this.upMidPennantDetect.handleOrder();
+        this.downMidPennantDetect.handleOrder();
+        this.upPennantDetect.handleOrder();
+        this.downPennantDetect.handleOrder();
+        this.upMidFlagDetect.handleOrder();
+        this.downMidFlagDetect.handleOrder();
+        this.upFlagDetect.handleOrder();
+        this.downFlagDetect.handleOrder();
+        this.upMidRestartDetect.handleOrder();
+        this.downMidRestartDetect.handleOrder();
+        this.upRestartDetect.handleOrder();
+        this.downRestartDetect.handleOrder();
+        this.upMidHeadDetect.handleOrder();
+        this.downMidHeadDetect.handleOrder();
+        this.upHeadDetect.handleOrder();
+        this.downHeadDetect.handleOrder();
+        this.upMidTriangleDetect.handleOrder();
+        this.downMidTriangleDetect.handleOrder();
+        this.upTriangleDetect.handleOrder();
+        this.downTriangleDetect.handleOrder();
+        this.upBigZigzagDetect.handleOrder();
+        this.downBigZigzagDetect.handleOrder();
+        this.upBigPennantDetect.handleOrder();
+        this.downBigPennantDetect.handleOrder();
+        this.upBigFlagDetect.handleOrder();
+        this.downBigFlagDetect.handleOrder();
+        this.upBigRestartDetect.handleOrder();
+        this.downBigRestartDetect.handleOrder();
+        this.upBigHeadDetect.handleOrder();
+        this.downBigHeadDetect.handleOrder();
+        this.upBigTriangleDetect.handleOrder();
+        this.downBigTriangleDetect.handleOrder();
+
+        this.upBreakDetect.resetOrderIfNoPosition();
+        this.downBreakDetect.resetOrderIfNoPosition();
+        this.upMidZigzagDetect.resetOrderIfNoPosition();
+        this.downMidZigzagDetect.resetOrderIfNoPosition();
+        this.upZigzagDetect.resetOrderIfNoPosition();
+        this.downZigzagDetect.resetOrderIfNoPosition();
+        this.upMidPennantDetect.resetOrderIfNoPosition();
+        this.downMidPennantDetect.resetOrderIfNoPosition();
+        this.upPennantDetect.resetOrderIfNoPosition();
+        this.downPennantDetect.resetOrderIfNoPosition();
+        this.upMidFlagDetect.resetOrderIfNoPosition();
+        this.downMidFlagDetect.resetOrderIfNoPosition();
+        this.upFlagDetect.resetOrderIfNoPosition();
+        this.downFlagDetect.resetOrderIfNoPosition();
+        this.upMidRestartDetect.resetOrderIfNoPosition();
+        this.downMidRestartDetect.resetOrderIfNoPosition();
+        this.upRestartDetect.resetOrderIfNoPosition();
+        this.downRestartDetect.resetOrderIfNoPosition();
+        this.upMidHeadDetect.resetOrderIfNoPosition();
+        this.downMidHeadDetect.resetOrderIfNoPosition();
+        this.upHeadDetect.resetOrderIfNoPosition();
+        this.downHeadDetect.resetOrderIfNoPosition();
+        this.upMidTriangleDetect.resetOrderIfNoPosition();
+        this.downMidTriangleDetect.resetOrderIfNoPosition();
+        this.upTriangleDetect.resetOrderIfNoPosition();
+        this.downTriangleDetect.resetOrderIfNoPosition();
+        this.upBigZigzagDetect.resetOrderIfNoPosition();
+        this.downBigZigzagDetect.resetOrderIfNoPosition();
+        this.upBigPennantDetect.resetOrderIfNoPosition();
+        this.downBigPennantDetect.resetOrderIfNoPosition();
+        this.upBigFlagDetect.resetOrderIfNoPosition();
+        this.downBigFlagDetect.resetOrderIfNoPosition();
+        this.upBigRestartDetect.resetOrderIfNoPosition();
+        this.downBigRestartDetect.resetOrderIfNoPosition();
+        this.upBigHeadDetect.resetOrderIfNoPosition();
+        this.downBigHeadDetect.resetOrderIfNoPosition();
+        this.upBigTriangleDetect.resetOrderIfNoPosition();
+        this.downBigTriangleDetect.resetOrderIfNoPosition();
+
+        this.upBreakDetect.handleTradeDetection();
+        this.downBreakDetect.handleTradeDetection();
+        this.upMidZigzagDetect.handleTradeDetection();
+        this.downMidZigzagDetect.handleTradeDetection();
+        this.upZigzagDetect.handleTradeDetection();
+        this.downZigzagDetect.handleTradeDetection();
+        this.upMidPennantDetect.handleTradeDetection();
+        this.downMidPennantDetect.handleTradeDetection();
+        this.upPennantDetect.handleTradeDetection();
+        this.downPennantDetect.handleTradeDetection();
+        this.upMidFlagDetect.handleTradeDetection();
+        this.downMidFlagDetect.handleTradeDetection();
+        this.upFlagDetect.handleTradeDetection();
+        this.downFlagDetect.handleTradeDetection();
+        this.upMidRestartDetect.handleTradeDetection();
+        this.downMidRestartDetect.handleTradeDetection();
+        this.upRestartDetect.handleTradeDetection();
+        this.downRestartDetect.handleTradeDetection();
+        //this.upMidHeadDetect.handleTradeDetection();
+        //this.downMidHeadDetect.handleTradeDetection();
+        //this.upHeadDetect.handleTradeDetection();
+        //this.downHeadDetect.handleTradeDetection();
+        this.upMidTriangleDetect.handleTradeDetection();
+        this.downMidTriangleDetect.handleTradeDetection();
+        this.upTriangleDetect.handleTradeDetection();
+        this.downTriangleDetect.handleTradeDetection();
+        this.upBigZigzagDetect.handleTradeDetection();
+        this.downBigZigzagDetect.handleTradeDetection();
+        this.upBigPennantDetect.handleTradeDetection();
+        this.downBigPennantDetect.handleTradeDetection();
+        this.upBigFlagDetect.handleTradeDetection();
+        this.downBigFlagDetect.handleTradeDetection();
+        this.upBigRestartDetect.handleTradeDetection();
+        this.downBigRestartDetect.handleTradeDetection();
+        //this.upBigHeadDetect.handleTradeDetection();
+        //this.downBigHeadDetect.handleTradeDetection();
+        this.upBigTriangleDetect.handleTradeDetection();
+        this.downBigTriangleDetect.handleTradeDetection();
     }
 
     getOrders(): TActualOrder {
@@ -277,100 +413,5 @@ export class DetectorService {
         this.logger.log(
             `CAPITAL = ${this.getPrettyCapital()} - P: ${this.profitCount} Z: ${this.zeroCount} F: ${this.failCount}`,
         );
-    }
-
-    private runBreak(): void {
-        this.upBreakDetect.analyze();
-        this.downBreakDetect.analyze();
-    }
-
-    private runFlag(): void {
-        this.upFlagDetect.analyze();
-        this.downFlagDetect.analyze();
-    }
-
-    private runMidFlag(): void {
-        this.upMidFlagDetect.analyze();
-        this.downMidFlagDetect.analyze();
-    }
-
-    private runBigFlag(): void {
-        this.upBigFlagDetect.analyze();
-        this.downBigFlagDetect.analyze();
-    }
-
-    private runHead(): void {
-        this.upHeadDetect.analyze();
-        this.downHeadDetect.analyze();
-    }
-
-    private runMidHead(): void {
-        this.upMidHeadDetect.analyze();
-        this.downMidHeadDetect.analyze();
-    }
-
-    private runBigHead(): void {
-        this.upBigHeadDetect.analyze();
-        this.downBigHeadDetect.analyze();
-    }
-
-    private runPennant(): void {
-        this.upPennantDetect.analyze();
-        this.downPennantDetect.analyze();
-    }
-
-    private runMidPennant(): void {
-        this.upMidPennantDetect.analyze();
-        this.downMidPennantDetect.analyze();
-    }
-
-    private runBigPennant(): void {
-        this.upBigPennantDetect.analyze();
-        this.downBigPennantDetect.analyze();
-    }
-
-    private runRestart(): void {
-        this.upRestartDetect.analyze();
-        this.downRestartDetect.analyze();
-    }
-
-    private runMidRestart(): void {
-        this.upMidRestartDetect.analyze();
-        this.downMidRestartDetect.analyze();
-    }
-
-    private runBigRestart(): void {
-        this.upBigRestartDetect.analyze();
-        this.downBigRestartDetect.analyze();
-    }
-
-    private runTriangle(): void {
-        this.upTriangleDetect.analyze();
-        this.downTriangleDetect.analyze();
-    }
-
-    private runMidTriangle(): void {
-        this.upMidTriangleDetect.analyze();
-        this.downMidTriangleDetect.analyze();
-    }
-
-    private runBigTriangle(): void {
-        this.upBigTriangleDetect.analyze();
-        this.downBigTriangleDetect.analyze();
-    }
-
-    private runZigzag(): void {
-        this.upZigzagDetect.analyze();
-        this.downZigzagDetect.analyze();
-    }
-
-    private runMidZigzag(): void {
-        this.upMidZigzagDetect.analyze();
-        this.downMidZigzagDetect.analyze();
-    }
-
-    private runBigZigzag(): void {
-        this.upBigZigzagDetect.analyze();
-        this.downBigZigzagDetect.analyze();
     }
 }

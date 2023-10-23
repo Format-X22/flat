@@ -12,7 +12,7 @@ export class ZigzagDetect extends AbstractDetect {
     protected takeFib = 1.8;
     protected stopFib = 0.33;
 
-    protected waitDays = 2;
+    protected waitDays = 4;
     protected minSegmentSize = 2;
 
     check(): boolean {

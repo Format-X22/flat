@@ -4,9 +4,9 @@ import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
 
 export class FlagDetect extends AbstractDetect {
-    protected profitMul = 2;
+    protected profitMul = 2.4;
     protected enterFib = 1;
-    protected takeFib = 2;
+    protected takeFib = 2.5;
     protected stopFib = 0.73;
 
     protected minSegmentSize = 2;
