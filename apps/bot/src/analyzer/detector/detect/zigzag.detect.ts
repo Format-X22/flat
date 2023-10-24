@@ -30,7 +30,7 @@ export class ZigzagDetect extends AbstractDetect {
 
         const zigzagOffset = this.getFib(up1.max, down0.min, 0.5, true);
         const zigzagEnter = this.getFib(up1.max, down0.min, this.enterFib, true);
-        const zigzagMinMove = this.getFib(up1.max, down0.min, 0.33, true);
+        const zigzagMinMove = this.getFib(up1.max, down0.min, 0.25, true);
         const notOverflow = this.lt(this.candleMax(this.getCandle()), zigzagEnter);
         const anyCandleUnderOffset = down0.candles.some((candle) => this.lt(this.candleMax(candle), zigzagOffset));
 
