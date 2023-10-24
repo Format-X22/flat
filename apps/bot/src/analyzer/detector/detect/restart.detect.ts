@@ -73,7 +73,7 @@ export class DownMidRestartDetect extends RestartDetect {
 
 export class UpBigRestartDetect extends RestartDetect {
     protected hmaType = EHmaType.BIG_HMA;
-    protected minSegmentSize = 6;
+    protected minSegmentSize = 8;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP BIG RESTART', true, segmentService, detectorService);
@@ -82,7 +82,7 @@ export class UpBigRestartDetect extends RestartDetect {
 
 export class DownBigRestartDetect extends RestartDetect {
     protected hmaType = EHmaType.BIG_HMA;
-    protected minSegmentSize = 6;
+    protected minSegmentSize = 8;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN BIG RESTART', false, segmentService, detectorService);
