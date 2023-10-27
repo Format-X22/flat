@@ -42,14 +42,6 @@ import {
     UpMidPennantDetect,
     UpPennantDetect,
 } from './detect/pennant.detect';
-import {
-    DownBigHeadDetect,
-    DownHeadDetect,
-    DownMidHeadDetect,
-    UpBigHeadDetect,
-    UpHeadDetect,
-    UpMidHeadDetect,
-} from './detect/head.detect';
 import { TActualOrder } from './detector.dto';
 
 @Injectable()
@@ -66,12 +58,6 @@ export class DetectorService {
     private downMidFlagDetect: DownMidFlagDetect;
     private upBigFlagDetect: UpBigFlagDetect;
     private downBigFlagDetect: DownBigFlagDetect;
-    private upHeadDetect: UpHeadDetect;
-    private downHeadDetect: DownHeadDetect;
-    private upMidHeadDetect: UpMidHeadDetect;
-    private downMidHeadDetect: DownMidHeadDetect;
-    private upBigHeadDetect: UpBigHeadDetect;
-    private downBigHeadDetect: DownBigHeadDetect;
     private upPennantDetect: UpPennantDetect;
     private downPennantDetect: DownPennantDetect;
     private upMidPennantDetect: UpMidPennantDetect;
@@ -115,12 +101,6 @@ export class DetectorService {
         this.downMidFlagDetect = new DownMidFlagDetect(this.segmentService, this);
         this.upBigFlagDetect = new UpBigFlagDetect(this.segmentService, this);
         this.downBigFlagDetect = new DownBigFlagDetect(this.segmentService, this);
-        this.upHeadDetect = new UpHeadDetect(this.segmentService, this);
-        this.downHeadDetect = new DownHeadDetect(this.segmentService, this);
-        this.upMidHeadDetect = new UpMidHeadDetect(this.segmentService, this);
-        this.downMidHeadDetect = new DownMidHeadDetect(this.segmentService, this);
-        this.upBigHeadDetect = new UpBigHeadDetect(this.segmentService, this);
-        this.downBigHeadDetect = new DownBigHeadDetect(this.segmentService, this);
         this.upPennantDetect = new UpPennantDetect(this.segmentService, this);
         this.downPennantDetect = new DownPennantDetect(this.segmentService, this);
         this.upMidPennantDetect = new UpMidPennantDetect(this.segmentService, this);
@@ -168,10 +148,6 @@ export class DetectorService {
         this.downMidRestartDetect.check();
         this.upRestartDetect.check();
         this.downRestartDetect.check();
-        this.upMidHeadDetect.check();
-        this.downMidHeadDetect.check();
-        this.upHeadDetect.check();
-        this.downHeadDetect.check();
         this.upMidTriangleDetect.check();
         this.downMidTriangleDetect.check();
         this.upTriangleDetect.check();
@@ -184,8 +160,6 @@ export class DetectorService {
         this.downBigFlagDetect.check();
         this.upBigRestartDetect.check();
         this.downBigRestartDetect.check();
-        this.upBigHeadDetect.check();
-        this.downBigHeadDetect.check();
         this.upBigTriangleDetect.check();
         this.downBigTriangleDetect.check();
 
@@ -207,10 +181,6 @@ export class DetectorService {
         this.downMidRestartDetect.handleOrder();
         this.upRestartDetect.handleOrder();
         this.downRestartDetect.handleOrder();
-        this.upMidHeadDetect.handleOrder();
-        this.downMidHeadDetect.handleOrder();
-        this.upHeadDetect.handleOrder();
-        this.downHeadDetect.handleOrder();
         this.upMidTriangleDetect.handleOrder();
         this.downMidTriangleDetect.handleOrder();
         this.upTriangleDetect.handleOrder();
@@ -223,8 +193,6 @@ export class DetectorService {
         this.downBigFlagDetect.handleOrder();
         this.upBigRestartDetect.handleOrder();
         this.downBigRestartDetect.handleOrder();
-        this.upBigHeadDetect.handleOrder();
-        this.downBigHeadDetect.handleOrder();
         this.upBigTriangleDetect.handleOrder();
         this.downBigTriangleDetect.handleOrder();
 
@@ -246,10 +214,6 @@ export class DetectorService {
         this.downMidRestartDetect.resetOrderIfNoPosition();
         this.upRestartDetect.resetOrderIfNoPosition();
         this.downRestartDetect.resetOrderIfNoPosition();
-        this.upMidHeadDetect.resetOrderIfNoPosition();
-        this.downMidHeadDetect.resetOrderIfNoPosition();
-        this.upHeadDetect.resetOrderIfNoPosition();
-        this.downHeadDetect.resetOrderIfNoPosition();
         this.upMidTriangleDetect.resetOrderIfNoPosition();
         this.downMidTriangleDetect.resetOrderIfNoPosition();
         this.upTriangleDetect.resetOrderIfNoPosition();
@@ -262,8 +226,6 @@ export class DetectorService {
         this.downBigFlagDetect.resetOrderIfNoPosition();
         this.upBigRestartDetect.resetOrderIfNoPosition();
         this.downBigRestartDetect.resetOrderIfNoPosition();
-        this.upBigHeadDetect.resetOrderIfNoPosition();
-        this.downBigHeadDetect.resetOrderIfNoPosition();
         this.upBigTriangleDetect.resetOrderIfNoPosition();
         this.downBigTriangleDetect.resetOrderIfNoPosition();
 
