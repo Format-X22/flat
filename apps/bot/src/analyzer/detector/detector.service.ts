@@ -43,6 +43,14 @@ import {
     UpPennantDetect,
 } from './detect/pennant.detect';
 import { TActualOrder } from './detector.dto';
+import {
+    DownBigDoubleDetect,
+    DownDoubleDetect,
+    DownMidDoubleDetect,
+    UpBigDoubleDetect,
+    UpDoubleDetect,
+    UpMidDoubleDetect,
+} from './detect/double.detect';
 
 @Injectable()
 export class DetectorService {
@@ -82,6 +90,12 @@ export class DetectorService {
     private downMidRestartDetect: DownMidRestartDetect;
     private upBigRestartDetect: UpBigRestartDetect;
     private downBigRestartDetect: DownBigRestartDetect;
+    private upDoubleDetect: UpDoubleDetect;
+    private downDoubleDetect: DownDoubleDetect;
+    private upMidDoubleDetect: UpMidDoubleDetect;
+    private downMidDoubleDetect: DownMidDoubleDetect;
+    private upBigDoubleDetect: UpBigDoubleDetect;
+    private downBigDoubleDetect: DownBigDoubleDetect;
 
     private capital = 100;
     private profitCount = 0;
@@ -125,6 +139,12 @@ export class DetectorService {
         this.downMidRestartDetect = new DownMidRestartDetect(this.segmentService, this);
         this.upBigRestartDetect = new UpBigRestartDetect(this.segmentService, this);
         this.downBigRestartDetect = new DownBigRestartDetect(this.segmentService, this);
+        this.upDoubleDetect = new UpDoubleDetect(this.segmentService, this);
+        this.downDoubleDetect = new DownDoubleDetect(this.segmentService, this);
+        this.upMidDoubleDetect = new UpMidDoubleDetect(this.segmentService, this);
+        this.downMidDoubleDetect = new DownMidDoubleDetect(this.segmentService, this);
+        this.upBigDoubleDetect = new UpBigDoubleDetect(this.segmentService, this);
+        this.downBigDoubleDetect = new DownBigDoubleDetect(this.segmentService, this);
     }
 
     detect(isSilent = false): void {
@@ -152,6 +172,10 @@ export class DetectorService {
         this.downMidTriangleDetect.check();
         this.upTriangleDetect.check();
         this.downTriangleDetect.check();
+        this.upMidDoubleDetect.check();
+        this.downMidDoubleDetect.check();
+        this.upDoubleDetect.check();
+        this.downDoubleDetect.check();
         this.upBigZigzagDetect.check();
         this.downBigZigzagDetect.check();
         this.upBigPennantDetect.check();
@@ -162,6 +186,8 @@ export class DetectorService {
         this.downBigRestartDetect.check();
         this.upBigTriangleDetect.check();
         this.downBigTriangleDetect.check();
+        this.upBigDoubleDetect.check();
+        this.downBigDoubleDetect.check();
 
         this.upBreakDetect.handleOrder();
         this.downBreakDetect.handleOrder();
@@ -185,6 +211,10 @@ export class DetectorService {
         this.downMidTriangleDetect.handleOrder();
         this.upTriangleDetect.handleOrder();
         this.downTriangleDetect.handleOrder();
+        this.upMidDoubleDetect.handleOrder();
+        this.downMidDoubleDetect.handleOrder();
+        this.upDoubleDetect.handleOrder();
+        this.downDoubleDetect.handleOrder();
         this.upBigZigzagDetect.handleOrder();
         this.downBigZigzagDetect.handleOrder();
         this.upBigPennantDetect.handleOrder();
@@ -195,6 +225,8 @@ export class DetectorService {
         this.downBigRestartDetect.handleOrder();
         this.upBigTriangleDetect.handleOrder();
         this.downBigTriangleDetect.handleOrder();
+        this.upBigDoubleDetect.handleOrder();
+        this.downBigDoubleDetect.handleOrder();
 
         this.upBreakDetect.resetOrderIfNoPosition();
         this.downBreakDetect.resetOrderIfNoPosition();
@@ -218,6 +250,10 @@ export class DetectorService {
         this.downMidTriangleDetect.resetOrderIfNoPosition();
         this.upTriangleDetect.resetOrderIfNoPosition();
         this.downTriangleDetect.resetOrderIfNoPosition();
+        this.upMidDoubleDetect.resetOrderIfNoPosition();
+        this.downMidDoubleDetect.resetOrderIfNoPosition();
+        this.upDoubleDetect.resetOrderIfNoPosition();
+        this.downDoubleDetect.resetOrderIfNoPosition();
         this.upBigZigzagDetect.resetOrderIfNoPosition();
         this.downBigZigzagDetect.resetOrderIfNoPosition();
         this.upBigPennantDetect.resetOrderIfNoPosition();
@@ -228,6 +264,8 @@ export class DetectorService {
         this.downBigRestartDetect.resetOrderIfNoPosition();
         this.upBigTriangleDetect.resetOrderIfNoPosition();
         this.downBigTriangleDetect.resetOrderIfNoPosition();
+        this.upBigDoubleDetect.resetOrderIfNoPosition();
+        this.downBigDoubleDetect.resetOrderIfNoPosition();
 
         this.upMidZigzagDetect.handleTradeDetection();
         this.downMidZigzagDetect.handleTradeDetection();
@@ -251,6 +289,10 @@ export class DetectorService {
         this.downMidTriangleDetect.handleTradeDetection();
         this.upTriangleDetect.handleTradeDetection();
         this.downTriangleDetect.handleTradeDetection();
+        this.upMidDoubleDetect.handleTradeDetection();
+        this.downMidDoubleDetect.handleTradeDetection();
+        this.upDoubleDetect.handleTradeDetection();
+        this.downDoubleDetect.handleTradeDetection();
         this.upBigZigzagDetect.handleTradeDetection();
         this.downBigZigzagDetect.handleTradeDetection();
         this.upBigPennantDetect.handleTradeDetection();
@@ -261,6 +303,8 @@ export class DetectorService {
         this.downBigRestartDetect.handleTradeDetection();
         this.upBigTriangleDetect.handleTradeDetection();
         this.downBigTriangleDetect.handleTradeDetection();
+        this.upBigDoubleDetect.handleTradeDetection();
+        this.downBigDoubleDetect.handleTradeDetection();
     }
 
     getOrders(): TActualOrder {
