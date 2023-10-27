@@ -34,7 +34,7 @@ export abstract class AbstractDetect {
     protected abstract stopFib;
 
     protected constructor(
-        private name: string,
+        protected name: string,
         protected readonly isNotInverted = true,
         protected segmentService: SegmentService,
         protected detectorService: DetectorService,

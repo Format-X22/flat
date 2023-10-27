@@ -4,9 +4,9 @@ import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
 
 export class PennantDetect extends AbstractDetect {
-    protected profitMul = 2.8;
+    protected profitMul = 2.75;
     protected enterFib = 0.85;
-    protected takeFib = 2.35;
+    protected takeFib = 2.3;
     protected stopFib = 0.62;
 
     protected minSegmentSize = 2;
@@ -58,7 +58,7 @@ export class DownPennantDetect extends PennantDetect {
 export class UpMidPennantDetect extends PennantDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
-    protected maxSecondSegmentSize = 2;
+    protected maxSecondSegmentSize = 4;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP MID PENNANT', true, segmentService, detectorService);
@@ -68,7 +68,7 @@ export class UpMidPennantDetect extends PennantDetect {
 export class DownMidPennantDetect extends PennantDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
-    protected maxSecondSegmentSize = 2;
+    protected maxSecondSegmentSize = 4;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN MID PENNANT', false, segmentService, detectorService);
@@ -78,7 +78,7 @@ export class DownMidPennantDetect extends PennantDetect {
 export class UpBigPennantDetect extends PennantDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
-    protected maxSecondSegmentSize = 4;
+    protected maxSecondSegmentSize = 8;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP BIG PENNANT', true, segmentService, detectorService);
@@ -88,7 +88,7 @@ export class UpBigPennantDetect extends PennantDetect {
 export class DownBigPennantDetect extends PennantDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
-    protected maxSecondSegmentSize = 4;
+    protected maxSecondSegmentSize = 8;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN BIG PENNANT', false, segmentService, detectorService);

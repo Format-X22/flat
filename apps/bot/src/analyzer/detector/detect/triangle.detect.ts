@@ -52,6 +52,7 @@ export class DownTriangleDetect extends TriangleDetect {
 
 export class UpMidTriangleDetect extends TriangleDetect {
     protected hmaType = EHmaType.MID_HMA;
+    protected minSegmentSize = 4;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP MID TRIANGLE', true, segmentService, detectorService);
@@ -60,6 +61,7 @@ export class UpMidTriangleDetect extends TriangleDetect {
 
 export class DownMidTriangleDetect extends TriangleDetect {
     protected hmaType = EHmaType.MID_HMA;
+    protected minSegmentSize = 4;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN MID TRIANGLE', false, segmentService, detectorService);
@@ -68,6 +70,7 @@ export class DownMidTriangleDetect extends TriangleDetect {
 
 export class UpBigTriangleDetect extends TriangleDetect {
     protected hmaType = EHmaType.BIG_HMA;
+    protected minSegmentSize = 8;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP BIG TRIANGLE', true, segmentService, detectorService);
@@ -76,6 +79,7 @@ export class UpBigTriangleDetect extends TriangleDetect {
 
 export class DownBigTriangleDetect extends TriangleDetect {
     protected hmaType = EHmaType.BIG_HMA;
+    protected minSegmentSize = 8;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN BIG TRIANGLE', false, segmentService, detectorService);

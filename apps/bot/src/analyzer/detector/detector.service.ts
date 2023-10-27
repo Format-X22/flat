@@ -267,12 +267,12 @@ export class DetectorService {
         this.upBigTriangleDetect.resetOrderIfNoPosition();
         this.downBigTriangleDetect.resetOrderIfNoPosition();
 
-        this.upBreakDetect.handleTradeDetection();
-        this.downBreakDetect.handleTradeDetection();
         this.upMidZigzagDetect.handleTradeDetection();
         this.downMidZigzagDetect.handleTradeDetection();
         this.upZigzagDetect.handleTradeDetection();
         this.downZigzagDetect.handleTradeDetection();
+        this.upBreakDetect.handleTradeDetection();
+        this.downBreakDetect.handleTradeDetection();
         this.upMidPennantDetect.handleTradeDetection();
         this.downMidPennantDetect.handleTradeDetection();
         this.upPennantDetect.handleTradeDetection();
@@ -285,10 +285,6 @@ export class DetectorService {
         this.downMidRestartDetect.handleTradeDetection();
         this.upRestartDetect.handleTradeDetection();
         this.downRestartDetect.handleTradeDetection();
-        //this.upMidHeadDetect.handleTradeDetection();
-        //this.downMidHeadDetect.handleTradeDetection();
-        //this.upHeadDetect.handleTradeDetection();
-        //this.downHeadDetect.handleTradeDetection();
         this.upMidTriangleDetect.handleTradeDetection();
         this.downMidTriangleDetect.handleTradeDetection();
         this.upTriangleDetect.handleTradeDetection();
@@ -301,8 +297,6 @@ export class DetectorService {
         this.downBigFlagDetect.handleTradeDetection();
         this.upBigRestartDetect.handleTradeDetection();
         this.downBigRestartDetect.handleTradeDetection();
-        //this.upBigHeadDetect.handleTradeDetection();
-        //this.downBigHeadDetect.handleTradeDetection();
         this.upBigTriangleDetect.handleTradeDetection();
         this.downBigTriangleDetect.handleTradeDetection();
     }
