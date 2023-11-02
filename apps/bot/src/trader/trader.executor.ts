@@ -26,7 +26,21 @@ export class TraderExecutor {
         return;
     }
 
+    async hasNotPosition(): Promise<boolean> {
+        return !(await this.hasPosition());
+    }
+
+    async hasOrders(): Promise<boolean> {
+        // TODO -
+        return;
+    }
+
     async closePosition(): Promise<void> {
         // TODO -
+    }
+
+    async getBalance(): Promise<number> {
+        // TODO -
+        return;
     }
 }

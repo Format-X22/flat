@@ -171,7 +171,10 @@ export class TraderStater {
             return;
         }
 
-        // TODO -
+        if (await this.executor.hasPosition()) {
+            // TODO Throw if position without analytics orders
+            // TODO -
+        }
 
         this.bot.state = EState.WORKING_CHECK_BALANCE_CHANGE;
     }
@@ -182,7 +185,20 @@ export class TraderStater {
             return;
         }
 
-        // TODO -
+        if (await this.executor.hasNotPosition()) {
+            if (typeof this.bot.lastBalance !== 'number') {
+                this.bot.lastBalance = await this.executor.getBalance();
+            }
+
+            const currentBalance = await this.executor.getBalance();
+
+            if (this.bot.lastBalance !== currentBalance) {
+                await this.logTrade(`Balance ${this.bot.lastBalance} -> ${currentBalance}`);
+                this.bot.lastBalance = currentBalance;
+
+                // TODO Update orders
+            }
+        }
 
         this.bot.state = EState.WORKING_WAITING;
     }
@@ -254,6 +270,7 @@ export class TraderStater {
 
     private async syncBot(): Promise<void> {
         await this.botRepo.update(this.bot.id, {
+            lastBalance: this.bot.lastBalance,
             state: this.bot.state,
             errorOnState: this.bot.errorOnState,
         });

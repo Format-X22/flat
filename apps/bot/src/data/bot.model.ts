@@ -60,6 +60,9 @@ export class BotModel {
     @Column()
     owner: string;
 
+    @Column('real', { nullable: true })
+    lastBalance: number;
+
     @OneToMany(() => BotLogModel, (botLog) => botLog.bot)
     logs: Array<BotLogModel>;
 }
