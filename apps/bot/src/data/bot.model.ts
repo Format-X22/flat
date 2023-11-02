@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { BotLogModel } from './bot-log.model';
 
 export enum EStock {
@@ -30,7 +30,7 @@ export enum EState {
 
 @Entity()
 export class BotModel {
-    @PrimaryGeneratedColumn()
+    @PrimaryColumn()
     id: number;
 
     @Column()

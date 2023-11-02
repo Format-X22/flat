@@ -26,10 +26,19 @@ export class LoaderService {
         this.logger.log('Truncated');
     }
 
-    async loadLastActual(size: string): Promise<void> {
-        const fromForce = DateTime.fromObject({ year: 2023, day: 1, month: 1 }).toJSDate();
+    async loadActual(size: string): Promise<void> {
+        const offset = await this.candleRepo.find({
+            take: BIG_HMA_PERIOD * 2 + 1,
+            order: { timestamp: 'DESC' },
+            select: ['timestamp'],
+        });
 
-        await this.load(size, fromForce);
+        if (!offset?.length) {
+            await this.load(size);
+            return;
+        }
+
+        await this.load(size, new Date(offset[offset.length - 1].timestamp - 1000));
     }
 
     async load(size: string, fromForce?: Date): Promise<void> {
@@ -66,7 +75,7 @@ export class LoaderService {
         this.logger.log('Prepare done, save to database...');
 
         for (const chunk of resultChunks) {
-            await this.candleRepo.insert(chunk);
+            await this.candleRepo.upsert(chunk, ['id']);
         }
 
         this.logger.log('Load and save done!');
@@ -121,6 +130,7 @@ export class LoaderService {
         }
 
         return chunk.map((item) => ({
+            id: Number(item[0]),
             timestamp: Number(item[0]),
             dateString: DateTime.fromMillis(Number(item[0])).toFormat('dd-MM-y HH'),
             open: item[1],
