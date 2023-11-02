@@ -36,6 +36,11 @@ export class CalculatorService {
         return this.detectorService.getOrders();
     }
 
+    async analyse(): Promise<TActualOrder> {
+        // TODO -
+        return;
+    }
+
     private async getCandles(size: string): Promise<Array<CandleModel>> {
         const candles = await this.candleRepo.find({ where: { size }, order: { timestamp: 'ASC' } });
 

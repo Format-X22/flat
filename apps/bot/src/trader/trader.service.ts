@@ -5,14 +5,16 @@ import { Repository } from 'typeorm';
 import { TraderStater } from './trader.stater';
 import { TraderExecutor } from './trader.executor';
 import { BotLogModel } from '../data/bot-log.model';
+import { CalculatorService } from '../analyzer/calculator/calculator.service';
 
 @Injectable()
 export class TraderService {
     private readonly logger: Logger = new Logger(TraderService.name);
 
     constructor(
-        @InjectRepository(BotModel) private botRepo: Repository<BotModel>,
-        @InjectRepository(BotLogModel) private botLogRepo: Repository<BotLogModel>,
+        @InjectRepository(BotModel) private readonly botRepo: Repository<BotModel>,
+        @InjectRepository(BotLogModel) private readonly botLogRepo: Repository<BotLogModel>,
+        private readonly calculatorService: CalculatorService,
     ) {}
 
     // TODO -
@@ -29,6 +31,7 @@ export class TraderService {
                 this.botRepo,
                 this.botLogRepo,
                 new TraderExecutor(bot.stock, bot.apiKey),
+                this.calculatorService,
             );
 
             stater.run().catch((error) => {

@@ -4,6 +4,7 @@ import { Logger } from '@nestjs/common';
 import { sleep } from '../utils/sleep.util';
 import { TraderExecutor } from './trader.executor';
 import { BotLogModel, ELogType } from '../data/bot-log.model';
+import { CalculatorService } from '../analyzer/calculator/calculator.service';
 
 const ITERATION_TIMEOUT = 10_000;
 const DB_RETRY_TIMEOUT = 30_000;
@@ -16,6 +17,7 @@ export class TraderStater {
         private readonly botRepo: Repository<BotModel>,
         private readonly botLogRepo: Repository<BotLogModel>,
         private readonly executor: TraderExecutor,
+        private readonly calculatorService: CalculatorService,
     ) {}
 
     async run(): Promise<void> {
@@ -148,10 +150,9 @@ export class TraderStater {
             return;
         }
 
-        // TODO Check time to handle candle
-        // lastHandledCandle
-
-        // TODO -
+        if (this.isTimeToCheckAnalytics()) {
+            this.bot.state = EState.CANDLE_CHECK_ANALYTICS;
+        }
 
         this.bot.state = EState.WORKING_CHECK_POSITION_COLLISION;
     }
@@ -209,6 +210,8 @@ export class TraderStater {
             return;
         }
 
+        const { up, down } = await this.calculatorService.analyse();
+
         // TODO -
 
         this.bot.state = EState.CANDLE_CHECK_POSITION_WRONG_EXISTS;
@@ -259,6 +262,12 @@ export class TraderStater {
         // TODO -
 
         this.bot.state = EState.WORKING_WAITING;
+    }
+
+    private isTimeToCheckAnalytics(): boolean {
+        // lastHandledCandle
+        // TODO -
+        return;
     }
 
     private async emergencyDrop(message: string): Promise<void> {
