@@ -5,7 +5,6 @@ export enum ELogType {
     ALL = 'ALL',
     VERBOSE = 'VERBOSE',
     ERROR = 'ERROR',
-    TECH = 'TECH',
     TRADE = 'TRADE',
 }
 

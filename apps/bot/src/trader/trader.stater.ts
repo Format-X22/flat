@@ -19,7 +19,7 @@ export class TraderStater {
     ) {}
 
     async run(): Promise<void> {
-        await this.tryLog(ELogType.VERBOSE, 'Started');
+        await this.logVerbose('Started');
 
         while (true) {
             try {
@@ -28,7 +28,7 @@ export class TraderStater {
                 try {
                     await this.emergencyDrop('on iteration');
                 } catch (error) {
-                    this.logger.error('FATAL on try emergency stop on iteration error, stopping bot loop now');
+                    await this.logError('FATAL on try emergency stop on iteration error, stopping bot loop now');
                     break;
                 }
             }
@@ -133,7 +133,10 @@ export class TraderStater {
     }
 
     private async onErrorEmergencyStop(): Promise<void> {
-        // TODO -
+        await this.executor.closePosition();
+        await this.executor.cancelAllOrders();
+        await this.executor.closePosition();
+        await this.logError(`Emergency stop for #${this.bot.id} bot`);
 
         this.bot.isActive = false;
         this.bot.state = EState.ERROR_ERROR;
@@ -154,7 +157,10 @@ export class TraderStater {
     }
 
     private async onWorkingDeactivate(): Promise<void> {
-        // TODO cancel all
+        await this.executor.closePosition();
+        await this.executor.cancelAllOrders();
+        await this.executor.closePosition();
+        await this.logVerbose(`Stop for #${this.bot.id} bot`);
 
         this.bot.state = EState.INITIAL_DEACTIVATED;
     }
@@ -255,7 +261,22 @@ export class TraderStater {
         this.bot = await this.botRepo.findOneBy({ id: this.bot.id });
     }
 
-    private async tryLog(type: ELogType, message: string): Promise<void> {
+    private async logVerbose(message: string): Promise<void> {
+        this.logger.verbose(message);
+        await this.tryDbLog(ELogType.VERBOSE, message);
+    }
+
+    private async logError(message: string): Promise<void> {
+        this.logger.error(message);
+        await this.tryDbLog(ELogType.ERROR, message);
+    }
+
+    private async logTrade(message: string): Promise<void> {
+        this.logger.warn(message);
+        await this.tryDbLog(ELogType.TRADE, message);
+    }
+
+    private async tryDbLog(type: ELogType, message: string): Promise<void> {
         try {
             const log = this.botLogRepo.create({
                 bot: this.bot,

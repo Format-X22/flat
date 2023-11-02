@@ -29,7 +29,7 @@ export class AdminScenario {
                         '>> bots - get active bots data',
                         '>> bots all - get all bots data',
                         '',
-                        '>> logs [ALL | VERBOSE | ERROR | TECH | TRADE]',
+                        '>> logs [ALL | VERBOSE | ERROR | TRADE]',
                         '[limit] [skip] - print typed logs',
                         '',
                         '>> start [id] - start bot by id',
