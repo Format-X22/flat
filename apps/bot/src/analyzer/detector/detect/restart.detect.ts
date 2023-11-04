@@ -4,10 +4,10 @@ import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
 
 export class RestartDetect extends AbstractDetect {
-    protected profitMul = 2;
-    protected enterFib = 1;
-    protected takeFib = 2;
-    protected stopFib = 0.73;
+    protected profitMul = 2.1;
+    protected enterFib = 0.85;
+    protected takeFib = 1.8;
+    protected stopFib = 0.62;
 
     protected minSegmentSize = 2;
     protected waitDays = 2;
