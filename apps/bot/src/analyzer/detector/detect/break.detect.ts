@@ -6,10 +6,10 @@ import { Wave } from '../../wave/wave.util';
 export class BreakDetect extends AbstractDetect {
     private lastDetectedAndOverflowWave: Wave;
 
-    protected profitMul = 2.2;
-    protected enterFib = 0.62;
+    protected profitMul = 2.3;
+    protected enterFib = 0.85;
     protected takeFib = 2;
-    protected stopFib = 0.33;
+    protected stopFib = 0.62;
 
     protected waitDays = 3;
 
