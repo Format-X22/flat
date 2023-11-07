@@ -86,6 +86,12 @@ export class AdminService {
             body.apiKey = await this.makeCipherKey(body.apiKey);
         }
 
+        for (const key of Object.keys(body)) {
+            if (body[key] == null) {
+                delete body[key];
+            }
+        }
+
         const result = await this.botRepo.update({ id }, body);
 
         if (!result.affected) {

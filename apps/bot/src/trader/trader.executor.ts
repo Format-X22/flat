@@ -4,6 +4,20 @@ import { EStock } from '../data/bot.model';
 export class TraderExecutor {
     constructor(private readonly stock: EStock, private readonly apiKey: string) {}
 
+    async getUpOrder(): Promise<TOrder> {
+        // TODO -
+        return;
+    }
+
+    async getDownOrder(): Promise<TOrder> {
+        // TODO -
+        return;
+    }
+
+    async updateOrder(order: TOrder): Promise<void> {
+        // TODO -
+    }
+
     async getOrders(): Promise<Array<TOrder>> {
         // TODO -
         return [];

@@ -5,12 +5,14 @@ import { sleep } from '../utils/sleep.util';
 import { TraderExecutor } from './trader.executor';
 import { BotLogModel, ELogType } from '../data/bot-log.model';
 import { CalculatorService } from '../analyzer/calculator/calculator.service';
+import { EDirection, TOrder } from '../data/order.type';
+import { TActualOrder } from '../analyzer/detector/detector.dto';
 
 const ITERATION_TIMEOUT = 10_000;
 const DB_RETRY_TIMEOUT = 30_000;
 
-export class TraderStater {
-    private readonly logger: Logger = new Logger(TraderStater.name);
+export class TraderIterator {
+    private readonly logger: Logger = new Logger(TraderIterator.name);
 
     constructor(
         private bot: BotModel,
@@ -92,18 +94,6 @@ export class TraderStater {
 
             case EState.CANDLE_CHECK_ANALYTICS:
                 await this.onHandleCandleCheckAnalytics();
-                break;
-            case EState.CANDLE_CHECK_POSITION_WRONG_EXISTS:
-                await this.onHandleCandleCheckPositionWrongExists();
-                break;
-            case EState.CANDLE_CANCEL_ORDERS:
-                await this.onHandleCandleCancelOrders();
-                break;
-            case EState.CANDLE_PLACE_ORDERS:
-                await this.onHandleCandlePlaceOpOrder();
-                break;
-            case EState.CANDLE_REPLACE_STOP:
-                await this.onHandleCandleReplaceStop();
                 break;
             default:
                 await this.emergencyDrop('Invalid bot state');
@@ -197,7 +187,8 @@ export class TraderStater {
                 await this.logTrade(`Balance ${this.bot.lastBalance} -> ${currentBalance}`);
                 this.bot.lastBalance = currentBalance;
 
-                // TODO Update orders
+                this.bot.state = EState.CANDLE_CHECK_ANALYTICS;
+                return;
             }
         }
 
@@ -210,58 +201,53 @@ export class TraderStater {
             return;
         }
 
-        const { up, down } = await this.calculatorService.analyse();
+        const { up, down } = await this.calculatorService.calc(true);
+        const inPosition = await this.executor.hasPosition();
 
-        // TODO -
-
-        this.bot.state = EState.CANDLE_CHECK_POSITION_WRONG_EXISTS;
-    }
-
-    private async onHandleCandleCheckPositionWrongExists(): Promise<void> {
-        if (!this.bot.isActive) {
-            this.bot.state = EState.WORKING_DEACTIVATE;
+        if ((up || down) && inPosition) {
+            await this.logError('Has position when only orders in analytics');
+            this.bot.state = EState.ERROR_EMERGENCY_STOP;
             return;
         }
 
-        // TODO -
+        const currentUpOrder = await this.executor.getUpOrder();
+        const currentDownOrder = await this.executor.getDownOrder();
 
-        this.bot.state = EState.CANDLE_CANCEL_ORDERS;
-    }
+        if (up) {
+            const order = this.actualToExecutor(up, EDirection.UP);
 
-    private async onHandleCandleCancelOrders(): Promise<void> {
-        if (!this.bot.isActive) {
-            this.bot.state = EState.WORKING_DEACTIVATE;
-            return;
+            if (currentUpOrder) {
+                await this.executor.updateOrder(order);
+            } else {
+                await this.executor.placeOrder(order);
+            }
+        } else if (currentUpOrder) {
+            await this.executor.cancelOrder(currentUpOrder);
         }
 
-        // Do not cancel if no changes
-        // Edit only size if size changes
-        // For save position in glass
-        // TODO -
+        if (down) {
+            const order = this.actualToExecutor(down, EDirection.DOWN);
 
-        this.bot.state = EState.CANDLE_PLACE_ORDERS;
-    }
-
-    private async onHandleCandlePlaceOpOrder(): Promise<void> {
-        if (!this.bot.isActive) {
-            this.bot.state = EState.WORKING_DEACTIVATE;
-            return;
+            if (currentDownOrder) {
+                await this.executor.updateOrder(order);
+            } else {
+                await this.executor.placeOrder(order);
+            }
+        } else if (currentDownOrder) {
+            await this.executor.cancelOrder(currentDownOrder);
         }
-
-        // TODO -
-
-        this.bot.state = EState.CANDLE_REPLACE_STOP;
-    }
-
-    private async onHandleCandleReplaceStop(): Promise<void> {
-        if (!this.bot.isActive) {
-            this.bot.state = EState.WORKING_DEACTIVATE;
-            return;
-        }
-
-        // TODO -
 
         this.bot.state = EState.WORKING_WAITING;
+    }
+
+    private actualToExecutor(actual: TActualOrder['up'] | TActualOrder['down'], direction: EDirection): TOrder {
+        return {
+            enter: actual.enter,
+            take: actual.take,
+            stop: actual.stop,
+            direction,
+            risk: this.bot.risk,
+        };
     }
 
     private isTimeToCheckAnalytics(): boolean {

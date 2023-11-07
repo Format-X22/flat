@@ -45,6 +45,7 @@ export class AdminScenario {
                         'pair: BTCUSDT',
                         'apiKey: string',
                         'owner: string',
+                        'risk: number (percent like 40)',
                         '',
                         '>> edit [id] - edit bot',
                         '>> bot [id] edit',
@@ -53,6 +54,7 @@ export class AdminScenario {
                         'pair?: BTCUSDT',
                         'apiKey?: string',
                         'owner?: string',
+                        'risk?: number (percent like 40)',
                     ].join('\n'),
                     {
                         reply_markup: {
@@ -106,6 +108,7 @@ export class AdminScenario {
                 pair: raw[3] as EPair,
                 apiKey: raw[4],
                 owner: raw[5],
+                risk: parseInt(raw[6]),
             };
 
             await validateOrReject(plainToInstance(AddBotArgs, data));
@@ -125,6 +128,7 @@ export class AdminScenario {
                 pair: raw[3] as EPair,
                 apiKey: raw[4],
                 owner: raw[5],
+                risk: parseInt(raw[6]),
             };
 
             await validateOrReject(plainToInstance(AddBotArgs, data));

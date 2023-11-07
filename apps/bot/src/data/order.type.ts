@@ -8,7 +8,7 @@ export type TOrder = {
     enter: number;
     take: number;
     stop: number;
-    amount: number;
+    risk: number;
 };
 
 export type TStockOrderId = string | number;

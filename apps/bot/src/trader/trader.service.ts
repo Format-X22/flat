@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { BotModel } from '../data/bot.model';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TraderStater } from './trader.stater';
+import { TraderIterator } from './trader.iterator';
 import { TraderExecutor } from './trader.executor';
 import { BotLogModel } from '../data/bot-log.model';
 import { CalculatorService } from '../analyzer/calculator/calculator.service';
@@ -18,15 +18,13 @@ export class TraderService {
     ) {}
 
     // TODO -
-    // Надо проверить что при виртуальном входе в позицию ордера зачищаются, либо не возвращаются при калке
     // Надо бы в статус по ботам выводить ещё ордера и позиции
-    // Нужно логгировать изменения балансов на счетах ботов
 
     async start(): Promise<void> {
         const bots = await this.botRepo.find();
 
         for (const bot of bots) {
-            const stater = new TraderStater(
+            const stater = new TraderIterator(
                 bot,
                 this.botRepo,
                 this.botLogRepo,

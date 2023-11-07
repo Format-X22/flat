@@ -4,6 +4,7 @@ import * as process from 'process';
 import { InjectBot } from 'nestjs-telegraf';
 import { Context, Telegraf } from 'telegraf';
 import { ConfigService } from '@nestjs/config';
+import { EMode } from './bot.options';
 
 @Injectable()
 export class BotService implements OnApplicationBootstrap {
@@ -17,8 +18,12 @@ export class BotService implements OnApplicationBootstrap {
 
     async onApplicationBootstrap(): Promise<void> {
         const admin = Number(this.configService.get('F_TG_ADMIN'));
+        const mode = this.configService.get('F_MODE');
 
-        //await this.bot.telegram.sendMessage(admin, 'Started!');
+        if (mode.toUpperCase() !== EMode.TEST) {
+            await this.bot.telegram.sendMessage(admin, 'Started!');
+        }
+
         this.tradeService.start().catch((error) => {
             this.logger.error(error);
             process.exit(1);

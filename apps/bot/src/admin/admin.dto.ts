@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 import { EPair, EStock } from '../data/bot.model';
 import { Context } from 'telegraf';
 import { Message, Update } from 'telegraf/types';
@@ -46,6 +46,11 @@ export class AddBotArgs {
 
     @IsString()
     owner: string;
+
+    @IsInt()
+    @Min(3)
+    @Max(50)
+    risk: number;
 }
 
 export class EditBotArgs {
@@ -70,4 +75,10 @@ export class EditBotArgs {
     @IsOptional()
     @IsString()
     owner?: string;
+
+    @IsOptional()
+    @IsInt()
+    @Min(3)
+    @Max(50)
+    risk?: number;
 }

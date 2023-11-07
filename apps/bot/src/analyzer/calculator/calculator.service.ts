@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CandleModel } from '../../data/candle.model';
 import { Repository } from 'typeorm';
@@ -9,7 +9,8 @@ import { DateTime } from 'luxon';
 
 @Injectable()
 export class CalculatorService {
-    private readonly logger: Logger = new Logger(CalculatorService.name);
+    private from: number = DateTime.fromObject({ year: 2018, month: 1, day: 1 }).toMillis();
+    private to: number = Number.MAX_SAFE_INTEGER;
 
     constructor(
         @InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>,
@@ -17,7 +18,15 @@ export class CalculatorService {
         private readonly detectorService: DetectorService,
     ) {}
 
-    async calc(isSilent = false): Promise<TActualOrder> {
+    async calc(isSilent = false, from?: number, to?: number): Promise<TActualOrder> {
+        if (typeof from === 'number') {
+            this.from = from;
+        }
+
+        if (typeof to === 'number') {
+            this.to = to;
+        }
+
         const candles = await this.getCandles('1d');
 
         for (const candle of candles) {
@@ -30,15 +39,12 @@ export class CalculatorService {
             this.detectorService.detect(isSilent);
         }
 
-        this.detectorService.printCapital();
-        this.detectorService.printLastOrders();
+        if (!isSilent) {
+            this.detectorService.printCapital();
+            this.detectorService.printLastOrders();
+        }
 
         return this.detectorService.getOrders();
-    }
-
-    async analyse(): Promise<TActualOrder> {
-        // TODO -
-        return;
     }
 
     private async getCandles(size: string): Promise<Array<CandleModel>> {
@@ -52,11 +58,6 @@ export class CalculatorService {
     }
 
     private isInTestRange(candle: CandleModel): boolean {
-        //return candle.timestamp > DateTime.fromObject({ year: 2022, month: 1, day: 1 }).toMillis();
-        return (
-            candle.timestamp > DateTime.fromObject({ year: 2018, month: 1, day: 1 }).toMillis() &&
-            candle.timestamp < DateTime.fromObject({ year: 2024, month: 1, day: 1 }).toMillis()
-        );
-        //return candle.timestamp > 0;
+        return candle.timestamp > this.from && candle.timestamp < this.to;
     }
 }
