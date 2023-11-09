@@ -10,7 +10,7 @@ async function bootstrap() {
     // Init service
     app.get(BotService);
 
-    await app.get(LoaderService).loadActual('1d');
+    await app.get(LoaderService).loadActual();
     await app.get(CalculatorService).calc();
 }
 bootstrap();

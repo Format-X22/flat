@@ -26,22 +26,34 @@ export class LoaderService {
         this.logger.log('Truncated');
     }
 
-    async loadActual(size: string): Promise<void> {
-        const offset = await this.candleRepo.find({
+    async loadActual(): Promise<void> {
+        const dayOffset = await this.candleRepo.find({
             take: BIG_HMA_PERIOD * 2 + 1,
             order: { timestamp: 'DESC' },
             select: ['timestamp'],
+            where: { size: '1d' },
+        });
+        const hoursOffset = await this.candleRepo.find({
+            take: BIG_HMA_PERIOD * 2 + 1,
+            order: { timestamp: 'DESC' },
+            select: ['timestamp'],
+            where: { size: '1h' },
         });
 
-        if (!offset?.length) {
-            await this.load(size);
-            return;
+        if (!dayOffset?.length) {
+            await this.load('1d');
+        } else {
+            await this.load('1d', new Date(dayOffset[dayOffset.length - 1].timestamp - 1000));
         }
 
-        await this.load(size, new Date(offset[offset.length - 1].timestamp - 1000));
+        if (!hoursOffset?.length) {
+            await this.load('1h', null, 10);
+        } else {
+            await this.load('1h', new Date(hoursOffset[hoursOffset.length - 1].timestamp - 1000), 10);
+        }
     }
 
-    async load(size: string, fromForce?: Date): Promise<void> {
+    async load(size: string, fromForce?: Date, idMul: number = 1): Promise<void> {
         const rawDataMap = new Map<number, Partial<CandleModel>>();
         const stock = new ccxt.binance();
         let fromDate: Date;
@@ -54,7 +66,7 @@ export class LoaderService {
             fromDate = DateTime.fromObject({ year: 2017, day: 11, month: 1 }).toJSDate();
         }
 
-        await this.populateRawDataMap(rawDataMap, fromDate, stock, size);
+        await this.populateRawDataMap(rawDataMap, fromDate, stock, size, idMul);
 
         this.logger.log('Full data loaded, prepare and calc indicators...');
 
@@ -86,12 +98,13 @@ export class LoaderService {
         fromDate: Date,
         stock: Exchange,
         size: string,
+        idMul: number,
     ): Promise<void> {
         let from = Number(fromDate);
 
         while (true) {
             try {
-                const loaded = await this.loadChunk(stock, from, size);
+                const loaded = await this.loadChunk(stock, from, size, idMul);
 
                 if (!loaded.length) {
                     break;
@@ -120,7 +133,12 @@ export class LoaderService {
         }
     }
 
-    private async loadChunk(stock: Exchange, from: number, size: string): Promise<Array<Partial<CandleModel>>> {
+    private async loadChunk(
+        stock: Exchange,
+        from: number,
+        size: string,
+        idMul: number,
+    ): Promise<Array<Partial<CandleModel>>> {
         const fromTimestamp = Number(from);
 
         const chunk = await stock.fetchOHLCV('BTCUSDT', size, fromTimestamp, 100);
@@ -130,7 +148,7 @@ export class LoaderService {
         }
 
         return chunk.map((item) => ({
-            id: Number(item[0]),
+            id: Number(item[0] * idMul),
             timestamp: Number(item[0]),
             dateString: DateTime.fromMillis(Number(item[0])).toFormat('dd-MM-y HH'),
             open: item[1],
