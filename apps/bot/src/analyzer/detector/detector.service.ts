@@ -105,6 +105,7 @@ export class DetectorService {
     protected isInPositionNow: boolean = false;
     protected upOrderDetector: AbstractDetect;
     protected downOrderDetector: AbstractDetect;
+    protected risk: number = 33;
 
     constructor(private readonly segmentService: SegmentService) {
         this.upBreakDetect = new UpBreakDetect(this.segmentService, this);
@@ -147,7 +148,8 @@ export class DetectorService {
         this.downBigDoubleDetect = new DownBigDoubleDetect(this.segmentService, this);
     }
 
-    detect(isSilent = false): void {
+    detect(isSilent = false, risk = 33): void {
+        this.risk = risk;
         this.isSilent = isSilent;
 
         this.upBreakDetect.check();
@@ -413,5 +415,9 @@ export class DetectorService {
         this.logger.log(
             `CAPITAL = ${this.getPrettyCapital()} - P: ${this.profitCount} Z: ${this.zeroCount} F: ${this.failCount}`,
         );
+    }
+
+    getRisk(): number {
+        return this.risk;
     }
 }

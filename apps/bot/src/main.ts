@@ -11,6 +11,6 @@ async function bootstrap() {
     app.get(BotService);
 
     await app.get(LoaderService).loadActual();
-    await app.get(CalculatorService).calc();
+    await app.get(CalculatorService).calc({});
 }
 bootstrap();

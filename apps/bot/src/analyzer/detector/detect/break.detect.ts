@@ -6,12 +6,16 @@ import { Wave } from '../../wave/wave.util';
 export class BreakDetect extends AbstractDetect {
     private lastDetectedAndOverflowWave: Wave;
 
-    protected profitMul = 2.3;
     protected enterFib = 0.85;
     protected takeFib = 2;
     protected stopFib = 0.62;
 
     protected waitDays = 4;
+
+    constructor(name: string, isNotInverted = true, segmentService: SegmentService, detectorService: DetectorService) {
+        super(name, isNotInverted, segmentService, detectorService);
+        this.init();
+    }
 
     check(): boolean {
         const [down0, up1, down1, up2] = this.getWaves(4, false);

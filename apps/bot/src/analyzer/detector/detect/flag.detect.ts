@@ -4,7 +4,6 @@ import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
 
 export class FlagDetect extends AbstractDetect {
-    protected profitMul = 2.4;
     protected enterFib = 1;
     protected takeFib = 2.5;
     protected stopFib = 0.73;
@@ -12,6 +11,11 @@ export class FlagDetect extends AbstractDetect {
     protected minSegmentSize = 2;
     protected maxSecondSegmentSize = 2;
     protected waitDays = 2;
+
+    constructor(name: string, isNotInverted = true, segmentService: SegmentService, detectorService: DetectorService) {
+        super(name, isNotInverted, segmentService, detectorService);
+        this.init();
+    }
 
     check(): boolean {
         const [down0, up1, down1, up2] = this.getWaves(4, false);

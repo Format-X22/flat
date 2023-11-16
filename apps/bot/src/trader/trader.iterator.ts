@@ -7,9 +7,10 @@ import { BotLogModel, ELogType } from '../data/bot-log.model';
 import { CalculatorService } from '../analyzer/calculator/calculator.service';
 import { EDirection, TOrder } from '../data/order.type';
 import { TActualOrder } from '../analyzer/detector/detector.dto';
+import { seconds } from '../utils/time.util';
 
-const ITERATION_TIMEOUT = 10_000;
-const DB_RETRY_TIMEOUT = 30_000;
+const ITERATION_TIMEOUT = seconds(10);
+const DB_RETRY_TIMEOUT = seconds(30);
 
 export class TraderIterator {
     private readonly logger: Logger = new Logger(TraderIterator.name);
@@ -201,7 +202,7 @@ export class TraderIterator {
             return;
         }
 
-        const { up, down } = await this.calculatorService.calc(true);
+        const { up, down } = await this.calculatorService.calc({ isSilent: true });
         const inPosition = await this.executor.hasPosition();
 
         if ((up || down) && inPosition) {

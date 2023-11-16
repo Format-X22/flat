@@ -4,13 +4,17 @@ import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
 
 export class TriangleDetect extends AbstractDetect {
-    protected profitMul = 1.4;
     protected enterFib = 1;
     protected takeFib = 1.75;
     protected stopFib = 0.5;
 
     protected waitDays = 4;
     protected minSegmentSize = 2;
+
+    constructor(name: string, isNotInverted = true, segmentService: SegmentService, detectorService: DetectorService) {
+        super(name, isNotInverted, segmentService, detectorService);
+        this.init();
+    }
 
     check(): boolean {
         const [down0, up1, down1, up2, down2] = this.getWaves(5, false);

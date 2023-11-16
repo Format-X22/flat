@@ -7,6 +7,9 @@ import { Duration } from 'luxon';
 import { DetectorService } from '../detector.service';
 import { Wave } from '../../wave/wave.util';
 
+const STOP_OFFSET = 1.5;
+const COMM_OFFSET = 0.25;
+
 export abstract class AbstractDetect {
     public order: TOrder = {
         isActive: false,
@@ -23,15 +26,15 @@ export abstract class AbstractDetect {
     protected isInPosition: boolean = false;
 
     protected minStopOffsetSize = 1;
-    private zeroFailMul = 0.95;
-    private failMul = 0.66;
+    private zeroFailMul;
+    private failMul;
+    private profitMul;
 
     protected hmaType: EHmaType = EHmaType.HMA;
-    protected abstract waitDays;
-    protected abstract profitMul;
-    protected abstract enterFib;
-    protected abstract takeFib;
-    protected abstract stopFib;
+    protected readonly waitDays;
+    protected readonly enterFib;
+    protected readonly takeFib;
+    protected readonly stopFib;
 
     protected constructor(
         protected name: string,
@@ -40,6 +43,21 @@ export abstract class AbstractDetect {
         protected detectorService: DetectorService,
     ) {
         this.logger = new Logger(name);
+    }
+
+    init(): void {
+        const risk = this.detectorService.getRisk();
+
+        this.failMul = (100 - risk) / 100;
+        this.zeroFailMul = (100 - (risk / STOP_OFFSET) * COMM_OFFSET) / 100;
+
+        const angle = risk / (STOP_OFFSET + COMM_OFFSET);
+        const riskOffset = this.enterFib - this.stopFib;
+        const rewardOffset = this.takeFib - this.enterFib;
+        const riskReward = rewardOffset / riskOffset;
+        const riskRewardFact = riskReward * STOP_OFFSET - COMM_OFFSET * 2;
+
+        this.profitMul = 1 + (angle * riskRewardFact) / 100;
     }
 
     abstract check(): boolean;

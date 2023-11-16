@@ -5,11 +5,12 @@ import { Repository } from 'typeorm';
 import { SegmentService } from '../segment/segment.service';
 import { DetectorService } from '../detector/detector.service';
 import { TActualOrder } from '../detector/detector.dto';
-import { DateTime } from 'luxon';
+import { startOfYear } from '../../utils/time.util';
+import { TCalcArgs } from './calculator.dto';
 
 @Injectable()
 export class CalculatorService {
-    private from: number = DateTime.fromObject({ year: 2018, month: 1, day: 1 }).toMillis();
+    private from: number = startOfYear(2018);
     private to: number = Number.MAX_SAFE_INTEGER;
 
     constructor(
@@ -18,7 +19,7 @@ export class CalculatorService {
         private readonly detectorService: DetectorService,
     ) {}
 
-    async calc(isSilent = false, from?: number, to?: number): Promise<TActualOrder> {
+    async calc({ risk, isSilent, from, to }: TCalcArgs): Promise<TActualOrder> {
         if (typeof from === 'number') {
             this.from = from;
         }
@@ -36,7 +37,7 @@ export class CalculatorService {
                 continue;
             }
 
-            this.detectorService.detect(isSilent);
+            this.detectorService.detect(isSilent, risk);
         }
 
         if (!isSilent) {
