@@ -506,6 +506,10 @@ export abstract class AbstractDetect {
     }
 
     private syncRisk(): void {
+        if (this.profitMul) {
+            return;
+        }
+
         const risk = this.detectorService.getRisk();
 
         this.failMul = (100 - risk) / 100;
@@ -518,5 +522,7 @@ export abstract class AbstractDetect {
         const riskRewardFact = riskReward * STOP_OFFSET - COMM_OFFSET * 2;
 
         this.profitMul = 1 + (angle * riskRewardFact) / 100;
+
+        this.logger.verbose(`Reward ${((this.profitMul - 1) * 100).toFixed()}%`);
     }
 }
