@@ -45,24 +45,11 @@ export abstract class AbstractDetect {
         this.logger = new Logger(name);
     }
 
-    init(): void {
-        const risk = this.detectorService.getRisk();
-
-        this.failMul = (100 - risk) / 100;
-        this.zeroFailMul = (100 - (risk / STOP_OFFSET) * COMM_OFFSET) / 100;
-
-        const angle = risk / (STOP_OFFSET + COMM_OFFSET);
-        const riskOffset = this.enterFib - this.stopFib;
-        const rewardOffset = this.takeFib - this.enterFib;
-        const riskReward = rewardOffset / riskOffset;
-        const riskRewardFact = riskReward * STOP_OFFSET - COMM_OFFSET * 2;
-
-        this.profitMul = 1 + (angle * riskRewardFact) / 100;
-    }
-
     abstract check(): boolean;
 
     handleOrder(): void {
+        this.syncRisk();
+
         const candle = this.getCandle();
 
         if (!this.order.isActive) {
@@ -516,5 +503,20 @@ export abstract class AbstractDetect {
 
     protected debugHere(dateString: string, isNotInverted: boolean): boolean {
         return this.getPrettyDate().startsWith(dateString) && this.isNotInverted === isNotInverted;
+    }
+
+    private syncRisk(): void {
+        const risk = this.detectorService.getRisk();
+
+        this.failMul = (100 - risk) / 100;
+        this.zeroFailMul = (100 - (risk / STOP_OFFSET) * COMM_OFFSET) / 100;
+
+        const angle = risk / (STOP_OFFSET + COMM_OFFSET);
+        const riskOffset = this.enterFib - this.stopFib;
+        const rewardOffset = this.takeFib - this.enterFib;
+        const riskReward = rewardOffset / riskOffset;
+        const riskRewardFact = riskReward * STOP_OFFSET - COMM_OFFSET * 2;
+
+        this.profitMul = 1 + (angle * riskRewardFact) / 100;
     }
 }

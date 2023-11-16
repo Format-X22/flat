@@ -14,11 +14,6 @@ export class ZigzagDetect extends AbstractDetect {
     protected waitDays = 4;
     protected minSegmentSize = 2;
 
-    constructor(name: string, isNotInverted = true, segmentService: SegmentService, detectorService: DetectorService) {
-        super(name, isNotInverted, segmentService, detectorService);
-        this.init();
-    }
-
     check(): boolean {
         const [down0, up1, down1, up2, down2] = this.getWaves(5, false);
 

@@ -12,11 +12,6 @@ export class BreakDetect extends AbstractDetect {
 
     protected waitDays = 4;
 
-    constructor(name: string, isNotInverted = true, segmentService: SegmentService, detectorService: DetectorService) {
-        super(name, isNotInverted, segmentService, detectorService);
-        this.init();
-    }
-
     check(): boolean {
         const [down0, up1, down1, up2] = this.getWaves(4, false);
 

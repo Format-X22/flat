@@ -11,11 +11,6 @@ export class RestartDetect extends AbstractDetect {
     protected minSegmentSize = 2;
     protected waitDays = 2;
 
-    constructor(name: string, isNotInverted = true, segmentService: SegmentService, detectorService: DetectorService) {
-        super(name, isNotInverted, segmentService, detectorService);
-        this.init();
-    }
-
     check(): boolean {
         const [down0, up1, down1, up2] = this.getWaves(4, false);
 
