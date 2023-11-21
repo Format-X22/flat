@@ -20,6 +20,7 @@ export class TriangleDetect extends AbstractDetect {
 
         const notOverflow = down0.maxLt(up1.max);
         const triangleOffset = this.getFib(up1.max, down2.min, 0.5, true);
+        const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (
             notOverflow &&
@@ -28,7 +29,8 @@ export class TriangleDetect extends AbstractDetect {
             up1.maxLt(up2.max) &&
             down1.minLt(triangleOffset) &&
             down1.sizeLeft >= this.minSegmentSize &&
-            down1.sizeRight >= this.minSegmentSize
+            down1.sizeRight >= this.minSegmentSize &&
+            highBeforeLow
         ) {
             return this.markDetection();
         } else {

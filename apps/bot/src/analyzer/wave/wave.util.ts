@@ -59,6 +59,22 @@ export class Wave implements TSegment {
         }
     }
 
+    get minCandle(): CandleModel {
+        if (this.isNotInverted) {
+            return this.candles.reduce((prev, cur) => (prev.low < cur.low ? prev : cur));
+        } else {
+            return this.candles.reduce((prev, cur) => (prev.high > cur.high ? prev : cur));
+        }
+    }
+
+    get maxCandle(): CandleModel {
+        if (this.isNotInverted) {
+            return this.candles.reduce((prev, cur) => (prev.high > cur.high ? prev : cur));
+        } else {
+            return this.candles.reduce((prev, cur) => (prev.low < cur.low ? prev : cur));
+        }
+    }
+
     maxGt(value: number): boolean {
         if (this.isNotInverted) {
             return this.maxOriginal > value;

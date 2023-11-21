@@ -25,6 +25,7 @@ export class DoubleDetect extends AbstractDetect {
         const candleInHalfDownSecond = down0.candles.some((candle) =>
             this.lt(this.candleMax(candle), pennantBodyOffsetSecond),
         );
+        const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (
             notOverflow &&
@@ -34,7 +35,8 @@ export class DoubleDetect extends AbstractDetect {
             candleInHalfDownSecond &&
             up1.maxGt(up2.max) &&
             down0.minGt(down1.min) &&
-            down0.minLt(up2.max)
+            down0.minLt(up2.max) &&
+            highBeforeLow
         ) {
             if (this.isCurrentSegmentDown() || down0.sizeRight < this.maxSecondSegmentSize) {
                 return this.markDetection();

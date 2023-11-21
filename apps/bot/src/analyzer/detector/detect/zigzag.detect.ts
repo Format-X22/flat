@@ -32,6 +32,7 @@ export class ZigzagDetect extends AbstractDetect {
         const zigzagMinMove = this.getFib(up1.max, down0.min, 0.25, true);
         const notOverflow = this.lt(this.candleMax(this.getCandle()), zigzagEnter);
         const anyCandleUnderOffset = down0.candles.some((candle) => this.lt(this.candleMax(candle), zigzagOffset));
+        const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (
             down0.minLt(down1.min) &&
@@ -41,7 +42,8 @@ export class ZigzagDetect extends AbstractDetect {
             anyCandleUnderOffset &&
             up2.sizeLeft >= this.minSegmentSize &&
             up2.sizeRight >= this.minSegmentSize &&
-            down0.size < (down1.size + down2.size) / 2
+            down0.size < (down1.size + down2.size) / 2 &&
+            highBeforeLow
         ) {
             if (notOverflow) {
                 return this.markDetection();

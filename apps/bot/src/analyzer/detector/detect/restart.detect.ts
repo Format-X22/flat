@@ -22,6 +22,7 @@ export class RestartDetect extends AbstractDetect {
         const flagLikeLevel = this.getFib(up1.max, down1.min, 0.5, true);
         const minFallbackLever = this.getFib(up1.max, down0.min, 0.62, true);
         const candlesFallbackOk = down0.candles.some((candle) => this.lt(this.candleMax(candle), minFallbackLever));
+        const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (
             notOverflow &&
@@ -31,7 +32,8 @@ export class RestartDetect extends AbstractDetect {
             up1.maxLt(up2.max) &&
             down0.minGt(down1.min) &&
             up2.maxGt(up1.max) &&
-            candlesFallbackOk
+            candlesFallbackOk &&
+            highBeforeLow
         ) {
             return this.markDetection();
         } else {

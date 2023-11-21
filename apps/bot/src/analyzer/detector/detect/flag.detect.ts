@@ -23,13 +23,15 @@ export class FlagDetect extends AbstractDetect {
         const flagBodyOffset = this.getFib(up1.max, down0.min, 0.5, true);
         const notOverflow = up1.maxGte(down0.max);
         const candleNotInHalfDown = down0.candles.every((candle) => this.gt(this.candleMax(candle), flagBodyOffset));
+        const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (
             notOverflow &&
             down0.sizeLeft >= this.minSegmentSize &&
             down0.minGt(trendOffset) &&
             up2.maxLt(down0.min) &&
-            candleNotInHalfDown
+            candleNotInHalfDown &&
+            highBeforeLow
         ) {
             if (this.isCurrentSegmentDown() || down0.sizeRight < this.maxSecondSegmentSize) {
                 return this.markDetection();
