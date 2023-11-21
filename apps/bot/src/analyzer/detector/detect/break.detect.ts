@@ -6,11 +6,12 @@ import { Wave } from '../../wave/wave.util';
 export class BreakDetect extends AbstractDetect {
     private lastDetectedAndOverflowWave: Wave;
 
-    protected enterFib = 0.85;
+    protected enterFib = 0.62;
     protected takeFib = 2;
-    protected stopFib = 0.62;
+    protected stopFib = 0.33;
+    protected minSegmentSize = 2;
 
-    protected waitDays = 4;
+    protected waitDays = 3;
 
     check(): boolean {
         const [down0, up1, down1, up2] = this.getWaves(4, false);
@@ -37,6 +38,7 @@ export class BreakDetect extends AbstractDetect {
             up1.maxLt(up2.max) &&
             down1.minGt(lastWaveOffset) &&
             anyCandleUnderOffset &&
+            up1.sizeLeft >= this.minSegmentSize &&
             highBeforeLow
         ) {
             if (notOverflow) {

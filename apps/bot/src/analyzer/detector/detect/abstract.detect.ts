@@ -105,7 +105,9 @@ export abstract class AbstractDetect {
                         inPositionAtNow = true;
                         this.enterPosition(this.waitDays);
                     }
+                }
 
+                if (inPosition) {
                     if (!inPositionAtNow && this.lt(this.candleMin(innerCandle), this.order.stop)) {
                         this.addFailToCapital();
                         this.exitPosition();
