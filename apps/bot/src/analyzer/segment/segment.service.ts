@@ -11,6 +11,7 @@ export class SegmentService {
     private readonly bigSegments: SegmentStorage;
 
     candles: Array<CandleModel> = [];
+    innerCandles: Array<Array<CandleModel>> = [];
 
     constructor() {
         this.microSegments = new SegmentStorage(this.candles, EHmaType.MICRO_HMA);
@@ -19,8 +20,9 @@ export class SegmentService {
         this.bigSegments = new SegmentStorage(this.candles, EHmaType.BIG_HMA);
     }
 
-    addCandle(candle: CandleModel): void {
+    addCandle(candle: CandleModel, innerCandles: Array<CandleModel>): void {
         this.candles.push(candle);
+        this.innerCandles.push(innerCandles);
 
         this.microSegments.addCandle(candle);
         this.segments.addCandle(candle);
@@ -30,6 +32,10 @@ export class SegmentService {
 
     getCurrentCandle(): CandleModel {
         return this.candles[this.candles.length - 1];
+    }
+
+    getCurrentInnerCandles(): Array<CandleModel> {
+        return this.innerCandles[this.innerCandles.length - 1];
     }
 
     getPrevSegment(index: number, type: EHmaType): TSegment {

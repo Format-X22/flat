@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CandleModel } from '../../data/candle.model';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { SegmentService } from '../segment/segment.service';
 import { DetectorService } from '../detector/detector.service';
 import { TActualOrder } from '../detector/detector.dto';
-import { startOfYear } from '../../utils/time.util';
+import { days, startOfYear } from '../../utils/time.util';
 import { TCalcArgs } from './calculator.dto';
 
 @Injectable()
@@ -28,10 +28,12 @@ export class CalculatorService {
             this.to = to;
         }
 
-        const candles = await this.getCandles('1d');
+        const candles = await this.getCandles();
 
         for (const candle of candles) {
-            this.segmentService.addCandle(candle);
+            const innerCandles = await this.getInnerCandles(candle.timestamp, candle.timestamp + days(1) - 1);
+
+            this.segmentService.addCandle(candle, innerCandles);
 
             if (!this.isInTestRange(candle)) {
                 continue;
@@ -48,13 +50,14 @@ export class CalculatorService {
         return this.detectorService.getOrders();
     }
 
-    private async getCandles(size: string): Promise<Array<CandleModel>> {
-        const candles = await this.candleRepo.find({ where: { size }, order: { timestamp: 'ASC' } });
+    private async getCandles(): Promise<Array<CandleModel>> {
+        return this.candleRepo.find({ where: { size: '1d' }, order: { timestamp: 'ASC' } });
+    }
 
-        return JSON.parse(JSON.stringify(candles)).map((candle) => {
-            candle.timestamp = +candle.timestamp;
-
-            return candle;
+    private async getInnerCandles(from: number, to: number): Promise<Array<CandleModel>> {
+        return this.candleRepo.find({
+            where: { size: '1h', timestamp: Between(from, to) },
+            order: { timestamp: 'ASC' },
         });
     }
 

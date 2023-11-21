@@ -12,6 +12,7 @@ export class CandleModel {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Index()
     @Column('integer')
     timestamp: number;
 

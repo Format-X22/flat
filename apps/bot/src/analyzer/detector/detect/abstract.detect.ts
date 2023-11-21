@@ -56,45 +56,67 @@ export abstract class AbstractDetect {
             return;
         }
 
+        const innerCandles = this.getInnerCandles();
+
         if (this.isInPosition) {
-            if (this.constLte(this.order.toZeroDate, candle.timestamp)) {
+            if (this.order.toZeroDate <= candle.timestamp) {
                 const enter = this.order.enter;
 
-                if (
-                    (this.lte(candle.open, enter) && this.gt(this.candleMax(candle), enter)) ||
-                    (this.gt(candle.open, enter) && this.lt(this.candleMin(candle), enter))
-                ) {
-                    this.addZeroFailToCapital();
-                    this.exitPosition();
-                    this.printZeroFailTrade();
+                for (const innerCandle of innerCandles) {
+                    if (
+                        (this.lte(innerCandle.open, enter) && this.gt(this.candleMax(innerCandle), enter)) ||
+                        (this.gt(innerCandle.open, enter) && this.lt(this.candleMin(innerCandle), enter))
+                    ) {
+                        this.addZeroFailToCapital();
+                        this.exitPosition();
+                        this.printZeroFailTrade();
+                        break;
+                    }
                 }
             }
 
-            if (this.order.isActive && this.gt(this.candleMax(candle), this.order.take)) {
-                this.addProfitToCapital();
-                this.exitPosition();
-                this.printProfitTrade();
-            }
+            if (this.order.isActive) {
+                for (const innerCandle of innerCandles) {
+                    if (this.lte(this.candleMin(innerCandle), this.order.stop)) {
+                        this.addFailToCapital();
+                        this.exitPosition();
+                        this.printFailTrade();
+                        break;
+                    }
 
-            if (this.order.isActive && this.lte(this.candleMin(candle), this.order.stop)) {
-                this.addFailToCapital();
-                this.exitPosition();
-                this.printFailTrade();
+                    if (this.gt(this.candleMax(innerCandle), this.order.take)) {
+                        this.addProfitToCapital();
+                        this.exitPosition();
+                        this.printProfitTrade();
+                        break;
+                    }
+                }
             }
         } else {
-            if (this.gt(this.candleMax(candle), this.order.take)) {
-                this.addProfitToCapital();
-                this.enterPosition(0);
-                this.exitPosition();
+            let inPosition = false;
+            let inPositionAtNow = false;
 
-                this.printProfitTrade();
-            } else if (this.gt(this.candleMax(candle), this.order.enter)) {
-                this.enterPosition(this.waitDays);
+            for (const innerCandle of innerCandles) {
+                inPositionAtNow = false;
 
-                if (this.lt(this.getCandle().close, this.order.stop)) {
-                    this.addFailToCapital();
-                    this.exitPosition();
-                    this.printFailTrade();
+                if (this.gt(this.candleMax(innerCandle), this.order.enter)) {
+                    if (!inPosition) {
+                        inPosition = true;
+                        inPositionAtNow = true;
+                        this.enterPosition(this.waitDays);
+                    }
+
+                    if (!inPositionAtNow && this.lt(this.candleMin(innerCandle), this.order.stop)) {
+                        this.addFailToCapital();
+                        this.exitPosition();
+                        this.printFailTrade();
+                        break;
+                    } else if (this.gt(this.candleMax(innerCandle), this.order.take)) {
+                        this.addProfitToCapital();
+                        this.exitPosition();
+                        this.printProfitTrade();
+                        break;
+                    }
                 }
             }
         }
@@ -191,6 +213,10 @@ export abstract class AbstractDetect {
 
     protected getCandle(): CandleModel {
         return this.segmentService.getCurrentCandle();
+    }
+
+    protected getInnerCandles(): Array<CandleModel> {
+        return this.segmentService.getCurrentInnerCandles();
     }
 
     protected getPrettyDate(): string {
