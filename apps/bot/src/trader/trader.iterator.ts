@@ -7,7 +7,8 @@ import { BotLogModel, ELogType } from '../data/bot-log.model';
 import { CalculatorService } from '../analyzer/calculator/calculator.service';
 import { EDirection, TOrder } from '../data/order.type';
 import { TActualOrder } from '../analyzer/detector/detector.dto';
-import { seconds } from '../utils/time.util';
+import { days, seconds } from '../utils/time.util';
+import { DateTime } from 'luxon';
 
 const ITERATION_TIMEOUT = seconds(10);
 const DB_RETRY_TIMEOUT = seconds(30);
@@ -164,8 +165,20 @@ export class TraderIterator {
         }
 
         if (await this.executor.hasPosition()) {
-            // TODO Throw if position without analytics orders
-            // TODO -
+            const { up, down } = await this.calculatorService.calc({ isSilent: true });
+            const isUpPosition = await this.executor.isUpPosition();
+
+            if (up && down) {
+                if (isUpPosition) {
+                    await this.executor.cancelOrder(this.actualToExecutor(down, EDirection.DOWN));
+                } else {
+                    await this.executor.cancelOrder(this.actualToExecutor(up, EDirection.UP));
+                }
+            } else if ((up && !isUpPosition) || (down && isUpPosition)) {
+                await this.logError('Has position in wrong side');
+                this.bot.state = EState.ERROR_EMERGENCY_STOP;
+                return;
+            }
         }
 
         this.bot.state = EState.WORKING_CHECK_BALANCE_CHANGE;
@@ -177,7 +190,7 @@ export class TraderIterator {
             return;
         }
 
-        if (await this.executor.hasNotPosition()) {
+        if (!(await this.executor.hasPosition())) {
             if (typeof this.bot.lastBalance !== 'number') {
                 this.bot.lastBalance = await this.executor.getBalance();
             }
@@ -252,9 +265,10 @@ export class TraderIterator {
     }
 
     private isTimeToCheckAnalytics(): boolean {
-        // lastHandledCandle
-        // TODO -
-        return;
+        const lastHandleCandle = DateTime.fromMillis(this.bot.lastHandledCandle);
+        const nextHandleCandle = lastHandleCandle.plus(days(1));
+
+        return DateTime.now() >= nextHandleCandle;
     }
 
     private async emergencyDrop(message: string): Promise<void> {

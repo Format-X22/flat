@@ -17,9 +17,6 @@ export class TraderService {
         private readonly calculatorService: CalculatorService,
     ) {}
 
-    // TODO -
-    // Надо бы в статус по ботам выводить ещё ордера и позиции
-
     async start(): Promise<void> {
         const bots = await this.botRepo.find();
 

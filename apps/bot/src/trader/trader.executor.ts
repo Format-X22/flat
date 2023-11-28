@@ -18,11 +18,6 @@ export class TraderExecutor {
         // TODO -
     }
 
-    async getOrders(): Promise<Array<TOrder>> {
-        // TODO -
-        return [];
-    }
-
     async placeOrder(order: TOrder): Promise<void> {
         // TODO -
     }
@@ -40,11 +35,7 @@ export class TraderExecutor {
         return;
     }
 
-    async hasNotPosition(): Promise<boolean> {
-        return !(await this.hasPosition());
-    }
-
-    async hasOrders(): Promise<boolean> {
+    async isUpPosition(): Promise<boolean> {
         // TODO -
         return;
     }
