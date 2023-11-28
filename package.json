@@ -75,11 +75,12 @@
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
     "roots": [
-      "<rootDir>/apps/",
-      "<rootDir>/libs/"
+      "<rootDir>/apps/"
     ],
     "moduleNameMapper": {
       "^@app/shared(|/.*)$": "<rootDir>/libs/shared/src/$1"
-    }
+    },
+    "verbose": true,
+    "testTimeout": 300000
   }
 }

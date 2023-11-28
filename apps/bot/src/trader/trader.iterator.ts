@@ -10,8 +10,8 @@ import { TActualOrder } from '../analyzer/detector/detector.dto';
 import { days, seconds } from '../utils/time.util';
 import { DateTime } from 'luxon';
 
-const ITERATION_TIMEOUT = seconds(10);
-const DB_RETRY_TIMEOUT = seconds(30);
+export const ITERATION_TIMEOUT = seconds(5);
+export const DB_RETRY_TIMEOUT = seconds(10);
 
 export class TraderIterator {
     private readonly logger: Logger = new Logger(TraderIterator.name);
@@ -34,7 +34,10 @@ export class TraderIterator {
                 try {
                     await this.emergencyDrop('on iteration');
                 } catch (error) {
-                    await this.logError('FATAL on try emergency stop on iteration error, stopping bot loop now');
+                    await this.logError(
+                        'FATAL on try emergency stop on iteration error, stopping bot loop now',
+                        error?.stack,
+                    );
                     break;
                 }
             }
@@ -45,9 +48,10 @@ export class TraderIterator {
                 if (this.bot.state === EState.ERROR_EMERGENCY_STOP) {
                     this.logger.error(
                         'CRITICAL on save bot and emergency stop is activated, then go without db sync for now',
+                        error?.stack,
                     );
                 } else {
-                    this.logger.error('CRITICAL on save bot, try retry after timeout');
+                    this.logger.error('CRITICAL on save bot, try retry after timeout', error?.stack);
                     await sleep(DB_RETRY_TIMEOUT);
 
                     try {
@@ -144,6 +148,7 @@ export class TraderIterator {
 
         if (this.isTimeToCheckAnalytics()) {
             this.bot.state = EState.CANDLE_CHECK_ANALYTICS;
+            return;
         }
 
         this.bot.state = EState.WORKING_CHECK_POSITION_COLLISION;
@@ -293,8 +298,8 @@ export class TraderIterator {
         await this.tryDbLog(ELogType.VERBOSE, message);
     }
 
-    private async logError(message: string): Promise<void> {
-        this.logger.error(message);
+    private async logError(message: string, errorStack?: string): Promise<void> {
+        this.logger.error(message, errorStack);
         await this.tryDbLog(ELogType.ERROR, message);
     }
 
