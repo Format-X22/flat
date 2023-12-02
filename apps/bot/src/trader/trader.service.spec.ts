@@ -7,7 +7,7 @@ import { AnalyzerModule } from '../analyzer/analyzer.module';
 import { CandleModel } from '../data/candle.model';
 import { DataSource } from 'typeorm';
 import { sleep } from '../utils/sleep.util';
-import { ERROR_EMERGENCY_TIMEOUT, ITERATION_TIMEOUT } from './trader.iterator';
+import { DB_RETRY_TIMEOUT, ERROR_EMERGENCY_TIMEOUT, ITERATION_TIMEOUT } from './trader.iterator';
 
 describe('TraderService', () => {
     let service: TraderService;
@@ -135,11 +135,53 @@ describe('TraderService', () => {
     });
 
     it('should correct throw on sync', async () => {
-        //
+        const bot = initBot();
+        const logs: Array<string> = [];
+
+        bot.state = EState.INITIAL_INITIAL;
+
+        await service.start();
+
+        jest.spyOn(service.iterators[0], 'syncBot' as any).mockImplementation(() => {
+            throw 'TEST';
+        });
+        jest.spyOn(service.iterators[0]['logger'], 'error').mockImplementation((value: string) => {
+            logs.push(value);
+        });
+
+        expect(bot.state).toBe(EState.INITIAL_INITIAL);
+        expect(logs.length).toBe(0);
+        await sleep();
+        expect(logs.length).toBe(1);
+        await sleep(DB_RETRY_TIMEOUT + 10);
+        expect(logs.length).toBe(2);
+        expect(logs[1].indexOf('go without db sync for now')).toBeGreaterThan(-1);
+        expect(service.iterators[0].isRunning).toBe(true);
+        await sleep(ITERATION_TIMEOUT * 2 + 50);
+        expect(service.iterators[0].isRunning).toBe(true);
     });
 
     it('should correct throw on sync on emergency stop', async () => {
-        //
+        const bot = initBot();
+        const logs: Array<string> = [];
+
+        await service.start();
+
+        jest.spyOn(service.iterators[0], 'syncBot' as any).mockImplementation(() => {
+            bot.state = EState.ERROR_EMERGENCY_STOP;
+            throw 'TEST';
+        });
+        jest.spyOn(service.iterators[0]['logger'], 'error').mockImplementation((value: string) => {
+            logs.push(value);
+        });
+
+        expect(logs.length).toBe(0);
+        await sleep();
+        expect(logs.length).toBe(1);
+        expect(logs[0].indexOf('go without db sync for now')).toBeGreaterThan(-1);
+        expect(service.iterators[0].isRunning).toBe(true);
+        await sleep(ITERATION_TIMEOUT * 2 + 50);
+        expect(service.iterators[0].isRunning).toBe(true);
     });
 
     it('should deactivate on INITIAL_INITIAL state', async () => {
@@ -220,27 +262,79 @@ describe('TraderService', () => {
         expect(bot.state).toBe(EState.INITIAL_DEACTIVATED);
     });
 
-    it('should reactivate on deactivated by error', async () => {
-        //
+    it('should reactivate on deactivated by deactivate', async () => {
+        const bot = initBot();
+
+        bot.isActive = false;
+        bot.state = EState.INITIAL_DEACTIVATED;
+
+        await service.start();
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.INITIAL_DEACTIVATED);
+
+        bot.isActive = true;
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.INITIAL_INITIAL);
     });
 
     it('should reactivate on deactivated by error', async () => {
-        //
+        const bot = initBot();
+
+        bot.isActive = false;
+        bot.state = EState.ERROR_ERROR;
+
+        await service.start();
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.ERROR_ERROR);
+
+        bot.isActive = true;
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.INITIAL_INITIAL);
     });
 
     it('should normal go', async () => {
-        //
+        const bot = initBot();
+
+        bot.isActive = true;
+        bot.state = EState.INITIAL_INITIAL;
+
+        await service.start();
+
+        jest.spyOn(service.iterators[0], 'isTimeToCheckAnalytics' as any).mockReturnValue(false);
+        jest.spyOn(service.iterators[0]['calculatorService'], 'calc').mockResolvedValue({ up: null, down: null });
+
+        const executor = service.iterators[0]['executor'];
+
+        jest.spyOn(executor, 'getUpOrder').mockImplementation(async () => void 0);
+        jest.spyOn(executor, 'getDownOrder').mockImplementation(async () => void 0);
+        jest.spyOn(executor, 'updateOrder').mockImplementation(async () => void 0);
+        jest.spyOn(executor, 'placeOrder').mockImplementation(async () => void 0);
+        jest.spyOn(executor, 'cancelOrder').mockImplementation(async () => void 0);
+        jest.spyOn(executor, 'cancelAllOrders').mockImplementation(async () => void 0);
+        jest.spyOn(executor, 'hasPosition').mockImplementation(async () => false);
+        jest.spyOn(executor, 'isUpPosition').mockImplementation(async () => false);
+        jest.spyOn(executor, 'closePosition').mockImplementation(async () => void 0);
+        jest.spyOn(executor, 'getBalance').mockImplementation(async () => bot.lastBalance);
+
+        await sleep();
+        expect(bot.state).toBe(EState.WORKING_WAITING);
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.WORKING_CHECK_POSITION_COLLISION);
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.WORKING_CHECK_BALANCE_CHANGE);
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.WORKING_WAITING);
     });
 
     it('should go inside analysis', async () => {
-        //
+        // TODO -
     });
 
     it('should handle position collision', async () => {
-        //
+        // TODO -
     });
 
     it('should handle balance change', async () => {
-        //
+        // TODO -
     });
 });

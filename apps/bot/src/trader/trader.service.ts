@@ -35,6 +35,7 @@ export class TraderService {
 
             iterator.run().catch((error) => {
                 this.logger.error(`Fatal on run iterator, invalid code? - ${error}`);
+                iterator.isRunning = false;
             });
         }
     }
