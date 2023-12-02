@@ -11,6 +11,8 @@ import { CalculatorService } from '../analyzer/calculator/calculator.service';
 export class TraderService {
     private readonly logger: Logger = new Logger(TraderService.name);
 
+    readonly iterators: Array<TraderIterator> = [];
+
     constructor(
         @InjectRepository(BotModel) private readonly botRepo: Repository<BotModel>,
         @InjectRepository(BotLogModel) private readonly botLogRepo: Repository<BotLogModel>,
@@ -21,7 +23,7 @@ export class TraderService {
         const bots = await this.botRepo.find();
 
         for (const bot of bots) {
-            const stater = new TraderIterator(
+            const iterator = new TraderIterator(
                 bot,
                 this.botRepo,
                 this.botLogRepo,
@@ -29,8 +31,10 @@ export class TraderService {
                 this.calculatorService,
             );
 
-            stater.run().catch((error) => {
-                this.logger.error(`Fatal on run stater, invalid code? - ${error}`);
+            this.iterators.push(iterator);
+
+            iterator.run().catch((error) => {
+                this.logger.error(`Fatal on run iterator, invalid code? - ${error}`);
             });
         }
     }

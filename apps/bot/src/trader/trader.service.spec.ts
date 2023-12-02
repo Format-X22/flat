@@ -7,16 +7,13 @@ import { AnalyzerModule } from '../analyzer/analyzer.module';
 import { CandleModel } from '../data/candle.model';
 import { DataSource } from 'typeorm';
 import { sleep } from '../utils/sleep.util';
-import { ITERATION_TIMEOUT } from './trader.iterator';
+import { ERROR_EMERGENCY_TIMEOUT, ITERATION_TIMEOUT } from './trader.iterator';
 
 describe('TraderService', () => {
     let service: TraderService;
-    let botRepo: TraderService['botRepo'];
-    let botLogRepo: TraderService['botLogRepo'];
-    let bot: BotModel;
 
-    function makeBot(): BotModel {
-        return {
+    function initBot(): BotModel {
+        const bot = {
             id: 0,
             isActive: false,
             stock: EStock.TEST,
@@ -31,6 +28,21 @@ describe('TraderService', () => {
             lastBalance: 1000,
             logs: [],
         };
+
+        const botRepo = service['botRepo'];
+        const botLogRepo = service['botLogRepo'];
+
+        jest.spyOn(botRepo, 'find').mockImplementation(async () => [bot]);
+        jest.spyOn(botRepo, 'update').mockImplementation(async (id: any, updates: any): Promise<any> => {
+            for (const [key, value] of Object.entries(updates)) {
+                bot[key] = value;
+            }
+        });
+        jest.spyOn(botRepo, 'findOneBy').mockImplementation(async () => bot);
+        jest.spyOn(botLogRepo, 'create').mockReturnValue(null);
+        jest.spyOn(botLogRepo, 'save').mockResolvedValue(null);
+
+        return bot;
     }
 
     beforeEach(async () => {
@@ -70,20 +82,6 @@ describe('TraderService', () => {
             .compile();
 
         service = module.get<TraderService>(TraderService);
-
-        botRepo = service['botRepo'];
-        botLogRepo = service['botLogRepo'];
-        bot = makeBot();
-
-        jest.spyOn(botRepo, 'find').mockImplementation(async () => [bot]);
-        jest.spyOn(botRepo, 'update').mockImplementation(async (id: any, updates: any): Promise<any> => {
-            for (const [key, value] of Object.entries(updates)) {
-                bot[key] = value;
-            }
-        });
-        jest.spyOn(botRepo, 'findOneBy').mockImplementation(async () => bot);
-        jest.spyOn(botLogRepo, 'create').mockReturnValue(null);
-        jest.spyOn(botLogRepo, 'save').mockResolvedValue(null);
     });
 
     it('should be defined', () => {
@@ -91,10 +89,14 @@ describe('TraderService', () => {
     });
 
     it('should just run with empty bots', async () => {
+        initBot();
+
         await service.start();
     });
 
     it('should start with deactivated bot', async () => {
+        const bot = initBot();
+
         await service.start();
         await sleep(ITERATION_TIMEOUT + 50);
 
@@ -102,11 +104,34 @@ describe('TraderService', () => {
     });
 
     it('should correct throw on error in next', async () => {
-        //
-    });
+        const bot = initBot();
+        const logs = [];
 
-    it('should correct throw on emergency drop', async () => {
-        //
+        await service.start();
+
+        jest.spyOn(service.iterators[0], 'next' as any).mockImplementation(() => {
+            throw 'TEST';
+        });
+        jest.spyOn(service.iterators[0]['logger'], 'error').mockImplementation((value: string) => {
+            logs.push(value);
+        });
+
+        await sleep();
+        expect(bot.state).toBe(EState.ERROR_EMERGENCY_STOP);
+        expect(bot.errorOnState).toBe(EState.INITIAL_INITIAL);
+
+        await sleep(ERROR_EMERGENCY_TIMEOUT + 50);
+        expect(bot.state).toBe(EState.ERROR_EMERGENCY_STOP);
+        expect(bot.errorOnState).toBe(EState.ERROR_EMERGENCY_STOP);
+        expect(service.iterators[0].isRunning).toBe(true);
+
+        await sleep(ERROR_EMERGENCY_TIMEOUT + 50);
+        expect(service.iterators[0].isRunning).toBe(false);
+        expect(logs.length).toBe(3);
+
+        await sleep(ITERATION_TIMEOUT * 2 + 50);
+        expect(service.iterators[0].isRunning).toBe(false);
+        expect(logs.length).toBe(3);
     });
 
     it('should correct throw on sync', async () => {
@@ -117,35 +142,82 @@ describe('TraderService', () => {
         //
     });
 
-    it('should deactivate on all states', async () => {
-        async function checkConstraint(state: EState): Promise<void> {
-            bot = makeBot();
-            bot.state = state;
-            await service.start();
-            await sleep(ITERATION_TIMEOUT + 10);
-            expect(bot.state).toBe(EState.INITIAL_DEACTIVATED);
-        }
+    it('should deactivate on INITIAL_INITIAL state', async () => {
+        const bot = initBot();
 
-        async function checkDoubleSteps(state: EState): Promise<void> {
-            bot = makeBot();
-            bot.state = state;
+        bot.state = EState.INITIAL_INITIAL;
 
-            await service.start();
-            await sleep();
-            expect(bot.state).toBe(EState.WORKING_DEACTIVATE);
-            await sleep(ITERATION_TIMEOUT + 10);
-            expect(bot.state).toBe(EState.INITIAL_DEACTIVATED);
-        }
+        await service.start();
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.INITIAL_DEACTIVATED);
+    });
 
-        await Promise.all([
-            checkConstraint(EState.INITIAL_INITIAL),
-            checkConstraint(EState.INITIAL_DEACTIVATED),
-            checkConstraint(EState.ERROR_ERROR),
-            checkDoubleSteps(EState.WORKING_WAITING),
-            checkDoubleSteps(EState.WORKING_CHECK_POSITION_COLLISION),
-            checkDoubleSteps(EState.WORKING_CHECK_BALANCE_CHANGE),
-            checkDoubleSteps(EState.CANDLE_CHECK_ANALYTICS),
-        ]);
+    it('should deactivate on INITIAL_DEACTIVATED state', async () => {
+        const bot = initBot();
+
+        bot.state = EState.INITIAL_DEACTIVATED;
+
+        await service.start();
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.INITIAL_DEACTIVATED);
+    });
+
+    it('should deactivate on ERROR_ERROR state', async () => {
+        const bot = initBot();
+
+        bot.state = EState.ERROR_ERROR;
+
+        await service.start();
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.ERROR_ERROR);
+    });
+
+    it('should deactivate on WORKING_WAITING state', async () => {
+        const bot = initBot();
+
+        bot.state = EState.WORKING_WAITING;
+
+        await service.start();
+        await sleep();
+        expect(bot.state).toBe(EState.WORKING_DEACTIVATE);
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.INITIAL_DEACTIVATED);
+    });
+
+    it('should deactivate on WORKING_CHECK_POSITION_COLLISION state', async () => {
+        const bot = initBot();
+
+        bot.state = EState.WORKING_CHECK_POSITION_COLLISION;
+
+        await service.start();
+        await sleep();
+        expect(bot.state).toBe(EState.WORKING_DEACTIVATE);
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.INITIAL_DEACTIVATED);
+    });
+
+    it('should deactivate on WORKING_CHECK_BALANCE_CHANGE state', async () => {
+        const bot = initBot();
+
+        bot.state = EState.WORKING_CHECK_BALANCE_CHANGE;
+
+        await service.start();
+        await sleep();
+        expect(bot.state).toBe(EState.WORKING_DEACTIVATE);
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.INITIAL_DEACTIVATED);
+    });
+
+    it('should deactivate on CANDLE_CHECK_ANALYTICS state', async () => {
+        const bot = initBot();
+
+        bot.state = EState.CANDLE_CHECK_ANALYTICS;
+
+        await service.start();
+        await sleep();
+        expect(bot.state).toBe(EState.WORKING_DEACTIVATE);
+        await sleep(ITERATION_TIMEOUT + 10);
+        expect(bot.state).toBe(EState.INITIAL_DEACTIVATED);
     });
 
     it('should reactivate on deactivated by error', async () => {

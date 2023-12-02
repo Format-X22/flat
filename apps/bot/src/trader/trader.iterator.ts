@@ -11,10 +11,13 @@ import { days, seconds } from '../utils/time.util';
 import { DateTime } from 'luxon';
 
 export const ITERATION_TIMEOUT = seconds(5);
+export const ERROR_EMERGENCY_TIMEOUT = seconds(1);
 export const DB_RETRY_TIMEOUT = seconds(10);
 
 export class TraderIterator {
     private readonly logger: Logger = new Logger(TraderIterator.name);
+
+    isRunning: boolean = null;
 
     constructor(
         private bot: BotModel,
@@ -25,20 +28,25 @@ export class TraderIterator {
     ) {}
 
     async run(): Promise<void> {
+        this.isRunning = true;
+
         await this.logVerbose('Started');
 
         while (true) {
+            this.isRunning = true;
+
             try {
                 await this.next();
             } catch (error) {
-                try {
+                if (this.bot.errorOnState !== EState.ERROR_EMERGENCY_STOP) {
                     await this.emergencyDrop('on iteration');
-                } catch (error) {
+                } else {
                     await this.logError(
                         'FATAL on try emergency stop on iteration error, stopping bot loop now',
                         error?.stack,
                     );
-                    break;
+                    this.isRunning = false;
+                    return;
                 }
             }
 
@@ -63,7 +71,7 @@ export class TraderIterator {
             }
 
             if (this.bot.state === EState.ERROR_EMERGENCY_STOP) {
-                await sleep();
+                await sleep(ERROR_EMERGENCY_TIMEOUT);
             } else {
                 await sleep(ITERATION_TIMEOUT);
             }
