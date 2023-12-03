@@ -8,6 +8,7 @@ import { CandleModel } from '../data/candle.model';
 import { DataSource } from 'typeorm';
 import { sleep } from '../utils/sleep.util';
 import { DB_RETRY_TIMEOUT, ERROR_EMERGENCY_TIMEOUT, ITERATION_TIMEOUT } from './trader.iterator';
+import { TraderExecutor } from './trader.executor';
 
 describe('TraderService', () => {
     let service: TraderService;
@@ -19,7 +20,9 @@ describe('TraderService', () => {
             stock: EStock.TEST,
             pair: EPair.TEST,
             risk: 33,
-            apiKey: 'TEST',
+            cold: 33,
+            publicKey: 'TEST',
+            privateKey: 'TEST',
             state: EState.INITIAL_INITIAL,
             errorOnState: null,
             errorMessage: null,
@@ -305,14 +308,13 @@ describe('TraderService', () => {
 
         const executor = service.iterators[0]['executor'];
 
-        jest.spyOn(executor, 'getUpOrder').mockImplementation(async () => void 0);
-        jest.spyOn(executor, 'getDownOrder').mockImplementation(async () => void 0);
+        jest.spyOn(executor, 'hasUpOrder').mockImplementation(async () => void 0);
+        jest.spyOn(executor, 'hasDownOrder').mockImplementation(async () => void 0);
         jest.spyOn(executor, 'updateOrder').mockImplementation(async () => void 0);
         jest.spyOn(executor, 'placeOrder').mockImplementation(async () => void 0);
         jest.spyOn(executor, 'cancelOrder').mockImplementation(async () => void 0);
         jest.spyOn(executor, 'cancelAllOrders').mockImplementation(async () => void 0);
-        jest.spyOn(executor, 'hasPosition').mockImplementation(async () => false);
-        jest.spyOn(executor, 'isUpPosition').mockImplementation(async () => false);
+        jest.spyOn(executor, 'getPosition').mockImplementation(async () => null);
         jest.spyOn(executor, 'closePosition').mockImplementation(async () => void 0);
         jest.spyOn(executor, 'getBalance').mockImplementation(async () => bot.lastBalance);
 

@@ -27,7 +27,7 @@ export class TraderService {
                 bot,
                 this.botRepo,
                 this.botLogRepo,
-                new TraderExecutor(bot.stock, bot.apiKey),
+                new TraderExecutor(bot.stock, bot.publicKey, bot.privateKey),
                 this.calculatorService,
             );
 

@@ -1,17 +1,41 @@
-import { TOrder } from '../data/order.type';
+import { EDirection, TOrder, TPosition } from '../data/order.type';
 import { EStock } from '../data/bot.model';
+import * as ccxt from 'ccxt';
+
+// TODO Call with retry
+// TODO Dechipher keys
 
 export class TraderExecutor {
-    constructor(private readonly stock: EStock, private readonly apiKey: string) {}
+    readonly api: ccxt.bybit | ccxt.binance;
 
-    async getUpOrder(): Promise<TOrder> {
-        // TODO -
-        return;
+    constructor(stock: EStock, publicKey: string, privateKey: string) {
+        switch (stock) {
+            case EStock.BYBIT:
+                this.api = new ccxt.bybit({
+                    apiKey: publicKey,
+                    secret: privateKey,
+                });
+                break;
+            case EStock.BINANCE:
+                this.api = new ccxt.binanceusdm({
+                    apiKey: publicKey,
+                    secret: privateKey,
+                });
+        }
     }
 
-    async getDownOrder(): Promise<TOrder> {
-        // TODO -
-        return;
+    async hasUpOrder(order: TOrder): Promise<boolean> {
+        const rawOrders = await this.api.fetchOrders('BTCUSDT');
+        const upOrders = rawOrders.filter((raw) => raw.side === 'buy' && raw['triggerPrice'] === order.enter);
+
+        return upOrders.length > 0;
+    }
+
+    async hasDownOrder(order: TOrder): Promise<boolean> {
+        const rawOrders = await this.api.fetchOrders('BTCUSDT');
+        const downOrders = rawOrders.filter((raw) => raw.side === 'sell' && raw['triggerPrice'] === order.enter);
+
+        return downOrders.length > 0;
     }
 
     async updateOrder(order: TOrder): Promise<void> {
@@ -30,14 +54,16 @@ export class TraderExecutor {
         // TODO -
     }
 
-    async hasPosition(): Promise<boolean> {
-        // TODO -
-        return;
-    }
+    async getPosition(): Promise<TPosition> {
+        const position = await this.api.fetchPosition('BTCUSDT');
 
-    async isUpPosition(): Promise<boolean> {
-        // TODO -
-        return;
+        if (!position.contracts) {
+            return null;
+        }
+
+        return {
+            direction: position.side === 'long' ? EDirection.UP : EDirection.DOWN,
+        };
     }
 
     async closePosition(): Promise<void> {
@@ -45,7 +71,8 @@ export class TraderExecutor {
     }
 
     async getBalance(): Promise<number> {
-        // TODO -
-        return;
+        const balances = await this.api.fetchBalance();
+
+        return balances.total['USDT'];
     }
 }

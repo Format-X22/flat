@@ -177,9 +177,11 @@ export class TraderIterator {
             return;
         }
 
-        if (await this.executor.hasPosition()) {
+        const position = await this.executor.getPosition();
+
+        if (position) {
             const { up, down } = await this.calculatorService.calc({ isSilent: true });
-            const isUpPosition = await this.executor.isUpPosition();
+            const isUpPosition = position.direction === EDirection.UP;
 
             if (up && down) {
                 if (isUpPosition) {
@@ -203,7 +205,7 @@ export class TraderIterator {
             return;
         }
 
-        if (!(await this.executor.hasPosition())) {
+        if (!(await this.executor.getPosition())) {
             if (typeof this.bot.lastBalance !== 'number') {
                 this.bot.lastBalance = await this.executor.getBalance();
             }
@@ -229,7 +231,7 @@ export class TraderIterator {
         }
 
         const { up, down } = await this.calculatorService.calc({ isSilent: true });
-        const inPosition = await this.executor.hasPosition();
+        const inPosition = await this.executor.getPosition();
 
         if ((up || down) && inPosition) {
             await this.logError('Has position when only orders in analytics');
@@ -237,31 +239,35 @@ export class TraderIterator {
             return;
         }
 
-        const currentUpOrder = await this.executor.getUpOrder();
-        const currentDownOrder = await this.executor.getDownOrder();
+        const hasUpOrder = await this.executor.hasUpOrder(this.actualToExecutor(up, EDirection.UP));
+        const hasDownOrder = await this.executor.hasDownOrder(this.actualToExecutor(up, EDirection.DOWN));
 
-        if (up) {
+        if (up || hasUpOrder) {
             const order = this.actualToExecutor(up, EDirection.UP);
 
-            if (currentUpOrder) {
-                await this.executor.updateOrder(order);
+            if (up) {
+                if (hasUpOrder) {
+                    await this.executor.updateOrder(order);
+                } else {
+                    await this.executor.placeOrder(order);
+                }
             } else {
-                await this.executor.placeOrder(order);
+                await this.executor.cancelOrder(order);
             }
-        } else if (currentUpOrder) {
-            await this.executor.cancelOrder(currentUpOrder);
         }
 
-        if (down) {
+        if (down || hasDownOrder) {
             const order = this.actualToExecutor(down, EDirection.DOWN);
 
-            if (currentDownOrder) {
-                await this.executor.updateOrder(order);
+            if (down) {
+                if (hasDownOrder) {
+                    await this.executor.updateOrder(order);
+                } else {
+                    await this.executor.placeOrder(order);
+                }
             } else {
-                await this.executor.placeOrder(order);
+                await this.executor.cancelOrder(order);
             }
-        } else if (currentDownOrder) {
-            await this.executor.cancelOrder(currentDownOrder);
         }
 
         this.bot.state = EState.WORKING_WAITING;

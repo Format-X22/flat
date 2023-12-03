@@ -41,8 +41,14 @@ export class BotModel {
     @Column()
     risk: number;
 
+    @Column()
+    cold: number;
+
+    @Column()
+    publicKey: string;
+
     @Column({ select: false })
-    apiKey: string;
+    privateKey: string;
 
     @Column()
     state: EState;

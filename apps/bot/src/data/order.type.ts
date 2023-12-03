@@ -11,5 +11,9 @@ export type TOrder = {
     risk: number;
 };
 
+export type TPosition = {
+    direction: EDirection;
+};
+
 export type TStockOrderId = string | number;
 export type TStockPositionId = string | number;
