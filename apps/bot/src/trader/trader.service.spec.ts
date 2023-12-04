@@ -8,6 +8,10 @@ import { CandleModel } from '../data/candle.model';
 import { DataSource } from 'typeorm';
 import { sleep } from '../utils/sleep.util';
 import { DB_RETRY_TIMEOUT, ERROR_EMERGENCY_TIMEOUT, ITERATION_TIMEOUT } from './trader.iterator';
+import { EDirection } from '../data/order.type';
+import { TraderExecutor } from './trader.executor';
+import { CalculatorService } from '../analyzer/calculator/calculator.service';
+import { Logger } from '@nestjs/common';
 
 describe('TraderService', () => {
     let service: TraderService;
@@ -331,8 +335,125 @@ describe('TraderService', () => {
         // TODO -
     });
 
-    it('should handle position collision', async () => {
-        // TODO -
+    describe('handle position collision', () => {
+        const upPosition: any = { direction: EDirection.UP };
+        const downPosition: any = { direction: EDirection.DOWN };
+        const order: any = {};
+        let executor: TraderExecutor;
+        let calculator: CalculatorService;
+        let logger: Logger;
+
+        async function initAndRun() {
+            const bot = initBot();
+
+            bot.isActive = true;
+            bot.state = EState.WORKING_CHECK_POSITION_COLLISION;
+
+            await service.start();
+
+            executor = service.iterators[0]['executor'];
+            calculator = service.iterators[0]['calculatorService'];
+            logger = service.iterators[0]['logger'];
+
+            return bot;
+        }
+
+        it('should handle position collision without orders', async () => {
+            const bot = await initAndRun();
+
+            jest.spyOn(executor, 'getPosition').mockImplementation(async () => ({} as any));
+            jest.spyOn(calculator, 'calc').mockResolvedValue({ up: null, down: null });
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.WORKING_CHECK_BALANCE_CHANGE);
+        });
+
+        it('should with up order and up position', async () => {
+            const bot = await initAndRun();
+
+            jest.spyOn(executor, 'getPosition').mockImplementation(async () => upPosition);
+            jest.spyOn(calculator, 'calc').mockResolvedValue({ up: order, down: null });
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.WORKING_CHECK_BALANCE_CHANGE);
+        });
+
+        it('should with up order and down position', async () => {
+            const bot = await initAndRun();
+            const logs: Array<string> = [];
+
+            jest.spyOn(executor, 'getPosition').mockImplementation(async () => downPosition);
+            jest.spyOn(calculator, 'calc').mockResolvedValue({ up: order, down: null });
+            jest.spyOn(logger, 'error').mockImplementation((value: string) => {
+                logs.push(value);
+            });
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.ERROR_EMERGENCY_STOP);
+            expect(logs.length).toBe(1);
+        });
+
+        it('should with down order and down position', async () => {
+            const bot = await initAndRun();
+
+            jest.spyOn(executor, 'getPosition').mockImplementation(async () => downPosition);
+            jest.spyOn(calculator, 'calc').mockResolvedValue({ up: null, down: order });
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.WORKING_CHECK_BALANCE_CHANGE);
+        });
+
+        it('should with down order and up position', async () => {
+            const bot = await initAndRun();
+            const logs: Array<string> = [];
+
+            jest.spyOn(executor, 'getPosition').mockImplementation(async () => upPosition);
+            jest.spyOn(calculator, 'calc').mockResolvedValue({ up: null, down: order });
+            jest.spyOn(logger, 'error').mockImplementation((value: string) => {
+                logs.push(value);
+            });
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.ERROR_EMERGENCY_STOP);
+            expect(logs.length).toBe(1);
+        });
+
+        it('should with bidirectional orders and up position', async () => {
+            const bot = await initAndRun();
+            let isCanceled = false;
+
+            jest.spyOn(executor, 'getPosition').mockImplementation(async () => upPosition);
+            jest.spyOn(calculator, 'calc').mockResolvedValue({ up: order, down: order });
+            jest.spyOn(executor, 'cancelOrder').mockImplementation(async () => {
+                isCanceled = true;
+            });
+
+            await sleep();
+
+            expect(isCanceled).toBe(true);
+            expect(bot.state).toBe(EState.WORKING_CHECK_BALANCE_CHANGE);
+        });
+
+        it('should with bidirectional orders and down position', async () => {
+            const bot = await initAndRun();
+            let isCanceled = false;
+
+            jest.spyOn(executor, 'getPosition').mockImplementation(async () => downPosition);
+            jest.spyOn(calculator, 'calc').mockResolvedValue({ up: order, down: order });
+            jest.spyOn(executor, 'cancelOrder').mockImplementation(async () => {
+                isCanceled = true;
+            });
+
+            await sleep();
+
+            expect(isCanceled).toBe(true);
+            expect(bot.state).toBe(EState.WORKING_CHECK_BALANCE_CHANGE);
+        });
     });
 
     it('should handle balance change', async () => {
