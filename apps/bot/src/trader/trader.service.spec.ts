@@ -8,7 +8,6 @@ import { CandleModel } from '../data/candle.model';
 import { DataSource } from 'typeorm';
 import { sleep } from '../utils/sleep.util';
 import { DB_RETRY_TIMEOUT, ERROR_EMERGENCY_TIMEOUT, ITERATION_TIMEOUT } from './trader.iterator';
-import { TraderExecutor } from './trader.executor';
 
 describe('TraderService', () => {
     let service: TraderService;
@@ -337,6 +336,27 @@ describe('TraderService', () => {
     });
 
     it('should handle balance change', async () => {
-        // TODO -
+        const bot = initBot();
+        const lastBalance = 1_000;
+        const currentBalance = 2_000;
+        const logs: Array<string> = [];
+
+        bot.isActive = true;
+        bot.state = EState.WORKING_CHECK_BALANCE_CHANGE;
+        bot.lastBalance = lastBalance;
+
+        await service.start();
+
+        const executor = service.iterators[0]['executor'];
+
+        jest.spyOn(executor, 'getPosition').mockImplementation(async () => null);
+        jest.spyOn(executor, 'getBalance').mockImplementation(async () => currentBalance);
+        jest.spyOn(service.iterators[0], 'logTrade' as any).mockImplementation(async (msg: string) => logs.push(msg));
+
+        await sleep();
+
+        expect(logs[0]).toBe(`Balance ${lastBalance} -> ${currentBalance}`);
+        expect(bot.state).toBe(EState.CANDLE_CHECK_ANALYTICS);
+        expect(bot.lastBalance).toBe(currentBalance);
     });
 });
