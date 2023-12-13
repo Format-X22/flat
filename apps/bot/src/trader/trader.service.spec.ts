@@ -331,8 +331,192 @@ describe('TraderService', () => {
         expect(bot.state).toBe(EState.WORKING_WAITING);
     });
 
-    it('should go inside analysis', async () => {
-        // TODO -
+    describe('handle analysis', () => {
+        const order: any = {};
+        let executor: TraderExecutor;
+        let calculator: CalculatorService;
+        let logger: Logger;
+
+        async function initAndRun() {
+            const bot = initBot();
+
+            bot.isActive = true;
+            bot.state = EState.CANDLE_CHECK_ANALYTICS;
+
+            await service.start();
+
+            executor = service.iterators[0]['executor'];
+            calculator = service.iterators[0]['calculatorService'];
+            logger = service.iterators[0]['logger'];
+
+            return bot;
+        }
+
+        function makeOrderHandlers() {
+            const handled = { isUpdated: false, isPlaced: false, isCancelled: false };
+
+            jest.spyOn(executor, 'updateOrder').mockImplementation(async () => {
+                handled.isUpdated = true;
+            });
+            jest.spyOn(executor, 'placeOrder').mockImplementation(async () => {
+                handled.isPlaced = true;
+            });
+            jest.spyOn(executor, 'cancelOrder').mockImplementation(async () => {
+                handled.isCancelled = true;
+            });
+
+            return handled;
+        }
+
+        function mockState(hasUp, hasDown, calcUp, calcDown, position = null) {
+            jest.spyOn(executor, 'getPosition').mockImplementation(async () => position);
+            jest.spyOn(executor, 'hasUpOrder').mockImplementation(async () => hasUp);
+            jest.spyOn(executor, 'hasDownOrder').mockImplementation(async () => hasUp);
+            jest.spyOn(calculator, 'calc').mockResolvedValue({ up: calcUp, down: calcDown });
+        }
+
+        it('should throw on position', async () => {
+            const bot = await initAndRun();
+            const logs: Array<string> = [];
+            const { isUpdated, isPlaced, isCancelled } = makeOrderHandlers();
+
+            mockState(null, null, order, null, {});
+
+            jest.spyOn(logger, 'error').mockImplementation((value: string) => {
+                logs.push(value);
+            });
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.ERROR_EMERGENCY_STOP);
+            expect(logs.length).toBe(1);
+            expect(isUpdated).toBe(false);
+            expect(isPlaced).toBe(false);
+            expect(isCancelled).toBe(false);
+        });
+
+        it('should pass up order', async () => {
+            const bot = await initAndRun();
+            const { isUpdated, isPlaced, isCancelled } = makeOrderHandlers();
+
+            mockState(order, null, null, null);
+
+            await sleep();
+
+            //expect(bot.state).toBe(EState.WORKING_WAITING);
+            //expect(isUpdated).toBe(false);
+            //expect(isPlaced).toBe(false);
+            //expect(isCancelled).toBe(true);
+        });
+
+        it('should pass up order and up analysis', async () => {
+            const bot = await initAndRun();
+            const { isUpdated, isPlaced, isCancelled } = makeOrderHandlers();
+
+            mockState(order, null, order, null);
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.WORKING_WAITING);
+            expect(isUpdated).toBe(true);
+            expect(isPlaced).toBe(false);
+            expect(isCancelled).toBe(false);
+        });
+
+        it('should pass up analysis', async () => {
+            const bot = await initAndRun();
+            const { isUpdated, isPlaced, isCancelled } = makeOrderHandlers();
+
+            mockState(null, null, order, null);
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.WORKING_WAITING);
+            expect(isUpdated).toBe(false);
+            expect(isPlaced).toBe(true);
+            expect(isCancelled).toBe(false);
+        });
+
+        it('should pass down order', async () => {
+            const bot = await initAndRun();
+            const { isUpdated, isPlaced, isCancelled } = makeOrderHandlers();
+
+            mockState(null, order, null, null);
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.WORKING_WAITING);
+            expect(isUpdated).toBe(false);
+            expect(isPlaced).toBe(false);
+            expect(isCancelled).toBe(true);
+        });
+
+        it('should pass down order and down analysis', async () => {
+            const bot = await initAndRun();
+            const { isUpdated, isPlaced, isCancelled } = makeOrderHandlers();
+
+            mockState(null, order, null, order);
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.WORKING_WAITING);
+            expect(isUpdated).toBe(true);
+            expect(isPlaced).toBe(false);
+            expect(isCancelled).toBe(false);
+        });
+
+        it('should pass down analysis', async () => {
+            const bot = await initAndRun();
+            const { isUpdated, isPlaced, isCancelled } = makeOrderHandlers();
+
+            mockState(null, null, null, order);
+            await sleep();
+
+            expect(bot.state).toBe(EState.WORKING_WAITING);
+            expect(isUpdated).toBe(false);
+            expect(isPlaced).toBe(true);
+            expect(isCancelled).toBe(false);
+        });
+
+        it('should pass without orders and analysis', async () => {
+            const bot = await initAndRun();
+            const { isUpdated, isPlaced, isCancelled } = makeOrderHandlers();
+
+            mockState(null, null, null, null);
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.WORKING_WAITING);
+            expect(isUpdated).toBe(false);
+            expect(isPlaced).toBe(false);
+            expect(isCancelled).toBe(false);
+        });
+
+        it('should pass with all orders and analysis', async () => {
+            const bot = await initAndRun();
+            let updatedCount = 0;
+            let placedCount = 0;
+            let cancelledCount = 0;
+
+            jest.spyOn(executor, 'updateOrder').mockImplementation(async () => {
+                updatedCount++;
+            });
+            jest.spyOn(executor, 'placeOrder').mockImplementation(async () => {
+                placedCount++;
+            });
+            jest.spyOn(executor, 'cancelOrder').mockImplementation(async () => {
+                cancelledCount++;
+            });
+
+            mockState(order, order, order, order);
+
+            await sleep();
+
+            expect(bot.state).toBe(EState.WORKING_WAITING);
+            expect(updatedCount).toBe(2);
+            expect(placedCount).toBe(0);
+            expect(cancelledCount).toBe(0);
+        });
     });
 
     describe('handle position collision', () => {

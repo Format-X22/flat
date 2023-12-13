@@ -239,6 +239,13 @@ export class TraderIterator {
             return;
         }
 
+        // Тут мы не можем отправить ордер, потому что если его нет в аналитике -
+        // не понятно какой брать без аналитики, как фильтровать
+        // Нужно что-то придумать
+
+        // Ещё надо не забыть что при смене баланса без позиции не делать пересчет
+        // если у нас только вот что исполнилось всё
+
         const hasUpOrder = await this.executor.hasUpOrder(this.actualToExecutor(up, EDirection.UP));
         const hasDownOrder = await this.executor.hasDownOrder(this.actualToExecutor(up, EDirection.DOWN));
 
