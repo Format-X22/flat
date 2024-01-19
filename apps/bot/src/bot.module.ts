@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CandleModel } from './data/candle.model';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AnalyzerModule } from './analyzer/analyzer.module';
-import { ControlModule } from './control/control.module';
 
 @Module({
     imports: [
@@ -21,7 +20,6 @@ import { ControlModule } from './control/control.module';
             }),
         }),
         AnalyzerModule,
-        ControlModule,
     ],
     controllers: [],
     providers: [],
