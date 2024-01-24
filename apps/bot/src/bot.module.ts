@@ -12,10 +12,13 @@ import { ControlModule } from './control/control.module';
         }),
         TypeOrmModule.forRootAsync({
             inject: [ConfigService],
-            useFactory: async (configService: ConfigService) => ({
-                type: 'sqlite',
-                database: 'base.db',
-                key: configService.get('F_DB_KEY'),
+            useFactory: async () => ({
+                type: 'postgres',
+                database: 'local',
+                host: 'localhost',
+                port: 5432,
+                username: 'postgres',
+                password: 'postgres',
                 entities: [CandleModel],
                 synchronize: true,
             }),

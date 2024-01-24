@@ -1,8 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { BotModule } from './bot.module';
-import { LoaderService } from './analyzer/loader/loader.service';
-import { CalculatorService } from './analyzer/calculator/calculator.service';
-import { endOfYear, startOfYear } from './utils/time.util';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { urlencoded, json } from 'express';

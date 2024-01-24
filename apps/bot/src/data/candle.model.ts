@@ -1,4 +1,4 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 export enum EHmaType {
     MICRO_HMA = 'microHma',
@@ -9,11 +9,11 @@ export enum EHmaType {
 
 @Entity()
 export class CandleModel {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryColumn('varchar')
+    id: string;
 
     @Index()
-    @Column('integer')
+    @Column('float')
     timestamp: number;
 
     @Column()

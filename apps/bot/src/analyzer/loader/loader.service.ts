@@ -47,13 +47,13 @@ export class LoaderService {
         }
 
         if (!hoursOffset?.length) {
-            await this.load('1h', null, 10);
+            await this.load('1h', null);
         } else {
-            await this.load('1h', new Date(hoursOffset[hoursOffset.length - 1].timestamp - 1000), 10);
+            await this.load('1h', new Date(hoursOffset[hoursOffset.length - 1].timestamp - 1000));
         }
     }
 
-    async load(size: string, fromForce?: Date, idMul: number = 1): Promise<void> {
+    async load(size: string, fromForce?: Date): Promise<void> {
         const rawDataMap = new Map<number, Partial<CandleModel>>();
         const stock = new ccxt.binance();
         let fromDate: Date;
@@ -66,7 +66,7 @@ export class LoaderService {
             fromDate = DateTime.fromObject({ year: 2017, day: 11, month: 1 }).toJSDate();
         }
 
-        await this.populateRawDataMap(rawDataMap, fromDate, stock, size, idMul);
+        await this.populateRawDataMap(rawDataMap, fromDate, stock, size);
 
         this.logger.log('Full data loaded, prepare and calc indicators...');
 
@@ -87,7 +87,12 @@ export class LoaderService {
         this.logger.log('Prepare done, save to database...');
 
         for (const chunk of resultChunks) {
-            await this.candleRepo.upsert(chunk, ['id']);
+            this.logger.verbose('Put chunk, size ' + chunk.length);
+            try {
+                await this.candleRepo.upsert(chunk, ['id']);
+            } catch (error) {
+                this.logger.error(error);
+            }
         }
 
         this.logger.log('Load and save done!');
@@ -98,13 +103,12 @@ export class LoaderService {
         fromDate: Date,
         stock: Exchange,
         size: string,
-        idMul: number,
     ): Promise<void> {
         let from = Number(fromDate);
 
         while (true) {
             try {
-                const loaded = await this.loadChunk(stock, from, size, idMul);
+                const loaded = await this.loadChunk(stock, from, size);
 
                 if (!loaded.length) {
                     break;
@@ -133,12 +137,7 @@ export class LoaderService {
         }
     }
 
-    private async loadChunk(
-        stock: Exchange,
-        from: number,
-        size: string,
-        idMul: number,
-    ): Promise<Array<Partial<CandleModel>>> {
+    private async loadChunk(stock: Exchange, from: number, size: string): Promise<Array<Partial<CandleModel>>> {
         const fromTimestamp = Number(from);
 
         const chunk = await stock.fetchOHLCV('BTCUSDT', size, fromTimestamp, 100);
@@ -148,7 +147,7 @@ export class LoaderService {
         }
 
         return chunk.map((item) => ({
-            id: Number(item[0] * idMul),
+            id: size + String(item[0]),
             timestamp: Number(item[0]),
             dateString: DateTime.fromMillis(Number(item[0])).toFormat('dd-MM-y HH'),
             open: item[1],
