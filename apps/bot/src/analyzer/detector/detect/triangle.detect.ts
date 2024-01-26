@@ -3,8 +3,6 @@ import { SegmentService } from '../../segment/segment.service';
 import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
 
-// TODO Фильтрация на схождение, иначе не брать.
-
 export class TriangleDetect extends AbstractDetect {
     protected enterFib = 1;
     protected takeFib = 1.75;

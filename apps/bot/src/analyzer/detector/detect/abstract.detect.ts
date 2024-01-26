@@ -529,6 +529,14 @@ export abstract class AbstractDetect {
         return Duration.fromObject({ day: count }).toMillis();
     }
 
+    protected getWeekRange(count: number): number {
+        return Duration.fromObject({ day: count * 7 }).toMillis();
+    }
+
+    protected get4hRange(count: number): number {
+        return Duration.fromObject({ hours: count * 4 }).toMillis();
+    }
+
     protected debugHere(dateString: string, isNotInverted: boolean): boolean {
         return this.getPrettyDate().startsWith(dateString) && this.isNotInverted === isNotInverted;
     }
