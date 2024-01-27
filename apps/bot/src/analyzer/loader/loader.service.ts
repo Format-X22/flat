@@ -8,6 +8,7 @@ import { CandleModel, EHmaType } from '../../data/candle.model';
 import { Repository } from 'typeorm';
 import { sleep } from '../../utils/sleep.util';
 import { DateTime } from 'luxon';
+import { config } from '../../bot.config';
 
 const MICRO_HMA_PERIOD = 4;
 const HMA_PERIOD = 7;
@@ -31,7 +32,7 @@ export class LoaderService {
             take: BIG_HMA_PERIOD * 2 + 1,
             order: { timestamp: 'DESC' },
             select: ['timestamp'],
-            where: { size: '1d' },
+            where: { size: config.size },
         });
         const hoursOffset = await this.candleRepo.find({
             take: BIG_HMA_PERIOD * 2 + 1,
@@ -41,9 +42,9 @@ export class LoaderService {
         });
 
         if (!dayOffset?.length) {
-            await this.load('1d');
+            await this.load(config.size);
         } else {
-            await this.load('1d', new Date(dayOffset[dayOffset.length - 1].timestamp - 1000));
+            await this.load(config.size, new Date(dayOffset[dayOffset.length - 1].timestamp - 1000));
         }
 
         if (!hoursOffset?.length) {

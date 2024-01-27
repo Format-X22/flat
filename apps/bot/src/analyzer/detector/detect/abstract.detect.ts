@@ -6,6 +6,8 @@ import { TOrder } from '../detector.dto';
 import { Duration } from 'luxon';
 import { DetectorService } from '../detector.service';
 import { Wave } from '../../wave/wave.util';
+import { config } from '../../../bot.config';
+import { ESize } from '../../../bot.types';
 
 const STOP_OFFSET = 1.5;
 const COMM_OFFSET = 0.25;
@@ -464,13 +466,26 @@ export abstract class AbstractDetect {
     }
 
     protected enterPosition(waitDays: number): void {
+        let offset;
+
+        switch (config.size) {
+            case ESize.DAY:
+                offset = this.getDaysRange(waitDays);
+                break;
+            case ESize.WEEK:
+                offset = this.getWeekRange(waitDays);
+                break;
+            default:
+                throw new Error('INVALID RANGE');
+        }
+
         this.isInPosition = true;
         this.detectorService.enterPosition();
 
         this.order.enterDate = this.getCandle().dateString;
-        this.order.toZeroDate = this.getCandle().timestamp + this.getDaysRange(waitDays);
+        this.order.toZeroDate = this.getCandle().timestamp + offset;
 
-        this.logger.verbose(`> Enter position - ${this.getPrettyDate()}`);
+        config.logSim && this.logger.verbose(`> Enter position - ${this.getPrettyDate()}`);
     }
 
     protected exitPosition(): void {
@@ -510,15 +525,15 @@ export abstract class AbstractDetect {
     }
 
     protected printProfitTrade(): void {
-        this.logger.log(`PROFIT - ${this.getPrettyCapital()} - ${this.getPrettyDate()}`);
+        config.logSim && this.logger.log(`PROFIT - ${this.getPrettyCapital()} - ${this.getPrettyDate()}`);
     }
 
     protected printZeroFailTrade(): void {
-        this.logger.log(`ZERO - ${this.getPrettyCapital()} - ${this.getPrettyDate()}`);
+        config.logSim && this.logger.log(`ZERO - ${this.getPrettyCapital()} - ${this.getPrettyDate()}`);
     }
 
     protected printFailTrade(): void {
-        this.logger.log(`FAIL - ${this.getPrettyCapital()} - ${this.getPrettyDate()}`);
+        config.logSim && this.logger.log(`FAIL - ${this.getPrettyCapital()} - ${this.getPrettyDate()}`);
     }
 
     protected printCancelTrade(): void {
@@ -559,6 +574,6 @@ export abstract class AbstractDetect {
 
         this.profitMul = 1 + (angle * riskRewardFact) / 100;
 
-        this.logger.verbose(`Reward ${((this.profitMul - 1) * 100).toFixed()}%`);
+        config.logSim && this.logger.verbose(`Reward ${((this.profitMul - 1) * 100).toFixed()}%`);
     }
 }
