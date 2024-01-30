@@ -32,13 +32,13 @@ export class LoaderService {
             take: BIG_HMA_PERIOD * 2 + 1,
             order: { timestamp: 'DESC' },
             select: ['timestamp'],
-            where: { size: config.size },
+            where: { size: config.size, ticker: config.ticker },
         });
         const hoursOffset = await this.candleRepo.find({
             take: BIG_HMA_PERIOD * 2 + 1,
             order: { timestamp: 'DESC' },
             select: ['timestamp'],
-            where: { size: '1h' },
+            where: { size: '1h', ticker: config.ticker },
         });
 
         if (!dayOffset?.length) {
@@ -141,14 +141,15 @@ export class LoaderService {
     private async loadChunk(stock: Exchange, from: number, size: string): Promise<Array<Partial<CandleModel>>> {
         const fromTimestamp = Number(from);
 
-        const chunk = await stock.fetchOHLCV('BTCUSDT', size, fromTimestamp, 100);
+        const chunk = await stock.fetchOHLCV(config.ticker, size, fromTimestamp, 100);
 
         if (!chunk || !chunk.length) {
             return;
         }
 
         return chunk.map((item) => ({
-            id: size + String(item[0]),
+            id: config.ticker + size + String(item[0]),
+            ticker: config.ticker,
             timestamp: Number(item[0]),
             dateString: DateTime.fromMillis(Number(item[0])).toFormat('dd-MM-y HH'),
             open: item[1],

@@ -1,4 +1,5 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { ETicker } from '../bot.types';
 
 export enum EHmaType {
     MICRO_HMA = 'microHma',
@@ -11,6 +12,10 @@ export enum EHmaType {
 export class CandleModel {
     @PrimaryColumn('varchar')
     id: string;
+
+    @Index()
+    @Column('varchar')
+    ticker: ETicker;
 
     @Index()
     @Column('float')

@@ -66,12 +66,15 @@ export class CalculatorService {
     }
 
     private async getCandles(): Promise<Array<CandleModel>> {
-        return this.candleRepo.find({ where: { size: config.size }, order: { timestamp: 'ASC' } });
+        return this.candleRepo.find({
+            where: { size: config.size, ticker: config.ticker },
+            order: { timestamp: 'ASC' },
+        });
     }
 
     private async getInnerCandles(from: number, to: number): Promise<Array<CandleModel>> {
         return this.candleRepo.find({
-            where: { size: '1h', timestamp: Between(from, to) },
+            where: { size: '1h', timestamp: Between(from, to), ticker: config.ticker },
             order: { timestamp: 'ASC' },
         });
     }
