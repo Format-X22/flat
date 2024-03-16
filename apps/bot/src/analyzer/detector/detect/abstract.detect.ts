@@ -7,6 +7,7 @@ import { Wave } from '../../wave/wave.util';
 import { config } from '../../../bot.config';
 import { SegmentUtil } from '../../wave/segment.util';
 import { DetectorExecutor } from '../detector.executor';
+import { InversionUtil } from '../../../utils/inversion.util';
 
 const STOP_OFFSET = 1.5;
 const COMM_OFFSET = 0.25;
@@ -24,6 +25,7 @@ export abstract class AbstractDetect {
         toZeroDate: null,
     };
 
+    private readonly inversion: InversionUtil;
     private readonly logger: Logger;
 
     protected isDetected: boolean = false;
@@ -56,6 +58,7 @@ export abstract class AbstractDetect {
         }
 
         this.logger = new Logger(this.name);
+        this.inversion = new InversionUtil(this.isNotInverted);
     }
 
     abstract check(): boolean;
@@ -219,11 +222,10 @@ export abstract class AbstractDetect {
         this.order.enterDate = null;
         this.order.toZeroDate = null;
 
-        if (this.isNotInverted) {
-            this.detectorExecutor.removeUpOrder(this);
-        } else {
-            this.detectorExecutor.removeDownOrder(this);
-        }
+        this.inversion.fn(
+            () => this.detectorExecutor.removeUpOrder(this),
+            () => this.detectorExecutor.removeDownOrder(this),
+        );
     }
 
     protected getCandle(): CandleModel {
@@ -277,59 +279,37 @@ export abstract class AbstractDetect {
     }
 
     protected isSegmentUp(segment: TSegment): boolean {
-        if (this.isNotInverted) {
-            return segment.isUp;
-        } else {
-            return segment.isDown;
-        }
+        return this.inversion.value(segment.isUp, segment.isDown);
     }
 
     protected isSegmentDown(segment: TSegment): boolean {
-        if (this.isNotInverted) {
-            return segment.isDown;
-        } else {
-            return segment.isUp;
-        }
+        return this.inversion.value(segment.isDown, segment.isUp);
     }
 
     protected max(segmentA: TSegment, segmentB: TSegment): number {
-        if (this.isNotInverted) {
-            return Math.max(segmentA.max, segmentB.max);
-        } else {
-            return Math.min(segmentA.min, segmentB.min);
-        }
+        return this.inversion.fn(
+            () => Math.max(segmentA.max, segmentB.max),
+            () => Math.min(segmentA.min, segmentB.min),
+        );
     }
 
     protected min(segmentA: TSegment, segmentB: TSegment): number {
-        if (this.isNotInverted) {
-            return Math.min(segmentA.min, segmentB.min);
-        } else {
-            return Math.max(segmentA.max, segmentB.max);
-        }
+        return this.inversion.fn(
+            () => Math.min(segmentA.min, segmentB.min),
+            () => Math.max(segmentA.max, segmentB.max),
+        );
     }
 
     protected segmentMax(segment: TSegment): number {
-        if (this.isNotInverted) {
-            return segment.max;
-        } else {
-            return segment.min;
-        }
+        return this.inversion.value(segment.max, segment.min);
     }
 
     protected segmentMin(segment: TSegment): number {
-        if (this.isNotInverted) {
-            return segment.min;
-        } else {
-            return segment.max;
-        }
+        return this.inversion.value(segment.min, segment.max);
     }
 
     protected candleMax(candle: CandleModel): number {
-        if (this.isNotInverted) {
-            return candle.high;
-        } else {
-            return candle.low;
-        }
+        return this.inversion.value(candle.high, candle.low);
     }
 
     protected candleMin(candle: CandleModel): number {
@@ -341,49 +321,44 @@ export abstract class AbstractDetect {
     }
 
     protected getFib(first: number, last: number, val: number, firstIsMax: boolean): number {
-        const firstIsMaxValue = this.isNotInverted ? firstIsMax : !firstIsMax;
+        const firstIsMaxValue = this.inversion.bool(firstIsMax);
 
         return this.segmentUtil.getFib(first, last, val, firstIsMaxValue);
     }
 
     protected gt(valA: number, valB: number): boolean {
-        if (this.isNotInverted) {
-            return valA > valB;
-        } else {
-            return valA < valB;
-        }
+        return this.inversion.fn(
+            () => valA > valB,
+            () => valA < valB,
+        );
     }
 
     protected gte(valA: number, valB: number): boolean {
-        if (this.isNotInverted) {
-            return valA >= valB;
-        } else {
-            return valA <= valB;
-        }
+        return this.inversion.fn(
+            () => valA >= valB,
+            () => valA <= valB,
+        );
     }
 
     protected lt(valA: number, valB: number): boolean {
-        if (this.isNotInverted) {
-            return valA < valB;
-        } else {
-            return valA > valB;
-        }
+        return this.inversion.fn(
+            () => valA < valB,
+            () => valA > valB,
+        );
     }
 
     protected lte(valA: number, valB: number): boolean {
-        if (this.isNotInverted) {
-            return valA <= valB;
-        } else {
-            return valA >= valB;
-        }
+        return this.inversion.fn(
+            () => valA <= valB,
+            () => valA >= valB,
+        );
     }
 
     protected diff(valA: number, valB: number): number {
-        if (this.isNotInverted) {
-            return valA - valB;
-        } else {
-            return valB - valA;
-        }
+        return this.inversion.fn(
+            () => valA - valB,
+            () => valB - valA,
+        );
     }
 
     protected constGt(valA: number, valB: number): boolean {
@@ -400,26 +375,6 @@ export abstract class AbstractDetect {
 
     protected constLte(valA: number, valB: number): boolean {
         return valA <= valB;
-    }
-
-    protected concat(segmentA: TSegment, segmentB: TSegment, segmentC: TSegment): TSegment {
-        let min = Math.min(segmentA.min, segmentB.min, segmentC.min);
-        let max = Math.max(segmentA.max, segmentB.max, segmentC.max);
-
-        if (!this.isNotInverted) {
-            [min, max] = [max, min];
-        }
-
-        return {
-            isUp: segmentA.isUp,
-            isDown: segmentA.isDown,
-            size: segmentA.size + segmentB.size + segmentC.size,
-            min,
-            max,
-            startDate: segmentA.startDate,
-            endDate: segmentC.endDate,
-            candles: [...segmentA.candles, ...segmentB.candles, ...segmentC.candles],
-        };
     }
 
     protected markDetection(): boolean {
