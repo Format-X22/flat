@@ -1,18 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { SegmentService } from '../segment/segment.service';
+import { Logger } from '@nestjs/common';
 import { AbstractDetect } from './detect/abstract.detect';
 import { TActualOrder } from './detector.dto';
-import * as Flag from './detect/flag.detect';
-import * as Break from './detect/break.detect';
-import * as Triangle from './detect/triangle.detect';
+import { SegmentUtil } from '../wave/segment.util';
 import * as Zigzag from './detect/zigzag.detect';
-import * as Restart from './detect/restart.detect';
+import * as Break from './detect/break.detect';
 import * as Pennant from './detect/pennant.detect';
+import * as Flag from './detect/flag.detect';
+import * as Restart from './detect/restart.detect';
+import * as Triangle from './detect/triangle.detect';
 import * as Double from './detect/double.detect';
 
-@Injectable()
-export class DetectorService {
-    private readonly logger: Logger = new Logger(DetectorService.name);
+export class DetectorExecutor {
+    private readonly logger: Logger = new Logger(DetectorExecutor.name);
     private readonly detects: Array<AbstractDetect>;
 
     isSilent: boolean;
@@ -27,7 +26,7 @@ export class DetectorService {
     protected downOrderDetector: AbstractDetect;
     protected risk: number;
 
-    constructor(private readonly segmentService: SegmentService) {
+    constructor(private readonly segmentUtil: SegmentUtil) {
         this.detects = [
             Zigzag.UpMid,
             Zigzag.DownMid,
@@ -67,7 +66,7 @@ export class DetectorService {
             Triangle.DownBig,
             Double.UpBig,
             Double.DownBig,
-        ].map((D) => new D(this.segmentService, this));
+        ].map((D) => new D(this.segmentUtil, this));
     }
 
     detect(isSilent: boolean, risk: number): void {

@@ -1,7 +1,7 @@
 import { AbstractDetect } from './abstract.detect';
-import { SegmentService } from '../../segment/segment.service';
-import { DetectorService } from '../detector.service';
 import { Wave } from '../../wave/wave.util';
+import { SegmentUtil } from '../../wave/segment.util';
+import { DetectorExecutor } from '../detector.executor';
 
 export class BreakDetect extends AbstractDetect {
     private lastDetectedAndOverflowWave: Wave;
@@ -54,13 +54,13 @@ export class BreakDetect extends AbstractDetect {
 }
 
 export class Up extends BreakDetect {
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP BREAK', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP BREAK', true, segmentUtil, detectorExecutor);
     }
 }
 
 export class Down extends BreakDetect {
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN BREAK', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN BREAK', false, segmentUtil, detectorExecutor);
     }
 }

@@ -1,7 +1,7 @@
 import { AbstractDetect } from './abstract.detect';
-import { SegmentService } from '../../segment/segment.service';
-import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
+import { SegmentUtil } from '../../wave/segment.util';
+import { DetectorExecutor } from '../detector.executor';
 
 export class RestartDetect extends AbstractDetect {
     protected enterFib = 0.85;
@@ -43,14 +43,14 @@ export class RestartDetect extends AbstractDetect {
 }
 
 export class Up extends RestartDetect {
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP RESTART', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP RESTART', true, segmentUtil, detectorExecutor);
     }
 }
 
 export class Down extends RestartDetect {
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN RESTART', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN RESTART', false, segmentUtil, detectorExecutor);
     }
 }
 
@@ -58,8 +58,8 @@ export class UpMid extends RestartDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP MID RESTART', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP MID RESTART', true, segmentUtil, detectorExecutor);
     }
 }
 
@@ -67,8 +67,8 @@ export class DownMid extends RestartDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN MID RESTART', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN MID RESTART', false, segmentUtil, detectorExecutor);
     }
 }
 
@@ -76,8 +76,8 @@ export class UpBig extends RestartDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP BIG RESTART', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP BIG RESTART', true, segmentUtil, detectorExecutor);
     }
 }
 
@@ -85,7 +85,7 @@ export class DownBig extends RestartDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN BIG RESTART', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN BIG RESTART', false, segmentUtil, detectorExecutor);
     }
 }

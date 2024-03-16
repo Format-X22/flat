@@ -1,10 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { SegmentStorage } from './segment.storage';
 import { CandleModel, EHmaType } from '../../data/candle.model';
 import { TSegment } from './segment.dto';
-import { SegmentStorage } from './segment.storage';
 
-@Injectable()
-export class SegmentService {
+export class SegmentUtil {
     private readonly microSegments: SegmentStorage;
     private readonly segments: SegmentStorage;
     private readonly midSegments: SegmentStorage;

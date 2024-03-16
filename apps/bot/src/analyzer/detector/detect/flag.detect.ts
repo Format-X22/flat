@@ -1,7 +1,7 @@
 import { AbstractDetect } from './abstract.detect';
-import { SegmentService } from '../../segment/segment.service';
-import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
+import { SegmentUtil } from '../../wave/segment.util';
+import { DetectorExecutor } from '../detector.executor';
 
 export class FlagDetect extends AbstractDetect {
     protected enterFib = 1;
@@ -45,14 +45,14 @@ export class FlagDetect extends AbstractDetect {
 }
 
 export class Up extends FlagDetect {
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP FLAG', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP FLAG', true, segmentUtil, detectorExecutor);
     }
 }
 
 export class Down extends FlagDetect {
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN FLAG', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN FLAG', false, segmentUtil, detectorExecutor);
     }
 }
 
@@ -60,8 +60,8 @@ export class UpMid extends FlagDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP MID FLAG', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP MID FLAG', true, segmentUtil, detectorExecutor);
     }
 }
 
@@ -69,8 +69,8 @@ export class DownMid extends FlagDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN MID FLAG', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN MID FLAG', false, segmentUtil, detectorExecutor);
     }
 }
 
@@ -78,8 +78,8 @@ export class UpBig extends FlagDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP BIG FLAG', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP BIG FLAG', true, segmentUtil, detectorExecutor);
     }
 }
 
@@ -87,7 +87,7 @@ export class DownBig extends FlagDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN BIG FLAG', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN BIG FLAG', false, segmentUtil, detectorExecutor);
     }
 }

@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { LoaderModule } from './loader/loader.module';
-import { CalculatorModule } from './calculator/calculator.module';
-import { DetectorModule } from './detector/detector.module';
-import { SegmentModule } from './segment/segment.module';
+import { AnalyzerService } from './analyzer.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { CandleModel } from '../data/candle.model';
 
 @Module({
-    imports: [LoaderModule, CalculatorModule, DetectorModule, SegmentModule],
-    exports: [CalculatorModule, LoaderModule],
+    imports: [TypeOrmModule.forFeature([CandleModel])],
+    providers: [AnalyzerService],
 })
 export class AnalyzerModule {}

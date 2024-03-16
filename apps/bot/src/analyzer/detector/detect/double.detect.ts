@@ -1,7 +1,7 @@
 import { AbstractDetect } from './abstract.detect';
-import { SegmentService } from '../../segment/segment.service';
-import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
+import { SegmentUtil } from '../../wave/segment.util';
+import { DetectorExecutor } from '../detector.executor';
 
 export class DoubleDetect extends AbstractDetect {
     protected enterFib = 0.85;
@@ -50,45 +50,45 @@ export class DoubleDetect extends AbstractDetect {
 }
 
 export class Up extends DoubleDetect {
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP DOUBLE', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP DOUBLE', true, segmentUtil, detectorExecutor);
     }
 }
 
 export class Down extends DoubleDetect {
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN DOUBLE', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN DOUBLE', false, segmentUtil, detectorExecutor);
     }
 }
 
 export class UpMid extends DoubleDetect {
     protected hmaType = EHmaType.MID_HMA;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP MID DOUBLE', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP MID DOUBLE', true, segmentUtil, detectorExecutor);
     }
 }
 
 export class DownMid extends DoubleDetect {
     protected hmaType = EHmaType.MID_HMA;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN MID DOUBLE', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN MID DOUBLE', false, segmentUtil, detectorExecutor);
     }
 }
 
 export class UpBig extends DoubleDetect {
     protected hmaType = EHmaType.BIG_HMA;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP BIG DOUBLE', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP BIG DOUBLE', true, segmentUtil, detectorExecutor);
     }
 }
 
 export class DownBig extends DoubleDetect {
     protected hmaType = EHmaType.BIG_HMA;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN BIG DOUBLE', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN BIG DOUBLE', false, segmentUtil, detectorExecutor);
     }
 }

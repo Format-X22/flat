@@ -1,7 +1,7 @@
 import { AbstractDetect } from './abstract.detect';
-import { SegmentService } from '../../segment/segment.service';
-import { DetectorService } from '../detector.service';
 import { EHmaType } from '../../../data/candle.model';
+import { SegmentUtil } from '../../wave/segment.util';
+import { DetectorExecutor } from '../detector.executor';
 
 export class PennantDetect extends AbstractDetect {
     protected enterFib = 0.85;
@@ -45,14 +45,14 @@ export class PennantDetect extends AbstractDetect {
 }
 
 export class Up extends PennantDetect {
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP PENNANT', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP PENNANT', true, segmentUtil, detectorExecutor);
     }
 }
 
 export class Down extends PennantDetect {
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN PENNANT', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN PENNANT', false, segmentUtil, detectorExecutor);
     }
 }
 
@@ -61,8 +61,8 @@ export class UpMid extends PennantDetect {
     protected minSegmentSize = 4;
     protected maxSecondSegmentSize = 4;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP MID PENNANT', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP MID PENNANT', true, segmentUtil, detectorExecutor);
     }
 }
 
@@ -71,8 +71,8 @@ export class DownMid extends PennantDetect {
     protected minSegmentSize = 4;
     protected maxSecondSegmentSize = 4;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN MID PENNANT', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN MID PENNANT', false, segmentUtil, detectorExecutor);
     }
 }
 
@@ -81,8 +81,8 @@ export class UpBig extends PennantDetect {
     protected minSegmentSize = 8;
     protected maxSecondSegmentSize = 8;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('UP BIG PENNANT', true, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('UP BIG PENNANT', true, segmentUtil, detectorExecutor);
     }
 }
 
@@ -91,7 +91,7 @@ export class DownBig extends PennantDetect {
     protected minSegmentSize = 8;
     protected maxSecondSegmentSize = 8;
 
-    constructor(segmentService: SegmentService, detectorService: DetectorService) {
-        super('DOWN BIG PENNANT', false, segmentService, detectorService);
+    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
+        super('DOWN BIG PENNANT', false, segmentUtil, detectorExecutor);
     }
 }

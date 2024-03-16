@@ -4,11 +4,11 @@ import * as tech from 'technicalindicators';
 import * as _ from 'lodash';
 import Exchange from 'ccxt/js/src/abstract/binance';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CandleModel, EHmaType } from '../../data/candle.model';
+import { CandleModel, EHmaType } from '../data/candle.model';
 import { Repository } from 'typeorm';
-import { sleep } from '../../utils/sleep.util';
+import { sleep } from '../utils/sleep.util';
 import { DateTime } from 'luxon';
-import { config } from '../../bot.config';
+import { config } from '../bot.config';
 
 const MICRO_HMA_PERIOD = 4;
 const HMA_PERIOD = 7;

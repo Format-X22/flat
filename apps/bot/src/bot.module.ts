@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CandleModel } from './data/candle.model';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AnalyzerModule } from './analyzer/analyzer.module';
+import { LoaderModule } from './loader/loader.module';
 
 @Module({
     imports: [
@@ -22,6 +23,7 @@ import { AnalyzerModule } from './analyzer/analyzer.module';
                 synchronize: true,
             }),
         }),
+        LoaderModule,
         AnalyzerModule,
         TypeOrmModule.forFeature([CandleModel]),
     ],

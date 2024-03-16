@@ -1,26 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CandleModel } from '../../data/candle.model';
+import { CandleModel } from '../data/candle.model';
 import { Between, Repository } from 'typeorm';
-import { SegmentService } from '../segment/segment.service';
-import { DetectorService } from '../detector/detector.service';
-import { TActualOrder } from '../detector/detector.dto';
-import { days, millis, startOfYear } from '../../utils/time.util';
-import { TCalcArgs } from './calculator.dto';
-import { config } from '../../bot.config';
+import { TActualOrder } from './detector/detector.dto';
+import { days, millis, startOfYear } from '../utils/time.util';
+import { TCalcArgs } from './analyzer.dto';
+import { config } from '../bot.config';
+import { SegmentUtil } from './wave/segment.util';
+import { DetectorExecutor } from './detector/detector.executor';
 
 @Injectable()
-export class CalculatorService {
+export class AnalyzerService {
     private from: number = startOfYear(2018);
     private to: number = Number.MAX_SAFE_INTEGER;
 
-    constructor(
-        @InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>,
-        private readonly segmentService: SegmentService,
-        private readonly detectorService: DetectorService,
-    ) {}
+    constructor(@InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>) {}
 
     async calc({ risk, isSilent, from, to }: TCalcArgs): Promise<TActualOrder> {
+        const segmentUtil = new SegmentUtil();
+        const detectorExecutor = new DetectorExecutor(segmentUtil);
+
         if (typeof from === 'number') {
             this.from = from;
         }
@@ -35,21 +34,21 @@ export class CalculatorService {
             const offset = days(1) - millis(1);
             const innerCandles = await this.getInnerCandles(candle.timestamp, candle.timestamp + offset);
 
-            this.segmentService.addCandle(candle, innerCandles);
+            segmentUtil.addCandle(candle, innerCandles);
 
             if (!this.isInTestRange(candle)) {
                 continue;
             }
 
-            this.detectorService.detect(isSilent, risk);
+            detectorExecutor.detect(isSilent, risk);
         }
 
         if (!isSilent) {
-            this.detectorService.printCapital();
-            this.detectorService.printLastOrders();
+            detectorExecutor.printCapital();
+            detectorExecutor.printLastOrders();
         }
 
-        return this.detectorService.getOrders();
+        return detectorExecutor.getOrders();
     }
 
     private async getCandles(): Promise<Array<CandleModel>> {

@@ -1,12 +1,12 @@
 import { CandleModel, EHmaType } from '../../../data/candle.model';
-import { SegmentService } from '../../segment/segment.service';
-import { TSegment } from '../../segment/segment.dto';
+import { TSegment } from '../../wave/segment.dto';
 import { Logger } from '@nestjs/common';
 import { TOrder } from '../detector.dto';
 import { Duration } from 'luxon';
-import { DetectorService } from '../detector.service';
 import { Wave } from '../../wave/wave.util';
 import { config } from '../../../bot.config';
+import { SegmentUtil } from '../../wave/segment.util';
+import { DetectorExecutor } from '../detector.executor';
 
 const STOP_OFFSET = 1.5;
 const COMM_OFFSET = 0.25;
@@ -40,8 +40,8 @@ export abstract class AbstractDetect {
     protected constructor(
         public readonly name: string,
         protected readonly isNotInverted = true,
-        protected segmentService: SegmentService,
-        protected detectorService: DetectorService,
+        protected segmentUtil: SegmentUtil,
+        protected detectorExecutor: DetectorExecutor,
     ) {
         this.logger = new Logger(name);
     }
@@ -148,14 +148,14 @@ export abstract class AbstractDetect {
             const takeFibPrice = this.getFib(valA, valB, this.takeFib, true);
 
             const isUp = this.isNotInverted;
-            const isConcurrentUpOrder = this.detectorService.isConcurrentUpOrder(this);
-            const upOrderOrigin = this.detectorService.getUpOrderOrigin();
-            const downOrderOrigin = this.detectorService.getDownOrderOrigin();
-            const isConcurrentDownOrder = this.detectorService.isConcurrentDownOrder(this);
+            const isConcurrentUpOrder = this.detectorExecutor.isConcurrentUpOrder(this);
+            const upOrderOrigin = this.detectorExecutor.getUpOrderOrigin();
+            const downOrderOrigin = this.detectorExecutor.getDownOrderOrigin();
+            const isConcurrentDownOrder = this.detectorExecutor.isConcurrentDownOrder(this);
             const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
 
             if (!isNoConcurrentOrders) {
-                if (!this.detectorService.isSilent) {
+                if (!this.detectorExecutor.isSilent) {
                     /*this.logger.verbose(
                         `Concurrent order - ${this.getPrettyDate()} - ${upOrderOrigin?.name} | ${
                             downOrderOrigin?.name
@@ -165,7 +165,7 @@ export abstract class AbstractDetect {
             }
 
             if (
-                !this.detectorService.isInPosition() &&
+                !this.detectorExecutor.isInPosition() &&
                 isNoConcurrentOrders &&
                 this.candleMax(this.getCandle()) !== enterFibPrice &&
                 this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
@@ -180,9 +180,9 @@ export abstract class AbstractDetect {
                 this.order.stop = stopFibPrice;
 
                 if (isUp) {
-                    this.detectorService.addUpOrder(this);
+                    this.detectorExecutor.addUpOrder(this);
                 } else {
-                    this.detectorService.addDownOrder(this);
+                    this.detectorExecutor.addDownOrder(this);
                 }
             }
         } else if (this.order.isActive) {
@@ -208,18 +208,18 @@ export abstract class AbstractDetect {
         this.order.toZeroDate = null;
 
         if (this.isNotInverted) {
-            this.detectorService.removeUpOrder(this);
+            this.detectorExecutor.removeUpOrder(this);
         } else {
-            this.detectorService.removeDownOrder(this);
+            this.detectorExecutor.removeDownOrder(this);
         }
     }
 
     protected getCandle(): CandleModel {
-        return this.segmentService.getCurrentCandle();
+        return this.segmentUtil.getCurrentCandle();
     }
 
     protected getInnerCandles(): Array<CandleModel> {
-        return this.segmentService.getCurrentInnerCandles();
+        return this.segmentUtil.getCurrentInnerCandles();
     }
 
     protected getPrettyDate(): string {
@@ -231,7 +231,7 @@ export abstract class AbstractDetect {
     }
 
     protected getSegments(count: number): Array<TSegment> {
-        return this.segmentService.getSegments(count, this.hmaType);
+        return this.segmentUtil.getSegments(count, this.hmaType);
     }
 
     protected getWaves(count: number, firstIsUp: boolean): Array<Wave> {
@@ -331,7 +331,7 @@ export abstract class AbstractDetect {
     protected getFib(first: number, last: number, val: number, firstIsMax: boolean): number {
         const firstIsMaxValue = this.isNotInverted ? firstIsMax : !firstIsMax;
 
-        return this.segmentService.getFib(first, last, val, firstIsMaxValue);
+        return this.segmentUtil.getFib(first, last, val, firstIsMaxValue);
     }
 
     protected gt(valA: number, valB: number): boolean {
@@ -442,7 +442,7 @@ export abstract class AbstractDetect {
         const offset = this.getDaysRange(waitDays);
 
         this.isInPosition = true;
-        this.detectorService.enterPosition();
+        this.detectorExecutor.enterPosition();
 
         this.order.enterDate = this.getCandle().dateString;
         this.order.toZeroDate = this.getCandle().timestamp + offset;
@@ -452,7 +452,7 @@ export abstract class AbstractDetect {
 
     protected exitPosition(): void {
         this.isInPosition = false;
-        this.detectorService.exitPosition();
+        this.detectorExecutor.exitPosition();
 
         this.resetOrder();
 
@@ -460,30 +460,30 @@ export abstract class AbstractDetect {
     }
 
     protected getCapital(): number {
-        return this.detectorService.getCapital();
+        return this.detectorExecutor.getCapital();
     }
 
     protected mulCapital(value: number): void {
-        this.detectorService.mulCapital(value);
+        this.detectorExecutor.mulCapital(value);
     }
 
     protected addFailToCapital(): void {
         this.mulCapital(this.failMul);
-        this.detectorService.addFailCount();
+        this.detectorExecutor.addFailCount();
     }
 
     protected addZeroFailToCapital(): void {
         this.mulCapital(this.zeroFailMul);
-        this.detectorService.addZeroCount();
+        this.detectorExecutor.addZeroCount();
     }
 
     protected addProfitToCapital(): void {
         this.mulCapital(this.profitMul);
-        this.detectorService.addProfitCount();
+        this.detectorExecutor.addProfitCount();
     }
 
     protected getPrettyCapital(): string {
-        return this.detectorService.getPrettyCapital();
+        return this.detectorExecutor.getPrettyCapital();
     }
 
     protected printProfitTrade(): void {
@@ -515,7 +515,7 @@ export abstract class AbstractDetect {
             return;
         }
 
-        const risk = this.detectorService.getRisk();
+        const risk = this.detectorExecutor.getRisk();
 
         this.failMul = (100 - risk) / 100;
         this.zeroFailMul = (100 - (risk / STOP_OFFSET) * COMM_OFFSET) / 100;

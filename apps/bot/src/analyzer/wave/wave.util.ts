@@ -1,4 +1,4 @@
-import { TSegment } from '../segment/segment.dto';
+import { TSegment } from './segment.dto';
 import { CandleModel } from '../../data/candle.model';
 
 export class Wave implements TSegment {
