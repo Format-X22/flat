@@ -28,114 +28,106 @@ export class Wave implements TSegment {
     }
 
     get isUp(): boolean {
-        if (this.isNotInverted) {
-            return this.isUpOriginal;
-        } else {
-            return !this.isUpOriginal;
-        }
+        return this.boolInversion(this.isUpOriginal);
     }
 
     get isDown(): boolean {
-        if (this.isNotInverted) {
-            return this.isDownOriginal;
-        } else {
-            return !this.isDownOriginal;
-        }
+        return this.boolInversion(this.isDownOriginal);
     }
 
     get min(): number {
-        if (this.isNotInverted) {
-            return this.minOriginal;
-        } else {
-            return this.maxOriginal;
-        }
+        return this.valueInversion(this.minOriginal, this.maxOriginal);
     }
 
     get max(): number {
-        if (this.isNotInverted) {
-            return this.maxOriginal;
-        } else {
-            return this.minOriginal;
-        }
+        return this.valueInversion(this.maxOriginal, this.minOriginal);
     }
 
     get minCandle(): CandleModel {
-        if (this.isNotInverted) {
-            return this.candles.reduce((prev, cur) => (prev.low < cur.low ? prev : cur));
-        } else {
-            return this.candles.reduce((prev, cur) => (prev.high > cur.high ? prev : cur));
-        }
+        const cond = (prev: CandleModel, cur: CandleModel) =>
+            this.valueInversionFn(
+                () => prev.low < cur.low,
+                () => prev.high > cur.high,
+            );
+
+        return this.candles.reduce((prev, cur) => (cond(prev, cur) ? prev : cur));
     }
 
     get maxCandle(): CandleModel {
-        if (this.isNotInverted) {
-            return this.candles.reduce((prev, cur) => (prev.high > cur.high ? prev : cur));
-        } else {
-            return this.candles.reduce((prev, cur) => (prev.low < cur.low ? prev : cur));
-        }
+        const cond = (prev: CandleModel, cur: CandleModel) =>
+            this.valueInversionFn(
+                () => prev.high > cur.high,
+                () => prev.low < cur.low,
+            );
+
+        return this.candles.reduce((prev, cur) => (cond(prev, cur) ? prev : cur));
     }
 
     maxGt(value: number): boolean {
-        if (this.isNotInverted) {
-            return this.maxOriginal > value;
-        } else {
-            return this.minOriginal < value;
-        }
+        return this.valueInversionFn(
+            () => this.maxOriginal > value,
+            () => this.minOriginal < value,
+        );
     }
 
     maxGte(value: number): boolean {
-        if (this.isNotInverted) {
-            return this.maxOriginal >= value;
-        } else {
-            return this.minOriginal <= value;
-        }
+        return this.valueInversionFn(
+            () => this.maxOriginal >= value,
+            () => this.minOriginal <= value,
+        );
     }
 
     maxLt(value: number): boolean {
-        if (this.isNotInverted) {
-            return this.maxOriginal < value;
-        } else {
-            return this.minOriginal > value;
-        }
+        return this.valueInversionFn(
+            () => this.maxOriginal < value,
+            () => this.minOriginal > value,
+        );
     }
 
     maxLte(value: number): boolean {
-        if (this.isNotInverted) {
-            return this.maxOriginal <= value;
-        } else {
-            return this.minOriginal >= value;
-        }
+        return this.valueInversionFn(
+            () => this.maxOriginal <= value,
+            () => this.minOriginal >= value,
+        );
     }
 
     minGt(value: number): boolean {
-        if (this.isNotInverted) {
-            return this.minOriginal > value;
-        } else {
-            return this.maxOriginal < value;
-        }
+        return this.valueInversionFn(
+            () => this.minOriginal > value,
+            () => this.maxOriginal < value,
+        );
     }
 
     minGte(value: number): boolean {
-        if (this.isNotInverted) {
-            return this.minOriginal >= value;
-        } else {
-            return this.maxOriginal <= value;
-        }
+        return this.valueInversionFn(
+            () => this.minOriginal >= value,
+            () => this.maxOriginal <= value,
+        );
     }
 
     minLt(value: number): boolean {
-        if (this.isNotInverted) {
-            return this.minOriginal < value;
-        } else {
-            return this.maxOriginal > value;
-        }
+        return this.valueInversionFn(
+            () => this.minOriginal < value,
+            () => this.maxOriginal > value,
+        );
     }
 
     minLte(value: number): boolean {
-        if (this.isNotInverted) {
-            return this.minOriginal <= value;
-        } else {
-            return this.maxOriginal >= value;
-        }
+        return this.valueInversionFn(
+            () => this.minOriginal <= value,
+            () => this.maxOriginal >= value,
+        );
+    }
+
+    private boolInversion(flag: boolean): boolean {
+        return this.isNotInverted ? flag : !flag;
+    }
+
+    private valueInversion<T1, T2>(a: T1, b: T2): T1 | T2 {
+        return this.isNotInverted ? a : b;
+    }
+
+    private valueInversionFn<T1, T2>(a: () => T1, b: () => T2): T1 | T2 {
+        return this.isNotInverted ? a() : b();
     }
 }

@@ -42,19 +42,19 @@ export class RestartDetect extends AbstractDetect {
     }
 }
 
-export class UpRestartDetect extends RestartDetect {
+export class Up extends RestartDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP RESTART', true, segmentService, detectorService);
     }
 }
 
-export class DownRestartDetect extends RestartDetect {
+export class Down extends RestartDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN RESTART', false, segmentService, detectorService);
     }
 }
 
-export class UpMidRestartDetect extends RestartDetect {
+export class UpMid extends RestartDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
 
@@ -63,7 +63,7 @@ export class UpMidRestartDetect extends RestartDetect {
     }
 }
 
-export class DownMidRestartDetect extends RestartDetect {
+export class DownMid extends RestartDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
 
@@ -72,7 +72,7 @@ export class DownMidRestartDetect extends RestartDetect {
     }
 }
 
-export class UpBigRestartDetect extends RestartDetect {
+export class UpBig extends RestartDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
 
@@ -81,7 +81,7 @@ export class UpBigRestartDetect extends RestartDetect {
     }
 }
 
-export class DownBigRestartDetect extends RestartDetect {
+export class DownBig extends RestartDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
 

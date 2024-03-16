@@ -53,13 +53,13 @@ export class BreakDetect extends AbstractDetect {
     }
 }
 
-export class UpBreakDetect extends BreakDetect {
+export class Up extends BreakDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP BREAK', true, segmentService, detectorService);
     }
 }
 
-export class DownBreakDetect extends BreakDetect {
+export class Down extends BreakDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN BREAK', false, segmentService, detectorService);
     }

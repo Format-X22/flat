@@ -44,19 +44,19 @@ export class PennantDetect extends AbstractDetect {
     }
 }
 
-export class UpPennantDetect extends PennantDetect {
+export class Up extends PennantDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP PENNANT', true, segmentService, detectorService);
     }
 }
 
-export class DownPennantDetect extends PennantDetect {
+export class Down extends PennantDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN PENNANT', false, segmentService, detectorService);
     }
 }
 
-export class UpMidPennantDetect extends PennantDetect {
+export class UpMid extends PennantDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
     protected maxSecondSegmentSize = 4;
@@ -66,7 +66,7 @@ export class UpMidPennantDetect extends PennantDetect {
     }
 }
 
-export class DownMidPennantDetect extends PennantDetect {
+export class DownMid extends PennantDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
     protected maxSecondSegmentSize = 4;
@@ -76,7 +76,7 @@ export class DownMidPennantDetect extends PennantDetect {
     }
 }
 
-export class UpBigPennantDetect extends PennantDetect {
+export class UpBig extends PennantDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
     protected maxSecondSegmentSize = 8;
@@ -86,7 +86,7 @@ export class UpBigPennantDetect extends PennantDetect {
     }
 }
 
-export class DownBigPennantDetect extends PennantDetect {
+export class DownBig extends PennantDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
     protected maxSecondSegmentSize = 8;

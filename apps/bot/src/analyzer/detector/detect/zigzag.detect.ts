@@ -57,19 +57,19 @@ export class ZigzagDetect extends AbstractDetect {
     }
 }
 
-export class UpZigzagDetect extends ZigzagDetect {
+export class Up extends ZigzagDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP ZIGZAG', true, segmentService, detectorService);
     }
 }
 
-export class DownZigzagDetect extends ZigzagDetect {
+export class Down extends ZigzagDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN ZIGZAG', false, segmentService, detectorService);
     }
 }
 
-export class UpMidZigzagDetect extends ZigzagDetect {
+export class UpMid extends ZigzagDetect {
     protected hmaType = EHmaType.MID_HMA;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
@@ -77,7 +77,7 @@ export class UpMidZigzagDetect extends ZigzagDetect {
     }
 }
 
-export class DownMidZigzagDetect extends ZigzagDetect {
+export class DownMid extends ZigzagDetect {
     protected hmaType = EHmaType.MID_HMA;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
@@ -85,7 +85,7 @@ export class DownMidZigzagDetect extends ZigzagDetect {
     }
 }
 
-export class UpBigZigzagDetect extends ZigzagDetect {
+export class UpBig extends ZigzagDetect {
     protected hmaType = EHmaType.BIG_HMA;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
@@ -93,7 +93,7 @@ export class UpBigZigzagDetect extends ZigzagDetect {
     }
 }
 
-export class DownBigZigzagDetect extends ZigzagDetect {
+export class DownBig extends ZigzagDetect {
     protected hmaType = EHmaType.BIG_HMA;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {

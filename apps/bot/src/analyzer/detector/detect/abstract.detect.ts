@@ -7,7 +7,6 @@ import { Duration } from 'luxon';
 import { DetectorService } from '../detector.service';
 import { Wave } from '../../wave/wave.util';
 import { config } from '../../../bot.config';
-import { ESize } from '../../../bot.types';
 
 const STOP_OFFSET = 1.5;
 const COMM_OFFSET = 0.25;
@@ -39,7 +38,7 @@ export abstract class AbstractDetect {
     protected readonly stopFib;
 
     protected constructor(
-        protected name: string,
+        public readonly name: string,
         protected readonly isNotInverted = true,
         protected segmentService: SegmentService,
         protected detectorService: DetectorService,
@@ -231,27 +230,13 @@ export abstract class AbstractDetect {
         return this.getSegments(1)[0];
     }
 
-    protected getSmallCurrentSegment(): TSegment {
-        return this.getSmallSegments(1)[0];
-    }
-
     protected getSegments(count: number): Array<TSegment> {
         return this.segmentService.getSegments(count, this.hmaType);
     }
 
-    protected getSmallSegments(count: number): Array<TSegment> {
-        return this.segmentService.getSmallSegments(count, this.hmaType);
-    }
-
-    protected getWaves(count: number, firstIsUp: boolean, small = false): Array<Wave> {
+    protected getWaves(count: number, firstIsUp: boolean): Array<Wave> {
         const required = count * 2;
-        let segments;
-
-        if (small) {
-            segments = this.getSmallSegments(required);
-        } else {
-            segments = this.getSegments(required);
-        }
+        const segments = this.getSegments(required);
 
         if (!segments[required - 1]) {
             return new Array(required);
@@ -271,24 +256,12 @@ export abstract class AbstractDetect {
         return waves;
     }
 
-    protected getSmallWaves(count: number, firstIsUp: boolean): Array<Wave> {
-        return this.getWaves(count, firstIsUp, true);
-    }
-
     protected isCurrentSegmentUp(): boolean {
         return this.isSegmentUp(this.getCurrentSegment());
     }
 
     protected isCurrentSegmentDown(): boolean {
         return this.isSegmentDown(this.getCurrentSegment());
-    }
-
-    protected isSmallCurrentSegmentUp(): boolean {
-        return this.isSegmentUp(this.getSmallCurrentSegment());
-    }
-
-    protected isSmallCurrentSegmentDown(): boolean {
-        return this.isSegmentDown(this.getSmallCurrentSegment());
     }
 
     protected isSegmentUp(segment: TSegment): boolean {
@@ -466,18 +439,7 @@ export abstract class AbstractDetect {
     }
 
     protected enterPosition(waitDays: number): void {
-        let offset;
-
-        switch (config.size) {
-            case ESize.DAY:
-                offset = this.getDaysRange(waitDays);
-                break;
-            case ESize.WEEK:
-                offset = this.getWeekRange(waitDays);
-                break;
-            default:
-                throw new Error('INVALID RANGE');
-        }
+        const offset = this.getDaysRange(waitDays);
 
         this.isInPosition = true;
         this.detectorService.enterPosition();
@@ -542,14 +504,6 @@ export abstract class AbstractDetect {
 
     protected getDaysRange(count: number): number {
         return Duration.fromObject({ day: count }).toMillis();
-    }
-
-    protected getWeekRange(count: number): number {
-        return Duration.fromObject({ day: count * 7 }).toMillis();
-    }
-
-    protected get4hRange(count: number): number {
-        return Duration.fromObject({ hours: count * 4 }).toMillis();
     }
 
     protected debugHere(dateString: string, isNotInverted: boolean): boolean {

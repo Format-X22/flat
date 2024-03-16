@@ -49,19 +49,19 @@ export class DoubleDetect extends AbstractDetect {
     }
 }
 
-export class UpDoubleDetect extends DoubleDetect {
+export class Up extends DoubleDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP DOUBLE', true, segmentService, detectorService);
     }
 }
 
-export class DownDoubleDetect extends DoubleDetect {
+export class Down extends DoubleDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN DOUBLE', false, segmentService, detectorService);
     }
 }
 
-export class UpMidDoubleDetect extends DoubleDetect {
+export class UpMid extends DoubleDetect {
     protected hmaType = EHmaType.MID_HMA;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
@@ -69,7 +69,7 @@ export class UpMidDoubleDetect extends DoubleDetect {
     }
 }
 
-export class DownMidDoubleDetect extends DoubleDetect {
+export class DownMid extends DoubleDetect {
     protected hmaType = EHmaType.MID_HMA;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
@@ -77,7 +77,7 @@ export class DownMidDoubleDetect extends DoubleDetect {
     }
 }
 
-export class UpBigDoubleDetect extends DoubleDetect {
+export class UpBig extends DoubleDetect {
     protected hmaType = EHmaType.BIG_HMA;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
@@ -85,7 +85,7 @@ export class UpBigDoubleDetect extends DoubleDetect {
     }
 }
 
-export class DownBigDoubleDetect extends DoubleDetect {
+export class DownBig extends DoubleDetect {
     protected hmaType = EHmaType.BIG_HMA;
 
     constructor(segmentService: SegmentService, detectorService: DetectorService) {

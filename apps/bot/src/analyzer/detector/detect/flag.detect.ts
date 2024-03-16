@@ -44,19 +44,19 @@ export class FlagDetect extends AbstractDetect {
     }
 }
 
-export class UpFlagDetect extends FlagDetect {
+export class Up extends FlagDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('UP FLAG', true, segmentService, detectorService);
     }
 }
 
-export class DownFlagDetect extends FlagDetect {
+export class Down extends FlagDetect {
     constructor(segmentService: SegmentService, detectorService: DetectorService) {
         super('DOWN FLAG', false, segmentService, detectorService);
     }
 }
 
-export class UpMidFlagDetect extends FlagDetect {
+export class UpMid extends FlagDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
 
@@ -65,7 +65,7 @@ export class UpMidFlagDetect extends FlagDetect {
     }
 }
 
-export class DownMidFlagDetect extends FlagDetect {
+export class DownMid extends FlagDetect {
     protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
 
@@ -74,7 +74,7 @@ export class DownMidFlagDetect extends FlagDetect {
     }
 }
 
-export class UpBigFlagDetect extends FlagDetect {
+export class UpBig extends FlagDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
 
@@ -83,7 +83,7 @@ export class UpBigFlagDetect extends FlagDetect {
     }
 }
 
-export class DownBigFlagDetect extends FlagDetect {
+export class DownBig extends FlagDetect {
     protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
 

@@ -32,7 +32,7 @@ export class LoaderService {
             take: BIG_HMA_PERIOD * 2 + 1,
             order: { timestamp: 'DESC' },
             select: ['timestamp'],
-            where: { size: config.size, ticker: config.ticker },
+            where: { size: '1d', ticker: config.ticker },
         });
         const hoursOffset = await this.candleRepo.find({
             take: BIG_HMA_PERIOD * 2 + 1,
@@ -42,9 +42,9 @@ export class LoaderService {
         });
 
         if (!dayOffset?.length) {
-            await this.load(config.size);
+            await this.load('1d');
         } else {
-            await this.load(config.size, new Date(dayOffset[dayOffset.length - 1].timestamp - 1000));
+            await this.load('1d', new Date(dayOffset[dayOffset.length - 1].timestamp - 1000));
         }
 
         if (!hoursOffset?.length) {

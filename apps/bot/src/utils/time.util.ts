@@ -1,5 +1,9 @@
 import { DateInput, DateTime, Duration, Interval } from 'luxon';
 
+export function millis(milliseconds: number): number {
+    return milliseconds;
+}
+
 export function seconds(seconds: number): number {
     return Duration.fromObject({ seconds }).toMillis();
 }

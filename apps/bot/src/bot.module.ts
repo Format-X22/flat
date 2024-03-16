@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CandleModel } from './data/candle.model';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AnalyzerModule } from './analyzer/analyzer.module';
-import { Week } from './week';
 
 @Module({
     imports: [
@@ -27,6 +26,6 @@ import { Week } from './week';
         TypeOrmModule.forFeature([CandleModel]),
     ],
     controllers: [],
-    providers: [Week],
+    providers: [],
 })
 export class BotModule {}

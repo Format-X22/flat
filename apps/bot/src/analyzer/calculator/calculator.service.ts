@@ -5,10 +5,9 @@ import { Between, Repository } from 'typeorm';
 import { SegmentService } from '../segment/segment.service';
 import { DetectorService } from '../detector/detector.service';
 import { TActualOrder } from '../detector/detector.dto';
-import { days, startOfYear } from '../../utils/time.util';
+import { days, millis, startOfYear } from '../../utils/time.util';
 import { TCalcArgs } from './calculator.dto';
 import { config } from '../../bot.config';
-import { ESize } from '../../bot.types';
 
 @Injectable()
 export class CalculatorService {
@@ -33,20 +32,8 @@ export class CalculatorService {
         const candles = await this.getCandles();
 
         for (const candle of candles) {
-            let offset;
-
-            switch (config.size) {
-                case ESize.DAY:
-                    offset = days(1);
-                    break;
-                case ESize.WEEK:
-                    offset = days(7);
-                    break;
-                default:
-                    throw new Error('INVALID SIZE');
-            }
-
-            const innerCandles = await this.getInnerCandles(candle.timestamp, candle.timestamp + offset - 1);
+            const offset = days(1) - millis(1);
+            const innerCandles = await this.getInnerCandles(candle.timestamp, candle.timestamp + offset);
 
             this.segmentService.addCandle(candle, innerCandles);
 
@@ -67,7 +54,7 @@ export class CalculatorService {
 
     private async getCandles(): Promise<Array<CandleModel>> {
         return this.candleRepo.find({
-            where: { size: config.size, ticker: config.ticker },
+            where: { size: '1d', ticker: config.ticker },
             order: { timestamp: 'ASC' },
         });
     }
