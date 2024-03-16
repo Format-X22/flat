@@ -12,6 +12,9 @@ const STOP_OFFSET = 1.5;
 const COMM_OFFSET = 0.25;
 
 export abstract class AbstractDetect {
+    public readonly name: string;
+    protected readonly isNotInverted: boolean;
+
     public order: TOrder = {
         isActive: false,
         enter: null,
@@ -31,19 +34,28 @@ export abstract class AbstractDetect {
     private failMul;
     private profitMul;
 
-    protected hmaType: EHmaType = EHmaType.HMA;
+    protected hmaType: EHmaType;
     protected readonly waitDays;
     protected readonly enterFib;
     protected readonly takeFib;
     protected readonly stopFib;
 
-    protected constructor(
-        public readonly name: string,
-        protected readonly isNotInverted = true,
-        protected segmentUtil: SegmentUtil,
-        protected detectorExecutor: DetectorExecutor,
-    ) {
-        this.logger = new Logger(name);
+    constructor(protected segmentUtil: SegmentUtil, protected detectorExecutor: DetectorExecutor) {
+        const className: string = this.constructor.name;
+        const detectorName: string = Object.getPrototypeOf(Object.getPrototypeOf(this)).constructor.name;
+
+        this.name = className + detectorName.replace('Detect', '');
+        this.isNotInverted = className.includes('Up');
+
+        if (this.name.includes('Mid')) {
+            this.hmaType = EHmaType.MID_HMA;
+        } else if (this.name.includes('Big')) {
+            this.hmaType = EHmaType.BIG_HMA;
+        } else {
+            this.hmaType = EHmaType.HMA;
+        }
+
+        this.logger = new Logger(this.name);
     }
 
     abstract check(): boolean;
@@ -457,10 +469,6 @@ export abstract class AbstractDetect {
         this.resetOrder();
 
         //this.logger.log(`< Exit position - ${this.getPrettyDate()}`);
-    }
-
-    protected getCapital(): number {
-        return this.detectorExecutor.getCapital();
     }
 
     protected mulCapital(value: number): void {

@@ -1,8 +1,6 @@
 import { AbstractDetect } from './abstract.detect';
 import { EHmaType } from '../../../data/candle.model';
 import { Wave } from '../../wave/wave.util';
-import { SegmentUtil } from '../../wave/segment.util';
-import { DetectorExecutor } from '../detector.executor';
 
 export class ZigzagDetect extends AbstractDetect {
     private lastDetectedAndOverflowWave: Wave;
@@ -57,46 +55,9 @@ export class ZigzagDetect extends AbstractDetect {
     }
 }
 
-export class Up extends ZigzagDetect {
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('UP ZIGZAG', true, segmentUtil, detectorExecutor);
-    }
-}
-
-export class Down extends ZigzagDetect {
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('DOWN ZIGZAG', false, segmentUtil, detectorExecutor);
-    }
-}
-
-export class UpMid extends ZigzagDetect {
-    protected hmaType = EHmaType.MID_HMA;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('UP MID ZIGZAG', true, segmentUtil, detectorExecutor);
-    }
-}
-
-export class DownMid extends ZigzagDetect {
-    protected hmaType = EHmaType.MID_HMA;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('DOWN MID ZIGZAG', false, segmentUtil, detectorExecutor);
-    }
-}
-
-export class UpBig extends ZigzagDetect {
-    protected hmaType = EHmaType.BIG_HMA;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('UP BIG ZIGZAG', true, segmentUtil, detectorExecutor);
-    }
-}
-
-export class DownBig extends ZigzagDetect {
-    protected hmaType = EHmaType.BIG_HMA;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('DOWN BIG ZIGZAG', false, segmentUtil, detectorExecutor);
-    }
-}
+export class Up extends ZigzagDetect {}
+export class Down extends ZigzagDetect {}
+export class UpMid extends ZigzagDetect {}
+export class DownMid extends ZigzagDetect {}
+export class UpBig extends ZigzagDetect {}
+export class DownBig extends ZigzagDetect {}

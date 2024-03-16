@@ -1,7 +1,5 @@
 import { AbstractDetect } from './abstract.detect';
 import { EHmaType } from '../../../data/candle.model';
-import { SegmentUtil } from '../../wave/segment.util';
-import { DetectorExecutor } from '../detector.executor';
 
 export class TriangleDetect extends AbstractDetect {
     protected enterFib = 1;
@@ -39,50 +37,17 @@ export class TriangleDetect extends AbstractDetect {
     }
 }
 
-export class Up extends TriangleDetect {
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('UP TRIANGLE', true, segmentUtil, detectorExecutor);
-    }
-}
-
-export class Down extends TriangleDetect {
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('DOWN TRIANGLE', false, segmentUtil, detectorExecutor);
-    }
-}
-
+export class Up extends TriangleDetect {}
+export class Down extends TriangleDetect {}
 export class UpMid extends TriangleDetect {
-    protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('UP MID TRIANGLE', true, segmentUtil, detectorExecutor);
-    }
 }
-
 export class DownMid extends TriangleDetect {
-    protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('DOWN MID TRIANGLE', false, segmentUtil, detectorExecutor);
-    }
 }
-
 export class UpBig extends TriangleDetect {
-    protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('UP BIG TRIANGLE', true, segmentUtil, detectorExecutor);
-    }
 }
-
 export class DownBig extends TriangleDetect {
-    protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('DOWN BIG TRIANGLE', false, segmentUtil, detectorExecutor);
-    }
 }

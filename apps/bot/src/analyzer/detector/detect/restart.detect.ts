@@ -1,7 +1,5 @@
 import { AbstractDetect } from './abstract.detect';
 import { EHmaType } from '../../../data/candle.model';
-import { SegmentUtil } from '../../wave/segment.util';
-import { DetectorExecutor } from '../detector.executor';
 
 export class RestartDetect extends AbstractDetect {
     protected enterFib = 0.85;
@@ -42,50 +40,17 @@ export class RestartDetect extends AbstractDetect {
     }
 }
 
-export class Up extends RestartDetect {
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('UP RESTART', true, segmentUtil, detectorExecutor);
-    }
-}
-
-export class Down extends RestartDetect {
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('DOWN RESTART', false, segmentUtil, detectorExecutor);
-    }
-}
-
+export class Up extends RestartDetect {}
+export class Down extends RestartDetect {}
 export class UpMid extends RestartDetect {
-    protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('UP MID RESTART', true, segmentUtil, detectorExecutor);
-    }
 }
-
 export class DownMid extends RestartDetect {
-    protected hmaType = EHmaType.MID_HMA;
     protected minSegmentSize = 4;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('DOWN MID RESTART', false, segmentUtil, detectorExecutor);
-    }
 }
-
 export class UpBig extends RestartDetect {
-    protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('UP BIG RESTART', true, segmentUtil, detectorExecutor);
-    }
 }
-
 export class DownBig extends RestartDetect {
-    protected hmaType = EHmaType.BIG_HMA;
     protected minSegmentSize = 8;
-
-    constructor(segmentUtil: SegmentUtil, detectorExecutor: DetectorExecutor) {
-        super('DOWN BIG RESTART', false, segmentUtil, detectorExecutor);
-    }
 }
