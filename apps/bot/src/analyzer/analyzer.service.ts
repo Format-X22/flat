@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CandleModel } from '../data/candle.model';
 import { Between, Repository } from 'typeorm';
 import { TActualOrder } from './detector/detector.dto';
-import { days, millis, startOfYear } from '../utils/time.util';
+import { days, hours, millis, startOfYear } from '../utils/time.util';
 import { TCalcArgs } from './analyzer.dto';
 import { config } from '../bot.config';
 import { SegmentUtil } from './wave/segment.util';
@@ -32,7 +32,10 @@ export class AnalyzerService {
 
         for (const candle of candles) {
             const offset = days(1) - millis(1);
-            const innerCandles = await this.getInnerCandles(candle.timestamp, candle.timestamp + offset);
+            const innerCandles = await this.getInnerCandles(
+                candle.timestamp + hours(8),
+                candle.timestamp + hours(8) + offset,
+            );
 
             segmentUtil.addCandle(candle, innerCandles);
 

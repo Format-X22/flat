@@ -182,7 +182,6 @@ export abstract class AbstractDetect {
             if (
                 !this.detectorExecutor.isInPosition() &&
                 isNoConcurrentOrders &&
-                this.candleMax(this.getCandle()) !== enterFibPrice &&
                 this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
             ) {
                 if (!this.order.isActive) {

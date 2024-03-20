@@ -1,5 +1,4 @@
 import { AbstractDetect } from './abstract.detect';
-import { EHmaType } from '../../../data/candle.model';
 
 export class TriangleDetect extends AbstractDetect {
     protected enterFib = 1;

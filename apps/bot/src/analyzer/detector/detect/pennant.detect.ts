@@ -1,5 +1,4 @@
 import { AbstractDetect } from './abstract.detect';
-import { EHmaType } from '../../../data/candle.model';
 
 export class PennantDetect extends AbstractDetect {
     protected enterFib = 0.85;

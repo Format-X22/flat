@@ -1,5 +1,4 @@
 import { AbstractDetect } from './abstract.detect';
-import { EHmaType } from '../../../data/candle.model';
 import { Wave } from '../../wave/wave.util';
 
 export class ZigzagDetect extends AbstractDetect {

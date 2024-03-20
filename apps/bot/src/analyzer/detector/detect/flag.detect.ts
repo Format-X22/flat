@@ -1,10 +1,9 @@
 import { AbstractDetect } from './abstract.detect';
-import { EHmaType } from '../../../data/candle.model';
 
 export class FlagDetect extends AbstractDetect {
     protected enterFib = 1;
     protected takeFib = 2.5;
-    protected stopFib = 0.73;
+    protected stopFib = 0.75;
 
     protected minSegmentSize = 2;
     protected maxSecondSegmentSize = 2;
