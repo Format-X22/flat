@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CandleModel } from '../data/candle.model';
 import { Between, Repository } from 'typeorm';
 import { TActualOrder } from './detector/detector.dto';
-import { days, hours, millis, startOfYear } from '../utils/time.util';
+import { days, hours, millis } from '../utils/time.util';
 import { TCalcArgs } from './analyzer.dto';
 import { config } from '../bot.config';
 import { SegmentUtil } from './wave/segment.util';
@@ -11,23 +11,11 @@ import { DetectorExecutor } from './detector/detector.executor';
 
 @Injectable()
 export class AnalyzerService {
-    private from: number = startOfYear(2018);
-    private to: number = Number.MAX_SAFE_INTEGER;
-
     constructor(@InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>) {}
 
     async calc({ risk, isSilent, from, to }: TCalcArgs): Promise<TActualOrder> {
         const segmentUtil = new SegmentUtil();
         const detectorExecutor = new DetectorExecutor(segmentUtil);
-
-        if (typeof from === 'number') {
-            this.from = from;
-        }
-
-        if (typeof to === 'number') {
-            this.to = to;
-        }
-
         const candles = await this.getCandles();
 
         for (const candle of candles) {
@@ -39,7 +27,7 @@ export class AnalyzerService {
 
             segmentUtil.addCandle(candle, innerCandles);
 
-            if (!this.isInTestRange(candle)) {
+            if (!this.isInTestRange(candle, from, to)) {
                 continue;
             }
 
@@ -68,7 +56,7 @@ export class AnalyzerService {
         });
     }
 
-    private isInTestRange(candle: CandleModel): boolean {
-        return candle.timestamp > this.from && candle.timestamp < this.to;
+    private isInTestRange(candle: CandleModel, from: number, to: number): boolean {
+        return candle.timestamp > from && candle.timestamp < to;
     }
 }
