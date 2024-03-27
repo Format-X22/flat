@@ -9,6 +9,8 @@ import * as Flag from './detect/flag.detect';
 import * as Restart from './detect/restart.detect';
 import * as Triangle from './detect/triangle.detect';
 import * as Double from './detect/double.detect';
+import { ReportUtil } from '../report/report.util';
+import { EReportItemType } from '../report/report.dto';
 
 export class DetectorExecutor {
     private readonly logger: Logger = new Logger(DetectorExecutor.name);
@@ -26,7 +28,7 @@ export class DetectorExecutor {
     protected downOrderDetector: AbstractDetect;
     protected risk: number;
 
-    constructor(private readonly segmentUtil: SegmentUtil) {
+    constructor(private readonly segmentUtil: SegmentUtil, private readonly reportUtil: ReportUtil) {
         this.detects = [
             Zigzag.UpMid,
             Zigzag.DownMid,
@@ -66,7 +68,7 @@ export class DetectorExecutor {
             Triangle.DownBig,
             Double.UpBig,
             Double.DownBig,
-        ].map((D) => new D(this.segmentUtil, this));
+        ].map((D) => new D(this, this.segmentUtil, this.reportUtil));
     }
 
     detect(isSilent: boolean, risk: number): void {
@@ -181,10 +183,15 @@ export class DetectorExecutor {
         return (this.capital / 1_000).toFixed(3);
     }
 
-    printCapital(): void {
-        this.logger.log(
-            `CAPITAL = ${this.getPrettyCapital()} - P: ${this.profitCount} Z: ${this.zeroCount} F: ${this.failCount}`,
-        );
+    reportCapital(): void {
+        this.reportUtil.add({
+            type: EReportItemType.CAPITAL,
+            value: this.getCapital(),
+            profit: this.profitCount,
+            partial: 0,
+            zero: this.zeroCount,
+            fail: this.failCount,
+        });
     }
 
     getRisk(): number {

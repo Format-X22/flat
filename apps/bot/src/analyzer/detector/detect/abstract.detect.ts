@@ -1,13 +1,13 @@
 import { CandleModel, EHmaType } from '../../../data/candle.model';
 import { TSegment } from '../../wave/segment.dto';
-import { Logger } from '@nestjs/common';
 import { TOrder } from '../detector.dto';
 import { Duration } from 'luxon';
 import { Wave } from '../../wave/wave.util';
-import { config } from '../../../bot.config';
 import { SegmentUtil } from '../../wave/segment.util';
 import { DetectorExecutor } from '../detector.executor';
 import { InversionUtil } from '../../../utils/inversion.util';
+import { ReportUtil } from '../../report/report.util';
+import { EReportItemType, ESide, ESize } from '../../report/report.dto';
 
 const STOP_OFFSET = 1.5;
 const COMM_OFFSET = 0.25;
@@ -26,7 +26,6 @@ export abstract class AbstractDetect {
     };
 
     private readonly inversion: InversionUtil;
-    private readonly logger: Logger;
 
     protected isDetected: boolean = false;
     protected isInPosition: boolean = false;
@@ -42,7 +41,15 @@ export abstract class AbstractDetect {
     protected readonly takeFib;
     protected readonly stopFib;
 
-    constructor(protected segmentUtil: SegmentUtil, protected detectorExecutor: DetectorExecutor) {
+    private reportSide: ESide;
+    private reportSize: ESize;
+    private reportRiskReward: number;
+
+    constructor(
+        protected detectorExecutor: DetectorExecutor,
+        protected segmentUtil: SegmentUtil,
+        private reportUtil: ReportUtil,
+    ) {
         const className: string = this.constructor.name;
         const detectorName: string = Object.getPrototypeOf(Object.getPrototypeOf(this)).constructor.name;
 
@@ -51,14 +58,22 @@ export abstract class AbstractDetect {
 
         if (this.name.includes('Mid')) {
             this.hmaType = EHmaType.MID_HMA;
+            this.reportSize = ESize.MID;
         } else if (this.name.includes('Big')) {
             this.hmaType = EHmaType.BIG_HMA;
+            this.reportSize = ESize.BIG;
         } else {
             this.hmaType = EHmaType.HMA;
+            this.reportSize = ESize.SMALL;
         }
 
-        this.logger = new Logger(this.name);
         this.inversion = new InversionUtil(this.isNotInverted);
+
+        if (this.isNotInverted) {
+            this.reportSide = ESide.UP;
+        } else {
+            this.reportSide = ESide.DOWN;
+        }
     }
 
     abstract check(): boolean;
@@ -85,7 +100,7 @@ export abstract class AbstractDetect {
                     ) {
                         this.addZeroFailToCapital();
                         this.exitPosition();
-                        this.printZeroFailTrade();
+                        this.reportZeroFailTrade();
                         break;
                     }
                 }
@@ -96,14 +111,14 @@ export abstract class AbstractDetect {
                     if (this.lte(this.candleMin(innerCandle), this.order.stop)) {
                         this.addFailToCapital();
                         this.exitPosition();
-                        this.printFailTrade();
+                        this.reportFailTrade();
                         break;
                     }
 
                     if (this.gt(this.candleMax(innerCandle), this.order.take)) {
                         this.addProfitToCapital();
                         this.exitPosition();
-                        this.printProfitTrade();
+                        this.reportProfitTrade();
                         break;
                     }
                 }
@@ -127,12 +142,12 @@ export abstract class AbstractDetect {
                     if (!inPositionAtNow && this.lt(this.candleMin(innerCandle), this.order.stop)) {
                         this.addFailToCapital();
                         this.exitPosition();
-                        this.printFailTrade();
+                        this.reportFailTrade();
                         break;
                     } else if (this.gt(this.candleMax(innerCandle), this.order.take)) {
                         this.addProfitToCapital();
                         this.exitPosition();
-                        this.printProfitTrade();
+                        this.reportProfitTrade();
                         break;
                     }
                 }
@@ -171,11 +186,22 @@ export abstract class AbstractDetect {
 
             if (!isNoConcurrentOrders) {
                 if (!this.detectorExecutor.isSilent) {
-                    /*this.logger.verbose(
-                        `Concurrent order - ${this.getPrettyDate()} - ${upOrderOrigin?.name} | ${
-                            downOrderOrigin?.name
-                        }`,
-                    );*/
+                    let concurrentDetectorNames;
+
+                    if (isUp) {
+                        concurrentDetectorNames = upOrderOrigin.name;
+                    } else {
+                        concurrentDetectorNames = downOrderOrigin.name;
+                    }
+
+                    this.reportUtil.add({
+                        type: EReportItemType.CONCURRENT_ORDER,
+                        detectorName: this.name,
+                        concurrentName: concurrentDetectorNames,
+                        timestamp: this.getCandle().timestamp,
+                        side: this.reportSide,
+                        size: this.reportSize,
+                    });
                 }
             }
 
@@ -185,7 +211,14 @@ export abstract class AbstractDetect {
                 this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
             ) {
                 if (!this.order.isActive) {
-                    //this.logger.verbose(`> Place order - ${this.getPrettyDate()}`);
+                    this.reportUtil.add({
+                        type: EReportItemType.PLACE_ORDER,
+                        detectorName: this.name,
+                        timestamp: this.getCandle().timestamp,
+                        side: this.reportSide,
+                        size: this.reportSize,
+                        riskReward: this.reportRiskReward,
+                    });
                 }
 
                 this.order.isActive = true;
@@ -201,7 +234,7 @@ export abstract class AbstractDetect {
             }
         } else if (this.order.isActive) {
             this.resetOrder();
-            this.printCancelTrade();
+            this.reportCancelTrade();
         }
     }
 
@@ -378,7 +411,7 @@ export abstract class AbstractDetect {
 
     protected markDetection(): boolean {
         if (!this.isDetected) {
-            this.printDetection();
+            this.reportDetection();
         }
 
         this.isDetected = true;
@@ -388,7 +421,7 @@ export abstract class AbstractDetect {
 
     protected markEndDetection(): boolean {
         if (this.isDetected) {
-            this.printDetectionEnd();
+            this.reportDetectionEnd();
         }
 
         this.isDetected = false;
@@ -396,12 +429,25 @@ export abstract class AbstractDetect {
         return false;
     }
 
-    protected printDetection(): void {
-        //this.logger.verbose(this.getCandle().dateString);
+    protected reportDetection(): void {
+        this.reportUtil.add({
+            type: EReportItemType.DETECTED_START,
+            detectorName: this.name,
+            timestamp: this.getCandle().timestamp,
+            side: this.reportSide,
+            size: this.reportSize,
+            riskReward: this.reportRiskReward,
+        });
     }
 
-    protected printDetectionEnd(): void {
-        //this.logger.verbose('<< ' + this.getCandle().dateString);
+    protected reportDetectionEnd(): void {
+        this.reportUtil.add({
+            type: EReportItemType.DETECTED_END,
+            detectorName: this.name,
+            timestamp: this.getCandle().timestamp,
+            side: this.reportSide,
+            size: this.reportSize,
+        });
     }
 
     protected enterPosition(waitDays: number): void {
@@ -413,7 +459,14 @@ export abstract class AbstractDetect {
         this.order.enterDate = this.getCandle().dateString;
         this.order.toZeroDate = this.getCandle().timestamp + offset;
 
-        config.logSim && this.logger.verbose(`> Enter position - ${this.getPrettyDate()}`);
+        this.reportUtil.add({
+            type: EReportItemType.ENTER_POSITION,
+            detectorName: this.name,
+            timestamp: this.getCandle().timestamp,
+            side: this.reportSide,
+            size: this.reportSize,
+            riskReward: this.reportRiskReward,
+        });
     }
 
     protected exitPosition(): void {
@@ -422,7 +475,14 @@ export abstract class AbstractDetect {
 
         this.resetOrder();
 
-        //this.logger.log(`< Exit position - ${this.getPrettyDate()}`);
+        this.reportUtil.add({
+            type: EReportItemType.EXIT_POSITION,
+            detectorName: this.name,
+            timestamp: this.getCandle().timestamp,
+            side: this.reportSide,
+            size: this.reportSize,
+            riskReward: this.reportRiskReward,
+        });
     }
 
     protected mulCapital(value: number): void {
@@ -448,20 +508,50 @@ export abstract class AbstractDetect {
         return this.detectorExecutor.getPrettyCapital();
     }
 
-    protected printProfitTrade(): void {
-        config.logSim && this.logger.log(`PROFIT - ${this.getPrettyCapital()} - ${this.getPrettyDate()}`);
+    protected reportProfitTrade(): void {
+        this.reportUtil.add({
+            type: EReportItemType.DEAL_PROFIT,
+            detectorName: this.name,
+            timestamp: this.getCandle().timestamp,
+            size: this.reportSize,
+            side: this.reportSide,
+            riskReward: this.reportRiskReward,
+            value: this.detectorExecutor.getCapital(),
+        });
     }
 
-    protected printZeroFailTrade(): void {
-        config.logSim && this.logger.log(`ZERO - ${this.getPrettyCapital()} - ${this.getPrettyDate()}`);
+    protected reportZeroFailTrade(): void {
+        this.reportUtil.add({
+            type: EReportItemType.DEAL_ZERO,
+            detectorName: this.name,
+            timestamp: this.getCandle().timestamp,
+            size: this.reportSize,
+            side: this.reportSide,
+            riskReward: this.reportRiskReward,
+            value: this.detectorExecutor.getCapital(),
+        });
     }
 
-    protected printFailTrade(): void {
-        config.logSim && this.logger.log(`FAIL - ${this.getPrettyCapital()} - ${this.getPrettyDate()}`);
+    protected reportFailTrade(): void {
+        this.reportUtil.add({
+            type: EReportItemType.DEAL_ZERO,
+            detectorName: this.name,
+            timestamp: this.getCandle().timestamp,
+            size: this.reportSize,
+            side: this.reportSide,
+            riskReward: this.reportRiskReward,
+            value: this.detectorExecutor.getCapital(),
+        });
     }
 
-    protected printCancelTrade(): void {
-        //this.logger.log(`CANCEL - ${this.getPrettyDate()}`);
+    protected reportCancelTrade(): void {
+        this.reportUtil.add({
+            type: EReportItemType.CANCEL_ORDER,
+            detectorName: this.name,
+            timestamp: this.getCandle().timestamp,
+            size: this.reportSize,
+            side: this.reportSide,
+        });
     }
 
     protected getDaysRange(count: number): number {
@@ -490,6 +580,12 @@ export abstract class AbstractDetect {
 
         this.profitMul = 1 + (angle * riskRewardFact) / 100;
 
-        config.logSim && this.logger.verbose(`Reward ${((this.profitMul - 1) * 100).toFixed()}%`);
+        this.reportRiskReward = (this.profitMul - 1) * 100;
+
+        this.reportUtil.add({
+            type: EReportItemType.REWARDS,
+            detectorName: this.name,
+            value: this.reportRiskReward,
+        });
     }
 }

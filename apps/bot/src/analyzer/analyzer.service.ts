@@ -8,6 +8,7 @@ import { TCalcArgs } from './analyzer.dto';
 import { config } from '../bot.config';
 import { SegmentUtil } from './wave/segment.util';
 import { DetectorExecutor } from './detector/detector.executor';
+import { ReportUtil } from './report/report.util';
 
 @Injectable()
 export class AnalyzerService {
@@ -15,7 +16,8 @@ export class AnalyzerService {
 
     async calc({ risk, isSilent, from, to }: TCalcArgs): Promise<TActualOrder> {
         const segmentUtil = new SegmentUtil();
-        const detectorExecutor = new DetectorExecutor(segmentUtil);
+        const reportUtil = new ReportUtil();
+        const detectorExecutor = new DetectorExecutor(segmentUtil, reportUtil);
         const candles = await this.getCandles();
 
         for (const candle of candles) {
@@ -35,7 +37,8 @@ export class AnalyzerService {
         }
 
         if (!isSilent) {
-            detectorExecutor.printCapital();
+            detectorExecutor.reportCapital();
+            reportUtil.printTrade(new Set(['ALL']));
             detectorExecutor.printLastOrders();
         }
 
