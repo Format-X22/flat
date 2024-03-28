@@ -534,7 +534,7 @@ export abstract class AbstractDetect {
 
     protected reportFailTrade(): void {
         this.reportUtil.add({
-            type: EReportItemType.DEAL_ZERO,
+            type: EReportItemType.DEAL_FAIL,
             detectorName: this.name,
             timestamp: this.getCandle().timestamp,
             size: this.reportSize,

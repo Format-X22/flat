@@ -24,6 +24,14 @@ export enum ESize {
     BIG = 'BIG',
 }
 
+export enum ETWColor {
+    RED = 'red',
+    GREEN = 'green',
+    BLUE = 'blue',
+    FUCHSIA = 'fuchsia',
+    ORANGE = 'orange',
+}
+
 export enum EReportItemType {
     CONCURRENT_ORDER = 'CONCURRENT_ORDER',
     PLACE_ORDER = 'PLACE_ORDER',

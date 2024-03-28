@@ -37,3 +37,4 @@ lerna-debug.log*
 # Security
 .env
 base.db
+report/*.*
