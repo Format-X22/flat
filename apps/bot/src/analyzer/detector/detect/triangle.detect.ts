@@ -2,7 +2,7 @@ import { AbstractDetect } from './abstract.detect';
 
 export class TriangleDetect extends AbstractDetect {
     protected enterFib = 1;
-    protected takeFib = 1.75;
+    protected takeFib = 1.8;
     protected stopFib = 0.5;
 
     protected waitDays = 4;
@@ -16,7 +16,7 @@ export class TriangleDetect extends AbstractDetect {
         }
 
         const notOverflow = down0.maxLt(up1.max);
-        const triangleOffset = this.getFib(up1.max, down2.min, 0.5, true);
+        const triangleOffset = this.getFib(up2.max, down2.min, 0.4, true);
         const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (

@@ -6,7 +6,7 @@ export class RestartDetect extends AbstractDetect {
     protected stopFib = 0.75;
 
     protected minSegmentSize = 2;
-    protected waitDays = 4;
+    protected waitDays = 3;
 
     check(): boolean {
         const [down0, up1, down1, up2] = this.getWaves(4, false);
@@ -24,6 +24,8 @@ export class RestartDetect extends AbstractDetect {
         if (
             notOverflow &&
             down0.sizeLeft >= this.minSegmentSize &&
+            down1.sizeLeft >= this.minSegmentSize &&
+            down1.sizeRight >= this.minSegmentSize &&
             down0.sizeLeft < up1.sizeLeft &&
             down0.minLt(flagLikeLevel) &&
             up1.maxLt(up2.max) &&

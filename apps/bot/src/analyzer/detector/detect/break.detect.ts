@@ -7,7 +7,7 @@ export class BreakDetect extends AbstractDetect {
     protected enterFib = 0.62;
     protected takeFib = 2;
     protected stopFib = 0.33;
-    protected minSegmentSize = 2;
+    protected minSegmentSize = 1;
 
     protected waitDays = 3;
 
