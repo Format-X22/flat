@@ -1,3 +1,9 @@
+type TTimestamp = number;
+type TDetectorName = string;
+type TRiskReward = number;
+type TValue = number;
+type TCount = number;
+
 export type TReportItem =
     | TReportConcurrentOrder
     | TReportPlaceOrder
@@ -50,116 +56,138 @@ export enum EReportItemType {
 
 export type TReportConcurrentOrder = {
     type: EReportItemType.CONCURRENT_ORDER;
-    timestamp: number;
-    detectorName: string;
-    concurrentName: string;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
+    concurrentName: TDetectorName;
     side: ESide;
     size: ESize;
 };
 
 export type TReportPlaceOrder = {
     type: EReportItemType.PLACE_ORDER;
-    timestamp: number;
-    detectorName: string;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
     side: ESide;
     size: ESize;
-    riskReward: number;
+    riskReward: TRiskReward;
 };
 
 export type TReportCancelOrder = {
     type: EReportItemType.CANCEL_ORDER;
-    timestamp: number;
-    detectorName: string;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
     side: ESide;
     size: ESize;
 };
 
 export type TReportDetectedStart = {
     type: EReportItemType.DETECTED_START;
-    timestamp: number;
-    detectorName: string;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
     side: ESide;
     size: ESize;
-    riskReward: number;
+    riskReward: TRiskReward;
 };
 
 export type TReportDetectedEnd = {
     type: EReportItemType.DETECTED_END;
-    timestamp: number;
-    detectorName: string;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
     side: ESide;
     size: ESize;
 };
 
 export type TReportEnterPosition = {
     type: EReportItemType.ENTER_POSITION;
-    timestamp: number;
-    detectorName: string;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
     side: ESide;
     size: ESize;
-    riskReward: number;
+    riskReward: TRiskReward;
 };
 
 export type TReportExitPosition = {
     type: EReportItemType.EXIT_POSITION;
-    timestamp: number;
-    detectorName: string;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
     side: ESide;
     size: ESize;
-    riskReward: number;
+    riskReward: TRiskReward;
 };
 
 export type TReportDealProfit = {
     type: EReportItemType.DEAL_PROFIT;
-    timestamp: number;
-    detectorName: string;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
     side: ESide;
     size: ESize;
-    riskReward: number;
-    value: number;
+    riskReward: TRiskReward;
+    value: TValue;
 };
 
 export type TReportDealPartial = {
     type: EReportItemType.DEAL_PARTIAL;
-    timestamp: number;
-    detectorName: string;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
     side: ESide;
     size: ESize;
-    riskReward: number;
-    value: number;
+    riskReward: TRiskReward;
+    value: TValue;
 };
 
 export type TReportDealZero = {
     type: EReportItemType.DEAL_ZERO;
-    timestamp: number;
-    detectorName: string;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
     side: ESide;
     size: ESize;
-    riskReward: number;
-    value: number;
+    riskReward: TRiskReward;
+    value: TValue;
 };
 
 export type TReportDealFail = {
     type: EReportItemType.DEAL_FAIL;
-    timestamp: number;
-    detectorName: string;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
     side: ESide;
     size: ESize;
-    riskReward: number;
-    value: number;
+    riskReward: TRiskReward;
+    value: TValue;
 };
 
 export type TReportRewards = {
     type: EReportItemType.REWARDS;
-    detectorName: string;
-    value: number;
+    detectorName: TDetectorName;
+    value: TValue;
 };
 
 export type TReportCapital = {
     type: EReportItemType.CAPITAL;
-    value: number;
-    profit: number;
-    partial: number;
-    zero: number;
-    fail: number;
+    value: TValue;
+    profit: TCount;
+    partial: TCount;
+    zero: TCount;
+    fail: TCount;
+};
+
+export type TCsvRecordLine = {
+    type: EReportItemType;
+    timestamp: TTimestamp;
+    detectorName: TDetectorName;
+    concurrentName: TDetectorName;
+    side: ESide;
+    size: ESize;
+    riskReward: TRiskReward;
+    value: TValue;
+};
+
+export const CSV_HEADERS: Record<keyof TCsvRecordLine, string> = {
+    type: 'Type',
+    timestamp: 'Timestamp',
+    detectorName: 'Detector name',
+    concurrentName: 'Concurrent name',
+    side: 'Side',
+    size: 'Size',
+    riskReward: 'Risk / Reward',
+    value: 'Value',
 };

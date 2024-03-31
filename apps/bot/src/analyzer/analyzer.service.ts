@@ -38,8 +38,9 @@ export class AnalyzerService {
 
         if (!isSilent) {
             detectorExecutor.reportCapital();
-            reportUtil.printTrade(new Set(['ALL']));
+            //reportUtil.printTrade(new Set(['ALL']));
             //reportUtil.makeTradingViewScript();
+            reportUtil.makeCsvFile();
             detectorExecutor.printLastOrders();
         }
 

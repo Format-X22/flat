@@ -1,8 +1,9 @@
-import { EReportItemType, ETWColor, TReportItem } from './report.dto';
+import { CSV_HEADERS, EReportItemType, ETWColor, TReportItem } from './report.dto';
 import { Logger } from '@nestjs/common';
 import { DateTime } from 'luxon';
 import { join } from 'node:path';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
+import { stringify as csv } from 'csv/sync';
 
 export class ReportUtil {
     private logger: Logger = new Logger(ReportUtil.name);
@@ -110,7 +111,28 @@ export class ReportUtil {
     }
 
     makeCsvFile(): void {
-        // TODO -
+        const path = this.getFilePath('analytics.csv');
+        const headers = { ...CSV_HEADERS };
+        const lines: Array<TReportItem> = [];
+
+        for (const item of this.data) {
+            switch (item.type) {
+                case EReportItemType.CONCURRENT_ORDER:
+                case EReportItemType.PLACE_ORDER:
+                case EReportItemType.CANCEL_ORDER:
+                case EReportItemType.DETECTED_START:
+                case EReportItemType.DETECTED_END:
+                case EReportItemType.ENTER_POSITION:
+                case EReportItemType.EXIT_POSITION:
+                case EReportItemType.DEAL_PROFIT:
+                case EReportItemType.DEAL_PARTIAL:
+                case EReportItemType.DEAL_ZERO:
+                case EReportItemType.DEAL_FAIL:
+                    lines.push(item);
+            }
+        }
+
+        fs.writeFileSync(path, csv(lines, { header: true, columns: headers }));
     }
 
     private prettyDate(timestamp: number): string {
