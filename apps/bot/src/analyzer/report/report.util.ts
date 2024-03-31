@@ -135,6 +135,84 @@ export class ReportUtil {
         fs.writeFileSync(path, csv(lines, { header: true, columns: headers }));
     }
 
+    makeRiskArrayFile(): void {
+        const path = this.getFilePath('risk.txt');
+        const lines: Array<string> = [];
+
+        for (const item of this.data) {
+            switch (item.type) {
+                case EReportItemType.DEAL_PROFIT:
+                case EReportItemType.DEAL_PARTIAL:
+                case EReportItemType.DEAL_ZERO:
+                case EReportItemType.DEAL_FAIL:
+                    lines.push(item.riskReward.toFixed());
+            }
+        }
+
+        fs.writeFileSync(path, lines.join('\n'));
+    }
+
+    makeProfitArrayFile(): void {
+        const path = this.getFilePath('profit.txt');
+        const lines: Array<string> = [];
+
+        for (const item of this.data) {
+            switch (item.type) {
+                case EReportItemType.DEAL_PROFIT:
+                case EReportItemType.DEAL_PARTIAL:
+                case EReportItemType.DEAL_ZERO:
+                case EReportItemType.DEAL_FAIL:
+                    lines.push(item.value.toFixed());
+            }
+        }
+
+        fs.writeFileSync(path, lines.join('\n'));
+    }
+
+    makeProfitByMonthArrayFile(): void {
+        const path = this.getFilePath('profit-by-month.txt');
+        const lines: Array<string> = [];
+        let lastMonth = -1;
+
+        for (const item of this.data) {
+            switch (item.type) {
+                case EReportItemType.DEAL_PROFIT:
+                case EReportItemType.DEAL_PARTIAL:
+                case EReportItemType.DEAL_ZERO:
+                case EReportItemType.DEAL_FAIL:
+                    const date = new Date(item.timestamp);
+                    const month = date.getMonth();
+
+                    if (lastMonth === -1) {
+                        lastMonth = month;
+                        lines.push(item.value.toFixed());
+                        continue;
+                    }
+
+                    if (month === lastMonth) {
+                        lines[lines.length - 1] = item.value.toFixed();
+                    } else {
+                        let pullDiff = 0;
+
+                        if (month > lastMonth) {
+                            pullDiff = month - lastMonth - 1;
+                        } else {
+                            pullDiff = 11 - lastMonth + month - 1;
+                        }
+
+                        for (let i = 0; i < pullDiff; i++) {
+                            lines.push(item.value.toFixed());
+                        }
+
+                        lines.push(item.value.toFixed());
+                        lastMonth = month;
+                    }
+            }
+        }
+
+        fs.writeFileSync(path, lines.join('\n'));
+    }
+
     private prettyDate(timestamp: number): string {
         return DateTime.fromMillis(Number(timestamp)).toFormat('dd-MM-y HH');
     }

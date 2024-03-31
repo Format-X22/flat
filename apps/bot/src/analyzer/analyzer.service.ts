@@ -40,7 +40,10 @@ export class AnalyzerService {
             detectorExecutor.reportCapital();
             //reportUtil.printTrade(new Set(['ALL']));
             //reportUtil.makeTradingViewScript();
-            reportUtil.makeCsvFile();
+            //reportUtil.makeCsvFile();
+            //reportUtil.makeRiskArrayFile();
+            //reportUtil.makeProfitArrayFile();
+            reportUtil.makeProfitByMonthArrayFile();
             detectorExecutor.printLastOrders();
         }
 
