@@ -185,24 +185,22 @@ export abstract class AbstractDetect {
             const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
 
             if (!isNoConcurrentOrders) {
-                if (!this.detectorExecutor.isSilent) {
-                    let concurrentDetectorNames;
+                let concurrentDetectorNames;
 
-                    if (isUp) {
-                        concurrentDetectorNames = upOrderOrigin.name;
-                    } else {
-                        concurrentDetectorNames = downOrderOrigin.name;
-                    }
-
-                    this.reportUtil.add({
-                        type: EReportItemType.CONCURRENT_ORDER,
-                        detectorName: this.name,
-                        concurrentName: concurrentDetectorNames,
-                        timestamp: this.getCandle().timestamp,
-                        side: this.reportSide,
-                        size: this.reportSize,
-                    });
+                if (isUp) {
+                    concurrentDetectorNames = upOrderOrigin.name;
+                } else {
+                    concurrentDetectorNames = downOrderOrigin.name;
                 }
+
+                this.reportUtil.add({
+                    type: EReportItemType.CONCURRENT_ORDER,
+                    detectorName: this.name,
+                    concurrentName: concurrentDetectorNames,
+                    timestamp: this.getCandle().timestamp,
+                    side: this.reportSide,
+                    size: this.reportSize,
+                });
             }
 
             if (

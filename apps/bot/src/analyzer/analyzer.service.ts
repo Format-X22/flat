@@ -14,7 +14,7 @@ import { ReportUtil } from './report/report.util';
 export class AnalyzerService {
     constructor(@InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>) {}
 
-    async calc({ risk, isSilent, from, to }: TCalcArgs): Promise<TActualOrder> {
+    async calc({ risk, from, to }: TCalcArgs): Promise<TActualOrder> {
         const segmentUtil = new SegmentUtil();
         const reportUtil = new ReportUtil();
         const detectorExecutor = new DetectorExecutor(segmentUtil, reportUtil);
@@ -23,8 +23,8 @@ export class AnalyzerService {
         for (const candle of candles) {
             const offset = days(1) - millis(1);
             const innerCandles = await this.getInnerCandles(
-                candle.timestamp + hours(8),
-                candle.timestamp + hours(8) + offset,
+                candle.timestamp + hours(config.offset),
+                candle.timestamp + hours(config.offset) + offset,
             );
 
             segmentUtil.addCandle(candle, innerCandles);
@@ -33,19 +33,27 @@ export class AnalyzerService {
                 continue;
             }
 
-            detectorExecutor.detect(isSilent, risk);
+            detectorExecutor.detect(risk);
         }
 
-        if (!isSilent) {
-            detectorExecutor.reportCapital();
-            //reportUtil.printTrade(new Set(['ALL']));
-            //reportUtil.makeTradingViewScript();
-            //reportUtil.makeCsvFile();
-            //reportUtil.makeRiskArrayFile();
-            //reportUtil.makeProfitArrayFile();
-            reportUtil.makeProfitByMonthArrayFile();
-            detectorExecutor.printLastOrders();
+        detectorExecutor.reportCapital();
+
+        if (config.printTrades) {
+            reportUtil.printTrade(new Set(['ALL']));
         }
+
+        if (config.makeTW) {
+            reportUtil.makeTradingViewScript();
+        }
+
+        if (config.makeCsv) {
+            reportUtil.makeCsvFile();
+            reportUtil.makeRiskArrayFile();
+            reportUtil.makeProfitArrayFile();
+            reportUtil.makeProfitByMonthArrayFile();
+        }
+
+        detectorExecutor.printLastOrders();
 
         return detectorExecutor.getOrders();
     }

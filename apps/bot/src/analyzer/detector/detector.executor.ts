@@ -16,8 +16,6 @@ export class DetectorExecutor {
     private readonly logger: Logger = new Logger(DetectorExecutor.name);
     private readonly detects: Array<AbstractDetect>;
 
-    isSilent: boolean;
-
     private capital = 100;
     private profitCount = 0;
     private zeroCount = 0;
@@ -71,9 +69,8 @@ export class DetectorExecutor {
         ].map((D) => new D(this, this.segmentUtil, this.reportUtil));
     }
 
-    detect(isSilent: boolean, risk: number): void {
+    detect(risk: number): void {
         this.risk = risk;
-        this.isSilent = isSilent;
 
         this.detects.forEach((d) => d.check());
         this.detects.forEach((d) => d.handleOrder());
