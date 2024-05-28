@@ -173,9 +173,9 @@ export abstract class AbstractDetect {
                 valB = this.min(current, prev1);
             }
 
-            const stopFibPrice = this.getFib(valA, valB, this.stopFib);
-            const enterFibPrice = this.getFib(valA, valB, this.enterFib);
-            const takeFibPrice = this.getFib(valA, valB, this.takeFib);
+            const stopFibPrice = this.getFibByValue(valA, valB, this.stopFib);
+            const enterFibPrice = this.getFibByValue(valA, valB, this.enterFib);
+            const takeFibPrice = this.getFibByValue(valA, valB, this.takeFib);
 
             const isUp = this.isNotInverted;
             const isConcurrentUpOrder = this.detectorExecutor.isConcurrentUpOrder(this);
@@ -350,10 +350,12 @@ export abstract class AbstractDetect {
         }
     }
 
-    protected getFib(first: number, last: number, val: number): number {
-        const firstIsMaxValue = this.inversion.bool(true);
+    protected getFib(first: Wave, last: Wave, val: number): number {
+        return this.segmentUtil.getFib(first.max, last.min, val);
+    }
 
-        return this.segmentUtil.getFib(first, last, val, firstIsMaxValue);
+    protected getFibByValue(first: number, last: number, val: number): number {
+        return this.segmentUtil.getFib(first, last, val);
     }
 
     protected gt(valA: number, valB: number): boolean {

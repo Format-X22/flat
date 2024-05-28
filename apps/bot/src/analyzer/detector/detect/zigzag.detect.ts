@@ -24,9 +24,9 @@ export class ZigzagDetect extends AbstractDetect {
             return this.markEndDetection();
         }
 
-        const zigzagOffset = this.getFib(up1.max, down0.min, 0.5);
-        const zigzagEnter = this.getFib(up1.max, down0.min, this.enterFib);
-        const zigzagMinMove = this.getFib(up1.max, down0.min, 0.33);
+        const zigzagOffset = this.getFib(up1, down0, 0.5);
+        const zigzagEnter = this.getFib(up1, down0, this.enterFib);
+        const zigzagMinMove = this.getFib(up1, down0, 0.33);
         const notOverflow = this.lt(this.candleMax(this.getCandle()), zigzagEnter);
         const anyCandleUnderOffset = down0.candles.some((candle) => this.lt(this.candleMax(candle), zigzagOffset));
         const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;

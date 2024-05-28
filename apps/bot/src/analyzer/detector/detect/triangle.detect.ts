@@ -16,7 +16,7 @@ export class TriangleDetect extends AbstractDetect {
         }
 
         const notOverflow = down0.maxLt(up1.max);
-        const triangleOffset = this.getFib(up2.max, down2.min, 0.4);
+        const triangleOffset = this.getFib(up2, down2, 0.4);
         const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (

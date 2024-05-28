@@ -16,8 +16,8 @@ export class RestartDetect extends AbstractDetect {
         }
 
         const notOverflow = down0.maxLt(up1.max);
-        const flagLikeLevel = this.getFib(up1.max, down1.min, 0.5);
-        const minFallbackLever = this.getFib(up1.max, down0.min, 0.62);
+        const flagLikeLevel = this.getFib(up1, down1, 0.5);
+        const minFallbackLever = this.getFib(up1, down0, 0.62);
         const candlesFallbackOk = down0.candles.some((candle) => this.lt(this.candleMax(candle), minFallbackLever));
         const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 

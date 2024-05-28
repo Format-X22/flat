@@ -57,10 +57,10 @@ export class SegmentUtil {
         return result;
     }
 
-    getFib(first: number, last: number, val: number, firstIsMax: boolean): number {
+    getFib(first: number, last: number, val: number): number {
         const zone = Math.abs(first - last);
-        const min = firstIsMax ? last : first;
-        const mul = firstIsMax ? val : 1 - val;
+        const min = Math.min(first, last);
+        const mul = min === last ? val : 1 - val;
 
         return zone * mul + min;
     }
