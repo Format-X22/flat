@@ -47,32 +47,11 @@ export class SegmentUtil {
         }
     }
 
-    getPrevSmallSegment(index: number, type: EHmaType): TSegment {
-        switch (type) {
-            case EHmaType.HMA:
-                return this.microSegments.getPrevSegment(index);
-            case EHmaType.MID_HMA:
-                return this.segments.getPrevSegment(index);
-            case EHmaType.BIG_HMA:
-                return this.midSegments.getPrevSegment(index);
-        }
-    }
-
     getSegments(count: number, type: EHmaType): Array<TSegment> {
         const result: Array<TSegment> = [];
 
         for (let i = 0; i < count; i++) {
             result.push(this.getPrevSegment(i, type));
-        }
-
-        return result;
-    }
-
-    getSmallSegments(count: number, type: EHmaType): Array<TSegment> {
-        const result: Array<TSegment> = [];
-
-        for (let i = 0; i < count; i++) {
-            result.push(this.getPrevSmallSegment(i, type));
         }
 
         return result;

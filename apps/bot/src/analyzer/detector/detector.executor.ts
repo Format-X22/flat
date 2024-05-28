@@ -176,10 +176,6 @@ export class DetectorExecutor {
         this.failCount++;
     }
 
-    getPrettyCapital(): string {
-        return (this.capital / 1_000).toFixed(3);
-    }
-
     reportCapital(): void {
         this.reportUtil.add({
             type: EReportItemType.CAPITAL,

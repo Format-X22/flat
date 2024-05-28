@@ -16,8 +16,8 @@ export class FlagDetect extends AbstractDetect {
             return;
         }
 
-        const trendOffset = this.getFib(up1.max, down1.min, 0.5, true);
-        const flagBodyOffset = this.getFib(up1.max, down0.min, 0.5, true);
+        const trendOffset = this.getFib(up1.max, down1.min, 0.5);
+        const flagBodyOffset = this.getFib(up1.max, down0.min, 0.5);
         const notOverflow = up1.maxGte(down0.max);
         const candleNotInHalfDown = down0.candles.every((candle) => this.gt(this.candleMax(candle), flagBodyOffset));
         const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;

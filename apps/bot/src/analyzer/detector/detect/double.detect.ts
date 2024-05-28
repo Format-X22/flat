@@ -17,8 +17,8 @@ export class DoubleDetect extends AbstractDetect {
         }
 
         const notOverflow = up1.maxGte(down0.max);
-        const trendOffsetFirst = this.getFib(up2.max, down2.min, 0.4, true);
-        const pennantBodyOffsetSecond = this.getFib(up1.max, down0.min, 0.5, true);
+        const trendOffsetFirst = this.getFib(up2.max, down2.min, 0.4);
+        const pennantBodyOffsetSecond = this.getFib(up1.max, down0.min, 0.5);
         const candleInHalfDownSecond = down0.candles.some((candle) =>
             this.lt(this.candleMax(candle), pennantBodyOffsetSecond),
         );

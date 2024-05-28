@@ -41,8 +41,8 @@ export abstract class AbstractDetect {
     protected readonly takeFib;
     protected readonly stopFib;
 
-    private reportSide: ESide;
-    private reportSize: ESize;
+    private readonly reportSide: ESide;
+    private readonly reportSize: ESize;
     private reportRiskReward: number;
 
     constructor(
@@ -173,9 +173,9 @@ export abstract class AbstractDetect {
                 valB = this.min(current, prev1);
             }
 
-            const stopFibPrice = this.getFib(valA, valB, this.stopFib, true);
-            const enterFibPrice = this.getFib(valA, valB, this.enterFib, true);
-            const takeFibPrice = this.getFib(valA, valB, this.takeFib, true);
+            const stopFibPrice = this.getFib(valA, valB, this.stopFib);
+            const enterFibPrice = this.getFib(valA, valB, this.enterFib);
+            const takeFibPrice = this.getFib(valA, valB, this.takeFib);
 
             const isUp = this.isNotInverted;
             const isConcurrentUpOrder = this.detectorExecutor.isConcurrentUpOrder(this);
@@ -206,7 +206,7 @@ export abstract class AbstractDetect {
             if (
                 !this.detectorExecutor.isInPosition() &&
                 isNoConcurrentOrders &&
-                this.constLt((enterFibPrice / 100) * this.minStopOffsetSize, this.diff(enterFibPrice, stopFibPrice))
+                (enterFibPrice / 100) * this.minStopOffsetSize < this.diff(enterFibPrice, stopFibPrice)
             ) {
                 if (!this.order.isActive) {
                     this.reportUtil.add({
@@ -350,8 +350,8 @@ export abstract class AbstractDetect {
         }
     }
 
-    protected getFib(first: number, last: number, val: number, firstIsMax: boolean): number {
-        const firstIsMaxValue = this.inversion.bool(firstIsMax);
+    protected getFib(first: number, last: number, val: number): number {
+        const firstIsMaxValue = this.inversion.bool(true);
 
         return this.segmentUtil.getFib(first, last, val, firstIsMaxValue);
     }
@@ -389,22 +389,6 @@ export abstract class AbstractDetect {
             () => valA - valB,
             () => valB - valA,
         );
-    }
-
-    protected constGt(valA: number, valB: number): boolean {
-        return valA > valB;
-    }
-
-    protected constGte(valA: number, valB: number): boolean {
-        return valA >= valB;
-    }
-
-    protected constLt(valA: number, valB: number): boolean {
-        return valA < valB;
-    }
-
-    protected constLte(valA: number, valB: number): boolean {
-        return valA <= valB;
     }
 
     protected markDetection(): boolean {
@@ -500,10 +484,6 @@ export abstract class AbstractDetect {
     protected addProfitToCapital(): void {
         this.mulCapital(this.profitMul);
         this.detectorExecutor.addProfitCount();
-    }
-
-    protected getPrettyCapital(): string {
-        return this.detectorExecutor.getPrettyCapital();
     }
 
     protected reportProfitTrade(): void {
