@@ -206,7 +206,7 @@ export abstract class AbstractDetect {
             if (
                 !this.detectorExecutor.isInPosition() &&
                 isNoConcurrentOrders &&
-                (enterFibPrice / 100) * this.minStopOffsetSize < this.diff(enterFibPrice, stopFibPrice)
+                (enterFibPrice / 100) * this.minStopOffsetSize < Math.abs(enterFibPrice - stopFibPrice)
             ) {
                 if (!this.order.isActive) {
                     this.reportUtil.add({
@@ -383,13 +383,6 @@ export abstract class AbstractDetect {
         return this.inversion.fn(
             () => valA <= valB,
             () => valA >= valB,
-        );
-    }
-
-    protected diff(valA: number, valB: number): number {
-        return this.inversion.fn(
-            () => valA - valB,
-            () => valB - valA,
         );
     }
 
