@@ -10,7 +10,6 @@ import { sleep } from '../utils/sleep.util';
 import { DateTime } from 'luxon';
 import { config } from '../bot.config';
 
-const MICRO_HMA_PERIOD = 4;
 const HMA_PERIOD = 7;
 const MID_HMA_PERIOD = 14;
 const BIG_HMA_PERIOD = 30;

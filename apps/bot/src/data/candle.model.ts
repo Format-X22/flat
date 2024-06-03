@@ -36,9 +36,6 @@ export class CandleModel {
     close: number;
 
     @Column('real')
-    microHma: number;
-
-    @Column('real')
     hma: number;
 
     @Column('real')
