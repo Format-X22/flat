@@ -2,7 +2,6 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 import { ETicker } from '../bot.types';
 
 export enum EHmaType {
-    MICRO_HMA = 'microHma',
     HMA = 'hma',
     MID_HMA = 'midHma',
     BIG_HMA = 'bigHma',

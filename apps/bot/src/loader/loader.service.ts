@@ -75,7 +75,6 @@ export class LoaderService {
 
         sorted.pop();
 
-        this.addHma(MICRO_HMA_PERIOD, sorted, EHmaType.MICRO_HMA);
         this.addHma(HMA_PERIOD, sorted, EHmaType.HMA);
         this.addHma(MID_HMA_PERIOD, sorted, EHmaType.MID_HMA);
         this.addHma(BIG_HMA_PERIOD, sorted, EHmaType.BIG_HMA);

@@ -3,7 +3,6 @@ import { CandleModel, EHmaType } from '../../data/candle.model';
 import { TSegment } from './segment.dto';
 
 export class SegmentUtil {
-    private readonly microSegments: SegmentStorage;
     private readonly segments: SegmentStorage;
     private readonly midSegments: SegmentStorage;
     private readonly bigSegments: SegmentStorage;
@@ -12,7 +11,6 @@ export class SegmentUtil {
     innerCandles: Array<Array<CandleModel>> = [];
 
     constructor() {
-        this.microSegments = new SegmentStorage(this.candles, EHmaType.MICRO_HMA);
         this.segments = new SegmentStorage(this.candles, EHmaType.HMA);
         this.midSegments = new SegmentStorage(this.candles, EHmaType.MID_HMA);
         this.bigSegments = new SegmentStorage(this.candles, EHmaType.BIG_HMA);
@@ -22,7 +20,6 @@ export class SegmentUtil {
         this.candles.push(candle);
         this.innerCandles.push(innerCandles);
 
-        this.microSegments.addCandle(candle);
         this.segments.addCandle(candle);
         this.midSegments.addCandle(candle);
         this.bigSegments.addCandle(candle);
