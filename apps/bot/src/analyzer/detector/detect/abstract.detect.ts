@@ -5,9 +5,8 @@ import { Duration } from 'luxon';
 import { Wave } from '../../wave/wave.util';
 import { SegmentUtil } from '../../wave/segment.util';
 import { DetectorExecutor } from '../detector.executor';
-import { InversionUtil } from '../../../utils/inversion.util';
 import { ReportUtil } from '../../report/report.util';
-import { EReportItemType, ESide, ESize } from '../../report/report.dto';
+import { EReportItemType, ESide, ESize, TReportItem, TReportRewards } from '../../report/report.dto';
 
 const STOP_OFFSET = 1.5;
 const COMM_OFFSET = 0.25;
@@ -24,8 +23,6 @@ export abstract class AbstractDetect {
         enterDate: null,
         toZeroDate: null,
     };
-
-    private readonly inversion: InversionUtil;
 
     protected isDetected: boolean = false;
     protected isInPosition: boolean = false;
@@ -67,8 +64,6 @@ export abstract class AbstractDetect {
             this.reportSize = ESize.SMALL;
         }
 
-        this.inversion = new InversionUtil(this.isNotInverted);
-
         if (this.isNotInverted) {
             this.reportSide = ESide.UP;
         } else {
@@ -95,8 +90,8 @@ export abstract class AbstractDetect {
 
                 for (const innerCandle of innerCandles) {
                     if (
-                        (this.lte(innerCandle.open, enter) && this.gt(this.candleMax(innerCandle), enter)) ||
-                        (this.gt(innerCandle.open, enter) && this.lt(this.candleMin(innerCandle), enter))
+                        (innerCandle.open <= enter && innerCandle.high > enter) ||
+                        (innerCandle.open > enter && innerCandle.low < enter)
                     ) {
                         this.addZeroFailToCapital();
                         this.exitPosition();
@@ -108,14 +103,14 @@ export abstract class AbstractDetect {
 
             if (this.order.isActive) {
                 for (const innerCandle of innerCandles) {
-                    if (this.lte(this.candleMin(innerCandle), this.order.stop)) {
+                    if (innerCandle.low <= this.order.stop) {
                         this.addFailToCapital();
                         this.exitPosition();
                         this.reportFailTrade();
                         break;
                     }
 
-                    if (this.gt(this.candleMax(innerCandle), this.order.take)) {
+                    if (innerCandle.high > this.order.take) {
                         this.addProfitToCapital();
                         this.exitPosition();
                         this.reportProfitTrade();
@@ -130,7 +125,7 @@ export abstract class AbstractDetect {
             for (const innerCandle of innerCandles) {
                 inPositionAtNow = false;
 
-                if (this.gt(this.candleMax(innerCandle), this.order.enter)) {
+                if (innerCandle.high > this.order.enter) {
                     if (!inPosition) {
                         inPosition = true;
                         inPositionAtNow = true;
@@ -139,12 +134,12 @@ export abstract class AbstractDetect {
                 }
 
                 if (inPosition) {
-                    if (!inPositionAtNow && this.lt(this.candleMin(innerCandle), this.order.stop)) {
+                    if (!inPositionAtNow && innerCandle.low < this.order.stop) {
                         this.addFailToCapital();
                         this.exitPosition();
                         this.reportFailTrade();
                         break;
-                    } else if (this.gt(this.candleMax(innerCandle), this.order.take)) {
+                    } else if (innerCandle.high > this.order.take) {
                         this.addProfitToCapital();
                         this.exitPosition();
                         this.reportProfitTrade();
@@ -165,12 +160,12 @@ export abstract class AbstractDetect {
             let valA;
             let valB;
 
-            if (this.isSegmentDown(current)) {
-                valA = this.max(current, prev1);
-                valB = this.segmentMin(current);
+            if (current.isDown) {
+                valA = Math.max(current.max, prev1.max);
+                valB = current.min;
             } else {
-                valA = this.max(prev1, prev2);
-                valB = this.min(current, prev1);
+                valA = Math.max(prev1.max, prev2.max);
+                valB = Math.min(current.min, prev1.min);
             }
 
             const stopFibPrice = this.getFibByValue(valA, valB, this.stopFib);
@@ -193,14 +188,7 @@ export abstract class AbstractDetect {
                     concurrentDetectorNames = downOrderOrigin.name;
                 }
 
-                this.reportUtil.add({
-                    type: EReportItemType.CONCURRENT_ORDER,
-                    detectorName: this.name,
-                    concurrentName: concurrentDetectorNames,
-                    timestamp: this.getCandle().timestamp,
-                    side: this.reportSide,
-                    size: this.reportSize,
-                });
+                this.reportUtil.add(this.getReportData(EReportItemType.CONCURRENT_ORDER, concurrentDetectorNames));
             }
 
             if (
@@ -209,14 +197,7 @@ export abstract class AbstractDetect {
                 (enterFibPrice / 100) * this.minStopOffsetSize < Math.abs(enterFibPrice - stopFibPrice)
             ) {
                 if (!this.order.isActive) {
-                    this.reportUtil.add({
-                        type: EReportItemType.PLACE_ORDER,
-                        detectorName: this.name,
-                        timestamp: this.getCandle().timestamp,
-                        side: this.reportSide,
-                        size: this.reportSize,
-                        riskReward: this.reportRiskReward,
-                    });
+                    this.reportUtil.add(this.getReportData(EReportItemType.PLACE_ORDER));
                 }
 
                 this.order.isActive = true;
@@ -252,10 +233,11 @@ export abstract class AbstractDetect {
         this.order.enterDate = null;
         this.order.toZeroDate = null;
 
-        this.inversion.fn(
-            () => this.detectorExecutor.removeUpOrder(this),
-            () => this.detectorExecutor.removeDownOrder(this),
-        );
+        if (this.isNotInverted) {
+            this.detectorExecutor.removeUpOrder(this);
+        } else {
+            this.detectorExecutor.removeDownOrder(this);
+        }
     }
 
     protected getCandle(): CandleModel {
@@ -289,7 +271,7 @@ export abstract class AbstractDetect {
         const current = segments[0];
         const waves = [];
 
-        if ((firstIsUp && this.isSegmentUp(current)) || (!firstIsUp && !this.isSegmentUp(current))) {
+        if ((firstIsUp && current.isUp) || (!firstIsUp && !current.isUp)) {
             waves.push(new Wave(current, null, this.isNotInverted));
         }
 
@@ -300,90 +282,12 @@ export abstract class AbstractDetect {
         return waves;
     }
 
-    protected isCurrentSegmentUp(): boolean {
-        return this.isSegmentUp(this.getCurrentSegment());
-    }
-
-    protected isCurrentSegmentDown(): boolean {
-        return this.isSegmentDown(this.getCurrentSegment());
-    }
-
-    protected isSegmentUp(segment: TSegment): boolean {
-        return this.inversion.value(segment.isUp, segment.isDown);
-    }
-
-    protected isSegmentDown(segment: TSegment): boolean {
-        return this.inversion.value(segment.isDown, segment.isUp);
-    }
-
-    protected max(segmentA: TSegment, segmentB: TSegment): number {
-        return this.inversion.fn(
-            () => Math.max(segmentA.max, segmentB.max),
-            () => Math.min(segmentA.min, segmentB.min),
-        );
-    }
-
-    protected min(segmentA: TSegment, segmentB: TSegment): number {
-        return this.inversion.fn(
-            () => Math.min(segmentA.min, segmentB.min),
-            () => Math.max(segmentA.max, segmentB.max),
-        );
-    }
-
-    protected segmentMax(segment: TSegment): number {
-        return this.inversion.value(segment.max, segment.min);
-    }
-
-    protected segmentMin(segment: TSegment): number {
-        return this.inversion.value(segment.min, segment.max);
-    }
-
-    protected candleMax(candle: CandleModel): number {
-        return this.inversion.value(candle.high, candle.low);
-    }
-
-    protected candleMin(candle: CandleModel): number {
-        if (this.isNotInverted) {
-            return candle.low;
-        } else {
-            return candle.high;
-        }
-    }
-
     protected getFib(first: Wave, last: Wave, val: number): number {
         return this.segmentUtil.getFib(first.max, last.min, val);
     }
 
     protected getFibByValue(first: number, last: number, val: number): number {
         return this.segmentUtil.getFib(first, last, val);
-    }
-
-    protected gt(valA: number, valB: number): boolean {
-        return this.inversion.fn(
-            () => valA > valB,
-            () => valA < valB,
-        );
-    }
-
-    protected gte(valA: number, valB: number): boolean {
-        return this.inversion.fn(
-            () => valA >= valB,
-            () => valA <= valB,
-        );
-    }
-
-    protected lt(valA: number, valB: number): boolean {
-        return this.inversion.fn(
-            () => valA < valB,
-            () => valA > valB,
-        );
-    }
-
-    protected lte(valA: number, valB: number): boolean {
-        return this.inversion.fn(
-            () => valA <= valB,
-            () => valA >= valB,
-        );
     }
 
     protected markDetection(): boolean {
@@ -407,24 +311,11 @@ export abstract class AbstractDetect {
     }
 
     protected reportDetection(): void {
-        this.reportUtil.add({
-            type: EReportItemType.DETECTED_START,
-            detectorName: this.name,
-            timestamp: this.getCandle().timestamp,
-            side: this.reportSide,
-            size: this.reportSize,
-            riskReward: this.reportRiskReward,
-        });
+        this.reportUtil.add(this.getReportData(EReportItemType.DETECTED_START));
     }
 
     protected reportDetectionEnd(): void {
-        this.reportUtil.add({
-            type: EReportItemType.DETECTED_END,
-            detectorName: this.name,
-            timestamp: this.getCandle().timestamp,
-            side: this.reportSide,
-            size: this.reportSize,
-        });
+        this.reportUtil.add(this.getReportData(EReportItemType.DETECTED_END));
     }
 
     protected enterPosition(waitDays: number): void {
@@ -436,14 +327,7 @@ export abstract class AbstractDetect {
         this.order.enterDate = this.getCandle().dateString;
         this.order.toZeroDate = this.getCandle().timestamp + offset;
 
-        this.reportUtil.add({
-            type: EReportItemType.ENTER_POSITION,
-            detectorName: this.name,
-            timestamp: this.getCandle().timestamp,
-            side: this.reportSide,
-            size: this.reportSize,
-            riskReward: this.reportRiskReward,
-        });
+        this.reportUtil.add(this.getReportData(EReportItemType.ENTER_POSITION));
     }
 
     protected exitPosition(): void {
@@ -452,14 +336,7 @@ export abstract class AbstractDetect {
 
         this.resetOrder();
 
-        this.reportUtil.add({
-            type: EReportItemType.EXIT_POSITION,
-            detectorName: this.name,
-            timestamp: this.getCandle().timestamp,
-            side: this.reportSide,
-            size: this.reportSize,
-            riskReward: this.reportRiskReward,
-        });
+        this.reportUtil.add(this.getReportData(EReportItemType.EXIT_POSITION));
     }
 
     protected mulCapital(value: number): void {
@@ -482,49 +359,19 @@ export abstract class AbstractDetect {
     }
 
     protected reportProfitTrade(): void {
-        this.reportUtil.add({
-            type: EReportItemType.DEAL_PROFIT,
-            detectorName: this.name,
-            timestamp: this.getCandle().timestamp,
-            size: this.reportSize,
-            side: this.reportSide,
-            riskReward: this.reportRiskReward,
-            value: this.detectorExecutor.getCapital(),
-        });
+        this.reportUtil.add(this.getReportData(EReportItemType.DEAL_PROFIT));
     }
 
     protected reportZeroFailTrade(): void {
-        this.reportUtil.add({
-            type: EReportItemType.DEAL_ZERO,
-            detectorName: this.name,
-            timestamp: this.getCandle().timestamp,
-            size: this.reportSize,
-            side: this.reportSide,
-            riskReward: this.reportRiskReward,
-            value: this.detectorExecutor.getCapital(),
-        });
+        this.reportUtil.add(this.getReportData(EReportItemType.DEAL_ZERO));
     }
 
     protected reportFailTrade(): void {
-        this.reportUtil.add({
-            type: EReportItemType.DEAL_FAIL,
-            detectorName: this.name,
-            timestamp: this.getCandle().timestamp,
-            size: this.reportSize,
-            side: this.reportSide,
-            riskReward: this.reportRiskReward,
-            value: this.detectorExecutor.getCapital(),
-        });
+        this.reportUtil.add(this.getReportData(EReportItemType.DEAL_FAIL));
     }
 
     protected reportCancelTrade(): void {
-        this.reportUtil.add({
-            type: EReportItemType.CANCEL_ORDER,
-            detectorName: this.name,
-            timestamp: this.getCandle().timestamp,
-            size: this.reportSize,
-            side: this.reportSide,
-        });
+        this.reportUtil.add(this.getReportData(EReportItemType.CANCEL_ORDER));
     }
 
     protected getDaysRange(count: number): number {
@@ -556,9 +403,21 @@ export abstract class AbstractDetect {
         this.reportRiskReward = (this.profitMul - 1) * 100;
 
         this.reportUtil.add({
-            type: EReportItemType.REWARDS,
-            detectorName: this.name,
+            ...this.getReportData(EReportItemType.REWARDS),
             value: this.reportRiskReward,
-        });
+        } as TReportRewards);
+    }
+
+    private getReportData(type: EReportItemType, concurrentName: string = null): TReportItem {
+        return {
+            type,
+            detectorName: this.name,
+            timestamp: this.getCandle().timestamp,
+            size: this.reportSize,
+            side: this.reportSide,
+            riskReward: this.reportRiskReward,
+            value: this.detectorExecutor.getCapital(),
+            concurrentName,
+        } as TReportItem;
     }
 }

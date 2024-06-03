@@ -18,19 +18,19 @@ export class PennantDetect extends AbstractDetect {
 
         const trendOffset = this.getFib(up1, down1, 0.5);
         const pennantBodyOffset = this.getFib(up1, down0, 0.5);
-        const notOverflow = up1.maxGte(down0.max);
-        const candleInHalfDown = down0.candles.some((candle) => this.lt(this.candleMax(candle), pennantBodyOffset));
+        const notOverflow = up1.max >= down0.max;
+        const candleInHalfDown = down0.candles.some((candle) => candle.high < pennantBodyOffset);
         const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (
             notOverflow &&
             down0.sizeLeft >= this.minSegmentSize &&
-            down0.minGt(trendOffset) &&
-            up2.maxLt(down0.min) &&
+            down0.min > trendOffset &&
+            up2.max < down0.min &&
             candleInHalfDown &&
             highBeforeLow
         ) {
-            if (this.isCurrentSegmentDown() || down0.sizeRight < this.maxSecondSegmentSize) {
+            if (this.getCurrentSegment().isDown || down0.sizeRight < this.maxSecondSegmentSize) {
                 return this.markDetection();
             } else {
                 return this.markEndDetection();

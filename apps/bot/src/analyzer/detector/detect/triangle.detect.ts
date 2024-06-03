@@ -15,16 +15,16 @@ export class TriangleDetect extends AbstractDetect {
             return;
         }
 
-        const notOverflow = down0.maxLt(up1.max);
+        const notOverflow = down0.max < up1.max;
         const triangleOffset = this.getFib(up2, down2, 0.4);
         const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (
             notOverflow &&
-            down0.minGt(down1.min) &&
-            down1.minGt(down2.min) &&
-            up1.maxLt(up2.max) &&
-            down1.minLt(triangleOffset) &&
+            down0.min > down1.min &&
+            down1.min > down2.min &&
+            up1.max < up2.max &&
+            down1.min < triangleOffset &&
             down1.sizeLeft >= this.minSegmentSize &&
             down1.sizeRight >= this.minSegmentSize &&
             highBeforeLow

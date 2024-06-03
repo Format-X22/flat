@@ -27,14 +27,14 @@ export class BreakDetect extends AbstractDetect {
         const breakOffset = this.getFib(up1, down0, 0.5);
         const breakEnter = this.getFib(up1, down0, this.enterFib);
         const lastWaveOffset = this.getFib(up1, down0, 0.25);
-        const notOverflow = this.lt(this.candleMax(this.getCandle()), breakEnter);
-        const anyCandleUnderOffset = down0.candles.some((candle) => this.lt(this.candleMax(candle), breakOffset));
+        const notOverflow = this.getCandle().high < breakEnter;
+        const anyCandleUnderOffset = down0.candles.some((candle) => candle.high < breakOffset);
         const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (
-            down0.minLt(down1.min) &&
-            up1.maxLt(up2.max) &&
-            down1.minGt(lastWaveOffset) &&
+            down0.min < down1.min &&
+            up1.max < up2.max &&
+            down1.min > lastWaveOffset &&
             anyCandleUnderOffset &&
             up1.sizeLeft >= this.minSegmentSize &&
             highBeforeLow

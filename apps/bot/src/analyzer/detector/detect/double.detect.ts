@@ -16,26 +16,24 @@ export class DoubleDetect extends AbstractDetect {
             return;
         }
 
-        const notOverflow = up1.maxGte(down0.max);
+        const notOverflow = up1.max >= down0.max;
         const trendOffsetFirst = this.getFib(up2, down2, 0.4);
         const pennantBodyOffsetSecond = this.getFib(up1, down0, 0.5);
-        const candleInHalfDownSecond = down0.candles.some((candle) =>
-            this.lt(this.candleMax(candle), pennantBodyOffsetSecond),
-        );
+        const candleInHalfDownSecond = down0.candles.some((candle) => candle.high < pennantBodyOffsetSecond);
         const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (
             notOverflow &&
             down0.sizeLeft >= this.minSegmentSize &&
-            down1.minGt(trendOffsetFirst) &&
-            up3.maxLt(down0.min) &&
+            down1.min > trendOffsetFirst &&
+            up3.max < down0.min &&
             candleInHalfDownSecond &&
-            up1.maxGt(up2.max) &&
-            down0.minGt(down1.min) &&
-            down0.minLt(up2.max) &&
+            up1.max > up2.max &&
+            down0.min > down1.min &&
+            down0.min < up2.max &&
             highBeforeLow
         ) {
-            if (this.isCurrentSegmentDown() || down0.sizeRight < this.maxSecondSegmentSize) {
+            if (this.getCurrentSegment().isDown || down0.sizeRight < this.maxSecondSegmentSize) {
                 return this.markDetection();
             } else {
                 return this.markEndDetection();
