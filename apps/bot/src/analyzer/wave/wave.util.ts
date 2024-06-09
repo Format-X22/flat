@@ -2,6 +2,33 @@ import { TSegment } from './segment.dto';
 import { CandleModel } from '../../data/candle.model';
 
 export class Wave implements TSegment {
+    static getWaves(
+        count: number,
+        firstIsUp: boolean,
+        isUpStrategy: boolean,
+        getSegments: (count: number) => Array<TSegment>,
+    ): Array<Wave> {
+        const required = count * 2;
+        const segments = getSegments(required);
+
+        if (!segments[required - 1]) {
+            return new Array(required);
+        }
+
+        const current = segments[0];
+        const waves = [];
+
+        if ((firstIsUp && current.isUp) || (!firstIsUp && !current.isUp)) {
+            waves.push(new Wave(current, null, isUpStrategy));
+        }
+
+        for (let i = 0; i < required - 1; i++) {
+            waves.push(new Wave(segments[i + 1], segments[i], isUpStrategy));
+        }
+
+        return waves;
+    }
+
     readonly isUp: boolean;
     readonly isDown: boolean;
     readonly min: number;

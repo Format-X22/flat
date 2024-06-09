@@ -13,7 +13,7 @@ const COMM_OFFSET = 0.25;
 
 export abstract class AbstractDetect {
     public readonly name: string;
-    protected readonly isNotInverted: boolean;
+    protected readonly isUpStrategy: boolean;
 
     public order: TOrder = {
         isActive: false,
@@ -51,7 +51,7 @@ export abstract class AbstractDetect {
         const detectorName: string = Object.getPrototypeOf(Object.getPrototypeOf(this)).constructor.name;
 
         this.name = className + detectorName.replace('Detect', '');
-        this.isNotInverted = className.includes('Up');
+        this.isUpStrategy = className.includes('Up');
 
         if (this.name.includes('Mid')) {
             this.hmaType = EHmaType.MID_HMA;
@@ -64,7 +64,7 @@ export abstract class AbstractDetect {
             this.reportSize = ESize.SMALL;
         }
 
-        if (this.isNotInverted) {
+        if (this.isUpStrategy) {
             this.reportSide = ESide.UP;
         } else {
             this.reportSide = ESide.DOWN;
@@ -76,77 +76,22 @@ export abstract class AbstractDetect {
     handleOrder(): void {
         this.syncRisk();
 
-        const candle = this.getCandle();
-
         if (!this.order.isActive) {
             return;
         }
 
-        const innerCandles = this.getInnerCandles();
+        const candle = this.getCandle();
 
         if (this.isInPosition) {
             if (this.order.toZeroDate <= candle.timestamp) {
-                const enter = this.order.enter;
-
-                for (const innerCandle of innerCandles) {
-                    if (
-                        (innerCandle.open <= enter && innerCandle.high > enter) ||
-                        (innerCandle.open > enter && innerCandle.low < enter)
-                    ) {
-                        this.addZeroFailToCapital();
-                        this.exitPosition();
-                        this.reportZeroFailTrade();
-                        break;
-                    }
-                }
+                this.handleZeroOrder();
             }
 
             if (this.order.isActive) {
-                for (const innerCandle of innerCandles) {
-                    if (innerCandle.low <= this.order.stop) {
-                        this.addFailToCapital();
-                        this.exitPosition();
-                        this.reportFailTrade();
-                        break;
-                    }
-
-                    if (innerCandle.high > this.order.take) {
-                        this.addProfitToCapital();
-                        this.exitPosition();
-                        this.reportProfitTrade();
-                        break;
-                    }
-                }
+                this.handleActiveOrder();
             }
         } else {
-            let inPosition = false;
-            let inPositionAtNow = false;
-
-            for (const innerCandle of innerCandles) {
-                inPositionAtNow = false;
-
-                if (innerCandle.high > this.order.enter) {
-                    if (!inPosition) {
-                        inPosition = true;
-                        inPositionAtNow = true;
-                        this.enterPosition(this.waitDays);
-                    }
-                }
-
-                if (inPosition) {
-                    if (!inPositionAtNow && innerCandle.low < this.order.stop) {
-                        this.addFailToCapital();
-                        this.exitPosition();
-                        this.reportFailTrade();
-                        break;
-                    } else if (innerCandle.high > this.order.take) {
-                        this.addProfitToCapital();
-                        this.exitPosition();
-                        this.reportProfitTrade();
-                        break;
-                    }
-                }
-            }
+            this.handleOrderIfNoPosition();
         }
     }
 
@@ -156,61 +101,7 @@ export abstract class AbstractDetect {
         }
 
         if (this.isDetected) {
-            const [current, prev1, prev2] = this.getSegments(3);
-            let valA;
-            let valB;
-
-            if (current.isDown) {
-                valA = Math.max(current.max, prev1.max);
-                valB = current.min;
-            } else {
-                valA = Math.max(prev1.max, prev2.max);
-                valB = Math.min(current.min, prev1.min);
-            }
-
-            const stopFibPrice = this.getFibByValue(valA, valB, this.stopFib);
-            const enterFibPrice = this.getFibByValue(valA, valB, this.enterFib);
-            const takeFibPrice = this.getFibByValue(valA, valB, this.takeFib);
-
-            const isUp = this.isNotInverted;
-            const isConcurrentUpOrder = this.detectorExecutor.isConcurrentUpOrder(this);
-            const upOrderOrigin = this.detectorExecutor.getUpOrderOrigin();
-            const downOrderOrigin = this.detectorExecutor.getDownOrderOrigin();
-            const isConcurrentDownOrder = this.detectorExecutor.isConcurrentDownOrder(this);
-            const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
-
-            if (!isNoConcurrentOrders) {
-                let concurrentDetectorNames;
-
-                if (isUp) {
-                    concurrentDetectorNames = upOrderOrigin.name;
-                } else {
-                    concurrentDetectorNames = downOrderOrigin.name;
-                }
-
-                this.reportUtil.add(this.getReportData(EReportItemType.CONCURRENT_ORDER, concurrentDetectorNames));
-            }
-
-            if (
-                !this.detectorExecutor.isInPosition() &&
-                isNoConcurrentOrders &&
-                (enterFibPrice / 100) * this.minStopOffsetSize < Math.abs(enterFibPrice - stopFibPrice)
-            ) {
-                if (!this.order.isActive) {
-                    this.reportUtil.add(this.getReportData(EReportItemType.PLACE_ORDER));
-                }
-
-                this.order.isActive = true;
-                this.order.enter = enterFibPrice;
-                this.order.take = takeFibPrice;
-                this.order.stop = stopFibPrice;
-
-                if (isUp) {
-                    this.detectorExecutor.addUpOrder(this);
-                } else {
-                    this.detectorExecutor.addDownOrder(this);
-                }
-            }
+            this.handleDetected();
         } else if (this.order.isActive) {
             this.resetOrder();
             this.reportCancelTrade();
@@ -233,7 +124,7 @@ export abstract class AbstractDetect {
         this.order.enterDate = null;
         this.order.toZeroDate = null;
 
-        if (this.isNotInverted) {
+        if (this.isUpStrategy) {
             this.detectorExecutor.removeUpOrder(this);
         } else {
             this.detectorExecutor.removeDownOrder(this);
@@ -242,14 +133,6 @@ export abstract class AbstractDetect {
 
     protected getCandle(): CandleModel {
         return this.segmentUtil.getCurrentCandle();
-    }
-
-    protected getInnerCandles(): Array<CandleModel> {
-        return this.segmentUtil.getCurrentInnerCandles();
-    }
-
-    protected getPrettyDate(): string {
-        return this.getCandle().dateString;
     }
 
     protected getCurrentSegment(): TSegment {
@@ -261,25 +144,7 @@ export abstract class AbstractDetect {
     }
 
     protected getWaves(count: number, firstIsUp: boolean): Array<Wave> {
-        const required = count * 2;
-        const segments = this.getSegments(required);
-
-        if (!segments[required - 1]) {
-            return new Array(required);
-        }
-
-        const current = segments[0];
-        const waves = [];
-
-        if ((firstIsUp && current.isUp) || (!firstIsUp && !current.isUp)) {
-            waves.push(new Wave(current, null, this.isNotInverted));
-        }
-
-        for (let i = 0; i < required - 1; i++) {
-            waves.push(new Wave(segments[i + 1], segments[i], this.isNotInverted));
-        }
-
-        return waves;
+        return Wave.getWaves(count, firstIsUp, this.isUpStrategy, this.getSegments.bind(this));
     }
 
     protected getFib(first: Wave, last: Wave, val: number): number {
@@ -310,76 +175,8 @@ export abstract class AbstractDetect {
         return false;
     }
 
-    protected reportDetection(): void {
-        this.reportUtil.add(this.getReportData(EReportItemType.DETECTED_START));
-    }
-
-    protected reportDetectionEnd(): void {
-        this.reportUtil.add(this.getReportData(EReportItemType.DETECTED_END));
-    }
-
-    protected enterPosition(waitDays: number): void {
-        const offset = this.getDaysRange(waitDays);
-
-        this.isInPosition = true;
-        this.detectorExecutor.enterPosition();
-
-        this.order.enterDate = this.getCandle().dateString;
-        this.order.toZeroDate = this.getCandle().timestamp + offset;
-
-        this.reportUtil.add(this.getReportData(EReportItemType.ENTER_POSITION));
-    }
-
-    protected exitPosition(): void {
-        this.isInPosition = false;
-        this.detectorExecutor.exitPosition();
-
-        this.resetOrder();
-
-        this.reportUtil.add(this.getReportData(EReportItemType.EXIT_POSITION));
-    }
-
-    protected mulCapital(value: number): void {
-        this.detectorExecutor.mulCapital(value);
-    }
-
-    protected addFailToCapital(): void {
-        this.mulCapital(this.failMul);
-        this.detectorExecutor.addFailCount();
-    }
-
-    protected addZeroFailToCapital(): void {
-        this.mulCapital(this.zeroFailMul);
-        this.detectorExecutor.addZeroCount();
-    }
-
-    protected addProfitToCapital(): void {
-        this.mulCapital(this.profitMul);
-        this.detectorExecutor.addProfitCount();
-    }
-
-    protected reportProfitTrade(): void {
-        this.reportUtil.add(this.getReportData(EReportItemType.DEAL_PROFIT));
-    }
-
-    protected reportZeroFailTrade(): void {
-        this.reportUtil.add(this.getReportData(EReportItemType.DEAL_ZERO));
-    }
-
-    protected reportFailTrade(): void {
-        this.reportUtil.add(this.getReportData(EReportItemType.DEAL_FAIL));
-    }
-
-    protected reportCancelTrade(): void {
-        this.reportUtil.add(this.getReportData(EReportItemType.CANCEL_ORDER));
-    }
-
-    protected getDaysRange(count: number): number {
-        return Duration.fromObject({ day: count }).toMillis();
-    }
-
-    protected debugHere(dateString: string, isNotInverted: boolean): boolean {
-        return this.getPrettyDate().startsWith(dateString) && this.isNotInverted === isNotInverted;
+    protected debugHere(dateString: string, isUpStrategy: boolean): boolean {
+        return this.getPrettyDate().startsWith(dateString) && this.isUpStrategy === isUpStrategy;
     }
 
     private syncRisk(): void {
@@ -419,5 +216,204 @@ export abstract class AbstractDetect {
             value: this.detectorExecutor.getCapital(),
             concurrentName,
         } as TReportItem;
+    }
+
+    private handleZeroOrder(): void {
+        const enter = this.order.enter;
+
+        for (const innerCandle of this.getInnerCandles()) {
+            if (
+                (innerCandle.open <= enter && innerCandle.high > enter) ||
+                (innerCandle.open > enter && innerCandle.low < enter)
+            ) {
+                this.addZeroFailToCapital();
+                this.exitPosition();
+                this.reportZeroFailTrade();
+                break;
+            }
+        }
+    }
+
+    private handleActiveOrder(): void {
+        for (const innerCandle of this.getInnerCandles()) {
+            if (innerCandle.low <= this.order.stop) {
+                this.addFailToCapital();
+                this.exitPosition();
+                this.reportFailTrade();
+                break;
+            }
+
+            if (innerCandle.high > this.order.take) {
+                this.addProfitToCapital();
+                this.exitPosition();
+                this.reportProfitTrade();
+                break;
+            }
+        }
+    }
+
+    private handleOrderIfNoPosition(): void {
+        let inPosition = false;
+        let inPositionAtNow = false;
+
+        for (const innerCandle of this.getInnerCandles()) {
+            inPositionAtNow = false;
+
+            if (innerCandle.high > this.order.enter) {
+                if (!inPosition) {
+                    inPosition = true;
+                    inPositionAtNow = true;
+                    this.enterPosition(this.waitDays);
+                }
+            }
+
+            if (inPosition) {
+                if (!inPositionAtNow && innerCandle.low < this.order.stop) {
+                    this.addFailToCapital();
+                    this.exitPosition();
+                    this.reportFailTrade();
+                    break;
+                } else if (innerCandle.high > this.order.take) {
+                    this.addProfitToCapital();
+                    this.exitPosition();
+                    this.reportProfitTrade();
+                    break;
+                }
+            }
+        }
+    }
+
+    private handleDetected(): void {
+        const [current, prev1, prev2] = this.getSegments(3);
+        let valA;
+        let valB;
+
+        if (current.isDown) {
+            valA = Math.max(current.max, prev1.max);
+            valB = current.min;
+        } else {
+            valA = Math.max(prev1.max, prev2.max);
+            valB = Math.min(current.min, prev1.min);
+        }
+
+        const stopFibPrice = this.getFibByValue(valA, valB, this.stopFib);
+        const enterFibPrice = this.getFibByValue(valA, valB, this.enterFib);
+        const takeFibPrice = this.getFibByValue(valA, valB, this.takeFib);
+
+        const isUp = this.isUpStrategy;
+        const isConcurrentUpOrder = this.detectorExecutor.isConcurrentUpOrder(this);
+        const upOrderOrigin = this.detectorExecutor.getUpOrderOrigin();
+        const downOrderOrigin = this.detectorExecutor.getDownOrderOrigin();
+        const isConcurrentDownOrder = this.detectorExecutor.isConcurrentDownOrder(this);
+        const isNoConcurrentOrders = (isUp && !isConcurrentUpOrder) || (!isUp && !isConcurrentDownOrder);
+
+        if (!isNoConcurrentOrders) {
+            let concurrentDetectorNames;
+
+            if (isUp) {
+                concurrentDetectorNames = upOrderOrigin.name;
+            } else {
+                concurrentDetectorNames = downOrderOrigin.name;
+            }
+
+            this.reportUtil.add(this.getReportData(EReportItemType.CONCURRENT_ORDER, concurrentDetectorNames));
+        }
+
+        if (
+            !this.detectorExecutor.isInPosition() &&
+            isNoConcurrentOrders &&
+            (enterFibPrice / 100) * this.minStopOffsetSize < Math.abs(enterFibPrice - stopFibPrice)
+        ) {
+            if (!this.order.isActive) {
+                this.reportUtil.add(this.getReportData(EReportItemType.PLACE_ORDER));
+            }
+
+            this.order.isActive = true;
+            this.order.enter = enterFibPrice;
+            this.order.take = takeFibPrice;
+            this.order.stop = stopFibPrice;
+
+            if (isUp) {
+                this.detectorExecutor.addUpOrder(this);
+            } else {
+                this.detectorExecutor.addDownOrder(this);
+            }
+        }
+    }
+
+    private getInnerCandles(): Array<CandleModel> {
+        return this.segmentUtil.getCurrentInnerCandles();
+    }
+
+    private getPrettyDate(): string {
+        return this.getCandle().dateString;
+    }
+
+    private reportDetection(): void {
+        this.reportUtil.add(this.getReportData(EReportItemType.DETECTED_START));
+    }
+
+    private reportDetectionEnd(): void {
+        this.reportUtil.add(this.getReportData(EReportItemType.DETECTED_END));
+    }
+
+    private enterPosition(waitDays: number): void {
+        const offset = this.getDaysRange(waitDays);
+
+        this.isInPosition = true;
+        this.detectorExecutor.enterPosition();
+
+        this.order.enterDate = this.getCandle().dateString;
+        this.order.toZeroDate = this.getCandle().timestamp + offset;
+
+        this.reportUtil.add(this.getReportData(EReportItemType.ENTER_POSITION));
+    }
+
+    private exitPosition(): void {
+        this.isInPosition = false;
+        this.detectorExecutor.exitPosition();
+
+        this.resetOrder();
+
+        this.reportUtil.add(this.getReportData(EReportItemType.EXIT_POSITION));
+    }
+
+    private mulCapital(value: number): void {
+        this.detectorExecutor.mulCapital(value);
+    }
+
+    private addFailToCapital(): void {
+        this.mulCapital(this.failMul);
+        this.detectorExecutor.addFailCount();
+    }
+
+    private addZeroFailToCapital(): void {
+        this.mulCapital(this.zeroFailMul);
+        this.detectorExecutor.addZeroCount();
+    }
+
+    private addProfitToCapital(): void {
+        this.mulCapital(this.profitMul);
+        this.detectorExecutor.addProfitCount();
+    }
+
+    private reportProfitTrade(): void {
+        this.reportUtil.add(this.getReportData(EReportItemType.DEAL_PROFIT));
+    }
+
+    private reportZeroFailTrade(): void {
+        this.reportUtil.add(this.getReportData(EReportItemType.DEAL_ZERO));
+    }
+
+    private reportFailTrade(): void {
+        this.reportUtil.add(this.getReportData(EReportItemType.DEAL_FAIL));
+    }
+
+    private reportCancelTrade(): void {
+        this.reportUtil.add(this.getReportData(EReportItemType.CANCEL_ORDER));
+    }
+
+    private getDaysRange(count: number): number {
+        return Duration.fromObject({ day: count }).toMillis();
     }
 }
