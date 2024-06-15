@@ -8,7 +8,7 @@ import { sleep } from '../utils/sleep.util';
 import { DateTime } from 'luxon';
 import { config } from '../bot.config';
 import { HttpService } from '@nestjs/axios';
-import { lastValueFrom } from 'rxjs';
+import { BinanceLoader } from './source/binance';
 
 const HMA_PERIOD = 7;
 const MID_HMA_PERIOD = 14;
@@ -21,6 +21,7 @@ export class LoaderService {
     constructor(
         @InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>,
         private httpService: HttpService,
+        private binanceLoader: BinanceLoader,
     ) {}
 
     async truncate(): Promise<void> {
@@ -108,7 +109,7 @@ export class LoaderService {
 
         while (true) {
             try {
-                const loaded = await this.loadChunk(from, size);
+                const loaded = await this.binanceLoader.loadChunk(from, size);
 
                 if (!loaded.length) {
                     break;
@@ -135,39 +136,6 @@ export class LoaderService {
                 await sleep(3000);
             }
         }
-    }
-
-    private async loadChunk(from: number, size: string): Promise<Array<Partial<CandleModel>>> {
-        const fromTimestamp = Number(from);
-
-        const { data } = await lastValueFrom(
-            this.httpService.get<Array<[number, string, string, string, string]>>(
-                'https://data-api.binance.vision/api/v3/klines',
-                {
-                    params: {
-                        symbol: config.ticker,
-                        interval: '1d',
-                        startTime: fromTimestamp,
-                    },
-                },
-            ),
-        );
-
-        return data.map((item) => ({
-            id: config.ticker + size + String(item[0]),
-            ticker: config.ticker,
-            timestamp: Number(item[0]),
-            dateString: DateTime.fromMillis(Number(item[0])).toFormat('dd-MM-y HH'),
-            open: Number(item[1]),
-            high: Number(item[2]),
-            low: Number(item[3]),
-            close: Number(item[4]),
-            microHma: null,
-            hma: null,
-            midHma: null,
-            bigHma: null,
-            size,
-        }));
     }
 
     private addHma(period: number, data: Array<Partial<CandleModel>>, field: EHmaType): void {
