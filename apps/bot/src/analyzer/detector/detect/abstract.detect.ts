@@ -1,7 +1,6 @@
 import { CandleModel, EHmaType } from '../../../data/candle.model';
 import { TSegment } from '../../wave/segment.dto';
 import { TOrder } from '../detector.dto';
-import { Duration } from 'luxon';
 import { Wave } from '../../wave/wave.util';
 import { SegmentUtil } from '../../wave/segment.util';
 import { DetectorExecutor } from '../detector.executor';
@@ -22,7 +21,7 @@ export abstract class AbstractDetect {
         take: null,
         stop: null,
         enterDate: null,
-        toZeroDate: null,
+        waitDays: null,
     };
 
     private readonly inversion: InversionUtil;
@@ -81,8 +80,6 @@ export abstract class AbstractDetect {
     handleOrder(): void {
         this.syncRisk();
 
-        const candle = this.getCandle();
-
         if (!this.order.isActive) {
             return;
         }
@@ -90,7 +87,9 @@ export abstract class AbstractDetect {
         const innerCandles = this.getInnerCandles();
 
         if (this.isInPosition) {
-            if (this.order.toZeroDate <= candle.timestamp) {
+            this.order.waitDays--;
+
+            if (this.order.waitDays <= 0) {
                 const enter = this.order.enter;
 
                 for (const innerCandle of innerCandles) {
@@ -250,7 +249,7 @@ export abstract class AbstractDetect {
         this.order.take = null;
         this.order.stop = null;
         this.order.enterDate = null;
-        this.order.toZeroDate = null;
+        this.order.waitDays = null;
 
         this.inversion.fn(
             () => this.detectorExecutor.removeUpOrder(this),
@@ -428,13 +427,11 @@ export abstract class AbstractDetect {
     }
 
     protected enterPosition(waitDays: number): void {
-        const offset = this.getDaysRange(waitDays);
-
         this.isInPosition = true;
         this.detectorExecutor.enterPosition();
 
         this.order.enterDate = this.getCandle().dateString;
-        this.order.toZeroDate = this.getCandle().timestamp + offset;
+        this.order.waitDays = waitDays;
 
         this.reportUtil.add({
             type: EReportItemType.ENTER_POSITION,
@@ -525,10 +522,6 @@ export abstract class AbstractDetect {
             size: this.reportSize,
             side: this.reportSide,
         });
-    }
-
-    protected getDaysRange(count: number): number {
-        return Duration.fromObject({ day: count }).toMillis();
     }
 
     protected debugHere(dateString: string, isNotInverted: boolean): boolean {

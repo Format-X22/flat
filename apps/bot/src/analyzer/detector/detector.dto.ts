@@ -4,7 +4,7 @@ export type TOrder = {
     take: number;
     stop: number;
     enterDate: string;
-    toZeroDate: number;
+    waitDays: number;
 };
 
 export type TActualOrder = {
