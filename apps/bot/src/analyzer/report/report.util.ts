@@ -245,7 +245,7 @@ export class ReportUtil {
             .replace('Flag', 'Fla');
 
         return [
-            `if (time == timestamp("UTC", ${year}, ${month}, ${day}))`,
+            `if (time_tradingday == timestamp("UTC", ${year}, ${month}, ${day}))`,
             `    label.new(bar_index, high * ${offset}, '${text}', color = color.${color}, textcolor = color.white)`,
         ].join('\n');
     }

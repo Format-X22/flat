@@ -9,6 +9,9 @@ import { DateTime } from 'luxon';
 import { config } from '../bot.config';
 import { HttpService } from '@nestjs/axios';
 import { BinanceLoader } from './source/binance';
+import { PolygonLoader } from './source/polygon';
+import { ILoader } from './loader.dto';
+import { BINANCE_TICKERS } from '../bot.types';
 
 const HMA_PERIOD = 7;
 const MID_HMA_PERIOD = 14;
@@ -22,6 +25,7 @@ export class LoaderService {
         @InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>,
         private httpService: HttpService,
         private binanceLoader: BinanceLoader,
+        private polygonLoader: PolygonLoader,
     ) {}
 
     async truncate(): Promise<void> {
@@ -106,10 +110,17 @@ export class LoaderService {
         size: string,
     ): Promise<void> {
         let from = Number(fromDate);
+        let loader: ILoader;
+
+        if (BINANCE_TICKERS.includes(config.ticker)) {
+            loader = this.binanceLoader;
+        } else {
+            loader = this.polygonLoader;
+        }
 
         while (true) {
             try {
-                const loaded = await this.binanceLoader.loadChunk(from, size);
+                const loaded = await loader.loadChunk(from, size);
 
                 if (!loaded.length) {
                     break;

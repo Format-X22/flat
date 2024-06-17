@@ -12,4 +12,10 @@ export type TConfig = {
 
 export enum ETicker {
     BTCUSDT = 'BTCUSDT',
+    AAPL = 'AAPL',
+    EBAY = 'EBAY',
+    UAL = 'UAL',
 }
+
+export const BINANCE_TICKERS = [ETicker.BTCUSDT];
+export const NEW_YORK_TICKERS = [ETicker.AAPL, ETicker.EBAY, ETicker.UAL];
