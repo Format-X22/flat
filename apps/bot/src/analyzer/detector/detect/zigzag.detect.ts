@@ -40,6 +40,7 @@ export class ZigzagDetect extends AbstractDetect {
             up2.sizeLeft >= this.minSegmentSize &&
             up2.sizeRight >= this.minSegmentSize &&
             down0.size < (down1.size + down2.size) / 2 &&
+            Math.abs(up2.max - down2.min) / Math.abs(up2.max - down1.min) < 3 &&
             highBeforeLow
         ) {
             if (notOverflow) {

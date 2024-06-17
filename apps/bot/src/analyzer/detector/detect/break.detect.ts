@@ -12,7 +12,7 @@ export class BreakDetect extends AbstractDetect {
     protected waitDays = 3;
 
     check(): boolean {
-        const [down0, up1, down1, up2] = this.getWaves(4, false);
+        const [down0, up1, down1, up2, down2, up3] = this.getWaves(6, false);
 
         if (!up2) {
             return;
@@ -34,6 +34,7 @@ export class BreakDetect extends AbstractDetect {
         if (
             down0.minLt(down1.min) &&
             up1.maxLt(up2.max) &&
+            (up2.maxGt(up3.max) || up1.maxLt(down2.min)) &&
             down1.minGt(lastWaveOffset) &&
             anyCandleUnderOffset &&
             up1.sizeLeft >= this.minSegmentSize &&
