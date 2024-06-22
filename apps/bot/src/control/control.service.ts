@@ -21,6 +21,12 @@ export class ControlService implements OnApplicationBootstrap {
     ) {}
 
     async onApplicationBootstrap(): Promise<void> {
+        if (config.botMode) {
+            await this.initBot();
+        }
+    }
+
+    private async initBot(): Promise<void> {
         const apiKey = this.configService.get('F_TG_KEY');
         const admin = Number(this.configService.get('F_TG_ADMIN'));
         const bot = new Telegraf(apiKey);
@@ -40,12 +46,15 @@ export class ControlService implements OnApplicationBootstrap {
             await ctx.reply('Unknown command');
             await this.printHelp(ctx);
         });
-        await bot.launch(() => {
-            bot.telegram.sendMessage(admin, 'Started!');
-        });
 
         process.once('SIGINT', () => bot.stop('SIGINT'));
         process.once('SIGTERM', () => bot.stop('SIGTERM'));
+
+        bot.launch(() => {
+            bot.telegram.sendMessage(admin, 'Started!');
+        }).catch((error) => {
+            throw error;
+        });
     }
 
     private async printHelp(ctx: Context): Promise<void> {
