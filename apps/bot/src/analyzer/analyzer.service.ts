@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CandleModel } from '../data/candle.model';
 import { Between, Repository } from 'typeorm';
-import { TActualOrder } from './detector/detector.dto';
+import { TActualOrder, TActualOrderWithMetadata } from './detector/detector.dto';
 import { days, hours, millis } from '../utils/time.util';
 import { TCalcArgs } from './analyzer.dto';
 import { config } from '../bot.config';
@@ -14,7 +14,7 @@ import { ReportUtil } from './report/report.util';
 export class AnalyzerService {
     constructor(@InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>) {}
 
-    async calc({ risk, from, to }: TCalcArgs): Promise<TActualOrder> {
+    async calc({ risk, from, to }: TCalcArgs): Promise<TActualOrderWithMetadata> {
         const segmentUtil = new SegmentUtil();
         const reportUtil = new ReportUtil();
         const detectorExecutor = new DetectorExecutor(segmentUtil, reportUtil);
@@ -53,9 +53,9 @@ export class AnalyzerService {
             reportUtil.makeProfitByMonthArrayFile();
         }
 
-        detectorExecutor.printLastOrders();
+        const print = detectorExecutor.printLastOrders();
 
-        return detectorExecutor.getOrders();
+        return { ...detectorExecutor.getOrders(), print };
     }
 
     private async getCandles(): Promise<Array<CandleModel>> {

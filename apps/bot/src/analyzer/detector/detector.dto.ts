@@ -11,3 +11,5 @@ export type TActualOrder = {
     up: TOrder;
     down: TOrder;
 };
+
+export type TActualOrderWithMetadata = TActualOrder & { print: string };

@@ -6,5 +6,6 @@ import { CandleModel } from '../data/candle.model';
 @Module({
     imports: [TypeOrmModule.forFeature([CandleModel])],
     providers: [AnalyzerService],
+    exports: [AnalyzerService],
 })
 export class AnalyzerModule {}

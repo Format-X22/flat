@@ -1,4 +1,5 @@
 export type TConfig = {
+    botMode: boolean;
     printTrades: boolean;
     makeCsv: boolean;
     makeTW: boolean;

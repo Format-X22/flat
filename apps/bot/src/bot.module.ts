@@ -4,6 +4,8 @@ import { CandleModel } from './data/candle.model';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AnalyzerModule } from './analyzer/analyzer.module';
 import { LoaderModule } from './loader/loader.module';
+import { ControlModule } from './control/control.module';
+import { TraderModule } from './trader/trader.module';
 
 @Module({
     imports: [
@@ -26,6 +28,8 @@ import { LoaderModule } from './loader/loader.module';
         LoaderModule,
         AnalyzerModule,
         TypeOrmModule.forFeature([CandleModel]),
+        ControlModule,
+        TraderModule,
     ],
     controllers: [],
     providers: [],

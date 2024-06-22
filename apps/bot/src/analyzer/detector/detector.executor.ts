@@ -85,7 +85,7 @@ export class DetectorExecutor {
         };
     }
 
-    printLastOrders(): void {
+    printLastOrders(): string {
         const upDetector = this.upOrderDetector;
         const downDetector = this.downOrderDetector;
         const upName = upDetector?.name;
@@ -106,6 +106,8 @@ export class DetectorExecutor {
         }
 
         this.logger.log(result);
+
+        return result;
     }
 
     isInPosition(): boolean {
