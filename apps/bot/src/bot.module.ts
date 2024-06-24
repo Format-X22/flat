@@ -6,6 +6,7 @@ import { AnalyzerModule } from './analyzer/analyzer.module';
 import { LoaderModule } from './loader/loader.module';
 import { ControlModule } from './control/control.module';
 import { TraderModule } from './trader/trader.module';
+import { TelegramModule } from './telegram/telegram.module';
 
 @Module({
     imports: [
@@ -30,6 +31,7 @@ import { TraderModule } from './trader/trader.module';
         TypeOrmModule.forFeature([CandleModel]),
         ControlModule,
         TraderModule,
+        TelegramModule,
     ],
     controllers: [],
     providers: [],

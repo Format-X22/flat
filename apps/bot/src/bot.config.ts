@@ -2,7 +2,7 @@ import { endOfYear, startOfYear } from './utils/time.util';
 import { ETicker, TConfig } from './bot.types';
 
 export const config: TConfig = {
-    botMode: false,
+    botMode: true,
     printTrades: true,
     makeCsv: false,
     makeTW: false,

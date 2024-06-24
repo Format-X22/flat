@@ -1,15 +1,12 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Context, Telegraf } from 'telegraf';
-import { Message } from '@telegraf/types';
 import * as process from 'process';
 import { AnalyzerService } from '../analyzer/analyzer.service';
 import { TraderService } from '../trader/trader.service';
 import { config } from '../bot.config';
 import { LoaderService } from '../loader/loader.service';
 import { seconds } from '../utils/time.util';
-
-type TTextContext = Context & { message: Message.TextMessage };
+import { TelegramService, TTextContext } from '../telegram/telegram.service';
 
 @Injectable()
 export class ControlService implements OnApplicationBootstrap {
@@ -18,46 +15,42 @@ export class ControlService implements OnApplicationBootstrap {
         private readonly loaderService: LoaderService,
         private readonly analyserService: AnalyzerService,
         private readonly traderService: TraderService,
+        private readonly telegramService: TelegramService,
     ) {}
 
     async onApplicationBootstrap(): Promise<void> {
         if (config.botMode) {
-            await this.initBot();
+            await this.initBotControl();
         }
     }
 
-    private async initBot(): Promise<void> {
-        const apiKey = this.configService.get('F_TG_KEY');
-        const admin = Number(this.configService.get('F_TG_ADMIN'));
-        const bot = new Telegraf(apiKey);
+    private async initBotControl(): Promise<void> {
+        const tg = this.telegramService;
 
-        bot.use(async (ctx: Context, next: () => Promise<void>) => {
-            if (ctx.from.id === admin) {
-                await next();
-            }
-        });
-        bot.command('help', this.printHelp.bind(this));
-        bot.hears('help', this.printHelp.bind(this));
-        bot.hears('calc', this.calc.bind(this));
-        bot.hears(/^start/, this.start.bind(this));
-        bot.hears('stop', this.stop.bind(this));
-        bot.hears('emergency', this.emergency.bind(this));
-        bot.hears(/.*/, async (ctx: Context) => {
-            await ctx.reply('Unknown command');
-            await this.printHelp(ctx);
-        });
+        tg.use((ctx, next) => this.onlyForAdmin(ctx, next));
+        tg.onCommand('help', (ctx) => this.printHelp(ctx));
+        tg.onText('help', (ctx) => this.printHelp(ctx));
+        tg.onText('calc', (ctx) => this.calc(ctx));
+        tg.onText(/^start/, (ctx) => this.start(ctx));
+        tg.onText('stop', (ctx) => this.stop(ctx));
+        tg.onText('emergency', (ctx) => this.emergency(ctx));
+        tg.onText(/.*/, (ctx) => this.unknownMessage(ctx));
 
-        process.once('SIGINT', () => bot.stop('SIGINT'));
-        process.once('SIGTERM', () => bot.stop('SIGTERM'));
-
-        bot.launch(() => {
-            bot.telegram.sendMessage(admin, 'Started!');
-        }).catch((error) => {
-            throw error;
-        });
+        tg.launch(() => tg.sendToAdmin('Started!'));
     }
 
-    private async printHelp(ctx: Context): Promise<void> {
+    private async onlyForAdmin(ctx: TTextContext, next: () => Promise<void>): Promise<void> {
+        if (this.telegramService.isAdmin(ctx)) {
+            await next();
+        }
+    }
+
+    private async unknownMessage(ctx: TTextContext): Promise<void> {
+        await ctx.reply('Unknown command');
+        await this.printHelp(ctx);
+    }
+
+    private async printHelp(ctx: TTextContext): Promise<void> {
         await ctx.reply(
             [
                 'help - Print this message',
@@ -69,12 +62,12 @@ export class ControlService implements OnApplicationBootstrap {
         );
     }
 
-    private async emergency(ctx: Context): Promise<void> {
+    private async emergency(ctx: TTextContext): Promise<void> {
         await ctx.reply('Ok, hard stop on 5 seconds...');
         setTimeout(() => process.exit(0), seconds(5));
     }
 
-    private async calc(ctx: Context): Promise<void> {
+    private async calc(ctx: TTextContext): Promise<void> {
         const cfgPrintTrades = config.printTrades;
 
         config.printTrades = false;
@@ -113,7 +106,7 @@ export class ControlService implements OnApplicationBootstrap {
         }
     }
 
-    private async stop(ctx: Context): Promise<void> {
+    private async stop(ctx: TTextContext): Promise<void> {
         try {
             await this.traderService.stop();
             await ctx.reply('Stopped!');
