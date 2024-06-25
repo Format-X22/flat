@@ -46,6 +46,10 @@ export class TraderService {
 
     @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: 'UTC' })
     private async handleDay(): Promise<void> {
+        if (!config.botMode) {
+            return;
+        }
+
         if (!this.started) {
             await this.notify('Not started today.');
             return;
