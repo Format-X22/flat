@@ -9,6 +9,7 @@ import * as Flag from './detect/flag.detect';
 import * as Restart from './detect/restart.detect';
 import * as Triangle from './detect/triangle.detect';
 import * as Double from './detect/double.detect';
+import * as Line from './detect/line.detect';
 import { ReportUtil } from '../report/report.util';
 import { EReportItemType } from '../report/report.dto';
 
@@ -54,6 +55,10 @@ export class DetectorExecutor {
             Double.DownMid,
             Double.Up,
             Double.Down,
+            Line.UpMid,
+            Line.DownMid,
+            Line.Up,
+            Line.Down,
             Zigzag.UpBig,
             Zigzag.DownBig,
             Pennant.UpBig,
@@ -66,6 +71,8 @@ export class DetectorExecutor {
             Triangle.DownBig,
             Double.UpBig,
             Double.DownBig,
+            Line.UpBig,
+            Line.DownBig,
         ].map((D) => new D(this, this.segmentUtil, this.reportUtil));
     }
 
