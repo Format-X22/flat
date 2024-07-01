@@ -9,7 +9,7 @@ export class LineDetect extends AbstractDetect {
     protected stopFib = 0.75;
     protected minSegmentSize = 1;
 
-    protected waitDays = 4;
+    protected waitDays = 2;
 
     check(): boolean {
         const [down0, up1, down1, up2, down2, up3, down3] = this.getWaves(7, false);
