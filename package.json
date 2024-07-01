@@ -24,6 +24,7 @@
     "@telegraf/types": "^7.1.0",
     "@types/lodash": "^4.14.202",
     "axios": "^1.7.2",
+    "ccxt": "^4.3.52",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "csv": "^6.3.9",

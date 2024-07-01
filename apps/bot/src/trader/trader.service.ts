@@ -7,6 +7,8 @@ import { config } from '../bot.config';
 import { TActualOrder, TOrder } from '../analyzer/detector/detector.dto';
 import { ESide } from '../analyzer/report/report.dto';
 import { TCurrentStockOrders, TStockOrder } from './trader.dto';
+import { bybit as Bybit } from 'ccxt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TraderService {
@@ -14,11 +16,21 @@ export class TraderService {
     private capital: number;
     private started: boolean;
 
+    // TODO Refactor this
+    private readonly bybit: Bybit;
+
     constructor(
         private readonly telegramService: TelegramService,
         private readonly loaderService: LoaderService,
         private readonly analyserService: AnalyzerService,
-    ) {}
+        configService: ConfigService,
+    ) {
+        // TODO Refactor this
+        this.bybit = new Bybit({
+            apiKey: configService.get('F_BYBIT_PUBLIC_KEY'),
+            secret: configService.get('F_BYBIT_PRIVATE_KEY'),
+        });
+    }
 
     async start(capital: number): Promise<void> {
         if (this.started) {
@@ -139,7 +151,7 @@ export class TraderService {
                 await this.updateOrder(newOrder, currentOrder);
                 await this.notify(`${side} order updated.`);
             } else if (newOrder && !currentOrder) {
-                await this.placeOrder(currentOrder);
+                await this.placeOrder(newOrder);
                 await this.notify(`${side} order placed.`);
             } else {
                 await this.cancelOrder(currentOrder);
@@ -167,7 +179,32 @@ export class TraderService {
     }
 
     private async placeOrder(newOrder: TOrder): Promise<void> {
-        // TODO -
+        // TODO Refactor this
+        const symbol = 'BTCUSDT';
+        const type = 'limit';
+        const side = newOrder.take > newOrder.enter ? 'buy' : 'sell';
+        const price = Number((side === 'buy' ? newOrder.enter * 1.0015 : newOrder.enter / 1.0015).toFixed(0));
+        const trigger = Number(newOrder.enter.toFixed(0));
+        const take = Number(newOrder.take.toFixed(0));
+        const stop = Number(newOrder.stop.toFixed(0));
+        const triggerDirection = side === 'buy' ? 1 : 2;
+
+        const mulOffset =
+            (side === 'buy'
+                ? 100 - (newOrder.stop * 100) / newOrder.enter
+                : (newOrder.stop * 100) / newOrder.enter - 100) + 0.25;
+        const priceCapital = (33 / mulOffset) * this.capital;
+        const amount = Number((Math.ceil((priceCapital / newOrder.enter) * 1000) / 1000).toFixed(3));
+
+        await this.bybit.createTriggerOrder(symbol, type, side, amount, price, trigger, {
+            triggerBy: 'IndexPrice',
+            takeProfit: take,
+            tpTriggerBy: 'LastPrice',
+            stopLoss: stop,
+            slTriggerBy: 'IndexPrice',
+            triggerDirection,
+            positionIdx: 0,
+        });
     }
 
     private async updateOrder(newOrder: TOrder, currentOrder: TStockOrder): Promise<void> {
