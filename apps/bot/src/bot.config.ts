@@ -6,7 +6,7 @@ export const config: TConfig = {
     printTrades: true,
     makeCsv: false,
     makeTW: false,
-    load: false,
+    load: true,
     ticker: ETicker.BTCUSDT,
     risk: 33,
     from: startOfYear(2019),
