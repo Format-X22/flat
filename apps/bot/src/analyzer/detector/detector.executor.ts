@@ -10,7 +10,6 @@ import * as Restart from './detect/restart.detect';
 import * as Triangle from './detect/triangle.detect';
 import * as Double from './detect/double.detect';
 import * as Line from './detect/line.detect';
-import * as Lazy from './detect/lazy.detector';
 import { ReportUtil } from '../report/report.util';
 import { EReportItemType } from '../report/report.dto';
 
@@ -60,8 +59,6 @@ export class DetectorExecutor {
             Line.DownMid,
             Line.Up,
             Line.Down,
-            //Lazy.Up,
-            //Lazy.Down,
             Zigzag.UpBig,
             Zigzag.DownBig,
             Pennant.UpBig,
