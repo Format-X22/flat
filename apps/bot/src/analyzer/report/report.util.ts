@@ -242,7 +242,8 @@ export class ReportUtil {
             .replace('Restart', 'Res')
             .replace('Triangle', 'Tri')
             .replace('Zigzag', 'Zig')
-            .replace('Flag', 'Fla');
+            .replace('Flag', 'Fla')
+            .replace('Line', 'Lin');
 
         return [
             `if (time_tradingday == timestamp("UTC", ${year}, ${month}, ${day}))`,

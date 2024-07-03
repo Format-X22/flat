@@ -26,6 +26,7 @@ export class LineDetect extends AbstractDetect {
 
         const breakEnter = this.getFib(up1, down0, this.enterFib);
         const notOverflow = this.lt(this.candleMax(this.getCandle()), breakEnter);
+        const flatOffset = this.getFib(up3, down2, 0.4);
         const highBeforeLow = up1.maxCandle.timestamp <= down0.minCandle.timestamp;
 
         if (
@@ -34,6 +35,7 @@ export class LineDetect extends AbstractDetect {
             down1.minLt(down2.min) &&
             up2.maxLt(up3.max) &&
             down2.minLt(down3.min) &&
+            up2.maxGt(flatOffset) &&
             up1.sizeLeft >= this.minSegmentSize &&
             highBeforeLow
         ) {
