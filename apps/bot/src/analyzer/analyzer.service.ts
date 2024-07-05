@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CandleModel } from '../data/candle.model';
 import { Between, Repository } from 'typeorm';
-import { TActualOrder, TActualOrderWithMetadata } from './detector/detector.dto';
+import { TActualOrderWithMetadata } from './detector/detector.dto';
 import { days, hours, millis } from '../utils/time.util';
 import { TCalcArgs } from './analyzer.dto';
 import { config } from '../bot.config';

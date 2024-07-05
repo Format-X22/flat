@@ -129,7 +129,10 @@ export abstract class AbstractDetect {
             for (const innerCandle of innerCandles) {
                 inPositionAtNow = false;
 
-                if (this.gt(this.candleMax(innerCandle), this.order.enter)) {
+                if (
+                    this.gt(this.candleMax(innerCandle), this.order.enter) &&
+                    this.lt(this.candleMin(innerCandle), this.order.enter)
+                ) {
                     if (!inPosition) {
                         inPosition = true;
                         inPositionAtNow = true;
