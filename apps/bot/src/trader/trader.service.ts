@@ -25,10 +25,10 @@ export class TraderService {
         configService: ConfigService,
     ) {
         // TODO Refactor this
-        this.bybit = new Bybit({
+        /*this.bybit = new Bybit({
             apiKey: configService.get('F_BYBIT_PUBLIC_KEY'),
             secret: configService.get('F_BYBIT_PRIVATE_KEY'),
-        });
+        });*/
     }
 
     async start(capital: number): Promise<void> {
@@ -55,7 +55,8 @@ export class TraderService {
         this.logger.log('Trader stopped.');
     }
 
-    @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: 'UTC' })
+    // TODO Refactor this
+    //@Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: 'UTC' })
     private async handleDay(): Promise<void> {
         if (!config.botMode) {
             return;
