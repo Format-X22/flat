@@ -1,12 +1,12 @@
 import { CandleModel, EHmaType } from '../../../data/candle.model';
 import { TSegment } from '../../wave/segment.dto';
-import { TOrder } from '../detector.dto';
+import { ESide, TOrder } from '../detector.dto';
 import { Wave } from '../../wave/wave.util';
 import { SegmentUtil } from '../../wave/segment.util';
 import { DetectorExecutor } from '../detector.executor';
 import { InversionUtil } from '../../../utils/inversion.util';
 import { ReportUtil } from '../../report/report.util';
-import { EReportItemType, ESide, ESize } from '../../report/report.dto';
+import { EReportItemType, ESize } from '../../report/report.dto';
 
 const STOP_OFFSET = 1.5;
 const COMM_OFFSET = 0.25;
@@ -17,9 +17,12 @@ export abstract class AbstractDetect {
 
     public order: TOrder = {
         isActive: false,
+        side: null,
         enter: null,
+        limit: null,
         take: null,
         stop: null,
+        proportion: null,
         enterDate: null,
         waitDays: null,
     };
@@ -222,13 +225,21 @@ export abstract class AbstractDetect {
                 }
 
                 this.order.isActive = true;
-                this.order.enter = enterFibPrice;
-                this.order.take = takeFibPrice;
-                this.order.stop = stopFibPrice;
+                this.order.enter = Math.round(enterFibPrice);
+                this.order.take = Math.round(takeFibPrice);
+                this.order.stop = Math.round(stopFibPrice);
 
                 if (isUp) {
+                    this.order.side = ESide.UP;
+                    this.order.limit = Math.round(this.order.enter * 1.0015);
+                    this.order.proportion =
+                        Math.round((100 - (this.order.stop * 100) / this.order.enter + 0.25) * 100) / 100;
                     this.detectorExecutor.addUpOrder(this);
                 } else {
+                    this.order.side = ESide.DOWN;
+                    this.order.limit = Math.round(this.order.enter * 0.9985);
+                    this.order.proportion =
+                        Math.round(((this.order.stop * 100) / this.order.enter - 100 + 0.25) * 100) / 100;
                     this.detectorExecutor.addDownOrder(this);
                 }
             }
@@ -248,9 +259,12 @@ export abstract class AbstractDetect {
 
     resetOrder(): void {
         this.order.isActive = false;
+        this.order.side = null;
         this.order.enter = null;
+        this.order.limit = null;
         this.order.take = null;
         this.order.stop = null;
+        this.order.proportion = null;
         this.order.enterDate = null;
         this.order.waitDays = null;
 

@@ -1,3 +1,5 @@
+import { ESide } from '../detector/detector.dto';
+
 type TTimestamp = number;
 type TDetectorName = string;
 type TRiskReward = number;
@@ -18,11 +20,6 @@ export type TReportItem =
     | TReportDealFail
     | TReportRewards
     | TReportCapital;
-
-export enum ESide {
-    UP = 'UP',
-    DOWN = 'DOWN',
-}
 
 export enum ESize {
     SMALL = 'SMALL',
