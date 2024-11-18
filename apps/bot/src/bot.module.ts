@@ -17,7 +17,7 @@ import { TelegramModule } from './telegram/telegram.module';
             inject: [ConfigService],
             useFactory: async () => ({
                 type: 'postgres',
-                database: 'local',
+                database: 'fast',
                 host: 'localhost',
                 port: 5432,
                 username: 'postgres',

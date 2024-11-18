@@ -10,6 +10,7 @@ import * as Restart from './detect/restart.detect';
 import * as Triangle from './detect/triangle.detect';
 import * as Double from './detect/double.detect';
 import * as Line from './detect/line.detect';
+import * as Liner from './detect/liner.detect';
 import { ReportUtil } from '../report/report.util';
 import { EReportItemType } from '../report/report.dto';
 
@@ -29,7 +30,13 @@ export class DetectorExecutor {
 
     constructor(private readonly segmentUtil: SegmentUtil, private readonly reportUtil: ReportUtil) {
         this.detects = [
-            Zigzag.UpMid,
+            Liner.Up,
+            Liner.Down,
+            Liner.UpMid,
+            Liner.DownMid,
+            Liner.UpBig,
+            Liner.DownBig,
+            /*Zigzag.UpMid,
             Zigzag.DownMid,
             Zigzag.Up,
             Zigzag.Down,
@@ -72,7 +79,7 @@ export class DetectorExecutor {
             Double.UpBig,
             Double.DownBig,
             Line.UpBig,
-            Line.DownBig,
+            Line.DownBig,*/
         ].map((D) => new D(this, this.segmentUtil, this.reportUtil));
     }
 

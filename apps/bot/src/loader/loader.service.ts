@@ -13,8 +13,8 @@ import { PolygonLoader } from './source/polygon';
 import { ILoader } from './loader.dto';
 import { BINANCE_TICKERS } from '../bot.types';
 
-const HMA_PERIOD = 7;
-const MID_HMA_PERIOD = 14;
+const HMA_PERIOD = 3;
+const MID_HMA_PERIOD = 15;
 const BIG_HMA_PERIOD = 30;
 
 @Injectable()
