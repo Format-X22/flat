@@ -8,44 +8,43 @@ export class LinerDetect extends AbstractDetect {
     protected waitDays = 365;
 
     check(): boolean {
-        const [down0, up1, down1, up2] = this.getWaves(6, false);
+        const [up0, down1, up1, down2] = this.getWaves(6, true);
 
-        if (!up2) {
-            return;
+        if (!down2) {
+            return false;
         }
 
-        const maxAngel = this.getFibByValue(down1.min, up1.max, 1.2);
+        const enterFib = this.getFibByValue(down1.min, up0.max, 0.5);
+        const anyCandleUnderEnterFib = up0.candles.some((i) => this.gt(this.candleMin(i), enterFib));
 
-        if (this.lt(down0.min, maxAngel)) {
-            return;
+        if (!anyCandleUnderEnterFib) {
+            return false;
         }
 
-        // TODO Shift candles by one to left
-        // TODO Filtrate 0.5 fib
-
-        let firstCandleMin = this.candleMin(down1.candles[0]);
+        let firstCandleMin = this.candleMin(down2.candles[0]);
         let firstCandleIndex = 0;
-        const lastCandleMin = down0.min;
-        let lastCandleIndex = down1.candles.length;
+        let lastCandleMin = this.candleMin(down1.candles[0]);
+        let lastCandleIndex = down2.candles.length;
 
-        for (let i = 1; i < down1.candles.length; i++) {
-            const candleMin = this.candleMin(down1.candles[i]);
+        for (let i = 1; i < down2.candles.length; i++) {
+            const candleMin = this.candleMin(down2.candles[i]);
 
-            if (this.lt(candleMin, firstCandleMin)) {
+            if (this.lte(candleMin, firstCandleMin)) {
                 firstCandleMin = candleMin;
                 firstCandleIndex = i;
             }
         }
 
-        for (let i = 1; i < down0.candles.length; i++) {
-            const candleMin = this.candleMin(down0.candles[i]);
+        for (let i = 1; i < down1.candles.length; i++) {
+            const candleMin = this.candleMin(down1.candles[i]);
 
             if (this.lte(candleMin, lastCandleMin)) {
-                lastCandleIndex = i + down1.candles.length;
+                lastCandleMin = candleMin;
+                lastCandleIndex = i + down2.candles.length;
             }
         }
 
-        const allCandles = [...down1.candles, ...down0.candles];
+        const allCandles = [...down2.candles, ...down1.candles];
         let found = false;
         let length = 0;
         let stepDiff = 0;
@@ -55,7 +54,7 @@ export class LinerDetect extends AbstractDetect {
         let currentLastCandleIndex = lastCandleIndex;
         let currentLastCandleMin = lastCandleMin;
 
-        while (!found) {
+        /*while (!found) {
             if (currentFirstCandleIndex >= lastCandleIndex) {
                 break;
             }
@@ -77,6 +76,10 @@ export class LinerDetect extends AbstractDetect {
                         level -= stepDiff;
                     }
 
+                    if (currentFirstCandleMin === 67070) {
+                        console.log('here');
+                    }
+
                     if (this.lt(this.candleMin(allCandles[i]), level)) {
                         currentLastCandleIndex++;
 
@@ -89,7 +92,9 @@ export class LinerDetect extends AbstractDetect {
                     }
                 }
 
-                found = true;
+                if (this.lt(firstCandleMin, lastCandleMin)) {
+                    found = true;
+                }
             }
 
             if (!found) {
@@ -103,9 +108,11 @@ export class LinerDetect extends AbstractDetect {
                 currentLastCandleIndex = lastCandleIndex;
                 currentLastCandleMin = lastCandleMin;
             }
-        }
+        }*/
 
-        if (this.debugHere('12-11-2023', true) && this.name === 'UpMidLiner') {
+        if (this.debugHere('12-05-2024', false) && this.name === 'DownMidLiner') {
+            console.log(down2.min, down1.min);
+            console.log(firstCandleMin, lastCandleMin);
             console.log(
                 found,
                 currentFirstCandleIndex,
@@ -117,7 +124,7 @@ export class LinerDetect extends AbstractDetect {
             );
         }
 
-        return false;
+        return found;
     }
 }
 

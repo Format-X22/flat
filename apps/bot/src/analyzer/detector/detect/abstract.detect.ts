@@ -295,11 +295,11 @@ export abstract class AbstractDetect {
     }
 
     protected getWaves(count: number, firstIsUp: boolean): Array<Wave> {
-        const required = count * 2;
-        const segments = this.getSegments(required);
+        const requiredCount = count * 2;
+        const segments = this.getSegments(requiredCount);
 
-        if (!segments[required - 1]) {
-            return new Array(required);
+        if (!segments[requiredCount - 1]) {
+            return new Array(requiredCount);
         }
 
         const current = segments[0];
@@ -309,7 +309,7 @@ export abstract class AbstractDetect {
             waves.push(new Wave(current, null, this.isNotInverted));
         }
 
-        for (let i = 0; i < required - 1; i++) {
+        for (let i = 0; i < requiredCount - 1; i++) {
             waves.push(new Wave(segments[i + 1], segments[i], this.isNotInverted));
         }
 

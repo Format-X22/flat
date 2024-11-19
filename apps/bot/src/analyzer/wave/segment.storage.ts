@@ -18,35 +18,40 @@ export class SegmentStorage {
     constructor(private readonly candles: Array<CandleModel>, private readonly hmaField: EHmaType) {}
 
     addCandle(candle: CandleModel): void {
-        const prev1Candle = this.candles[this.candles.length - 2];
-        let currentSegment = this.segments[this.segments.length - 1];
+        const prev1Candle = this.candles.at(-2);
+        const prev2Candle = this.candles.at(-3);
+        let currentSegment = this.segments.at(-1);
+        const prevHma = prev1Candle?.[this.hmaField];
+        const currentHma = candle[this.hmaField];
+        let newDetected = false;
 
         if (!currentSegment.startDate) {
             currentSegment.startDate = candle.dateString;
         }
 
         if (currentSegment.isUp === true) {
-            if (prev1Candle && prev1Candle[this.hmaField] > candle[this.hmaField]) {
-                currentSegment.endDate = prev1Candle.dateString;
-                currentSegment = null;
+            if (prev1Candle && prevHma > currentHma) {
+                newDetected = true;
             }
         } else if (currentSegment.isDown === true) {
-            if (prev1Candle && prev1Candle[this.hmaField] < candle[this.hmaField]) {
-                currentSegment.endDate = prev1Candle.dateString;
-                currentSegment = null;
+            if (prev1Candle && prevHma < currentHma) {
+                newDetected = true;
             }
         }
 
-        if (!currentSegment) {
+        if (newDetected) {
+            currentSegment.candles.pop();
+            currentSegment.endDate = prev2Candle.dateString;
+
             currentSegment = {
                 isUp: null,
                 isDown: null,
-                size: 0,
-                min: Infinity,
-                max: -Infinity,
-                startDate: candle.dateString,
+                size: 1,
+                min: prev1Candle.low,
+                max: prev1Candle.high,
+                startDate: prev1Candle.dateString,
                 endDate: null,
-                candles: [],
+                candles: [prev1Candle],
             };
         }
 
@@ -58,9 +63,9 @@ export class SegmentStorage {
             currentSegment.max = candle.high;
         }
 
-        if (prev1Candle && currentSegment.isUp === null) {
-            currentSegment.isUp = prev1Candle[this.hmaField] <= candle[this.hmaField];
-            currentSegment.isDown = prev1Candle[this.hmaField] > candle[this.hmaField];
+        if (prev1Candle) {
+            currentSegment.isUp = prevHma <= currentHma;
+            currentSegment.isDown = prevHma > currentHma;
         }
 
         currentSegment.size++;
