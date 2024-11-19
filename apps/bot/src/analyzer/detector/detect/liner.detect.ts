@@ -1,5 +1,7 @@
 import { AbstractDetect } from './abstract.detect';
 
+const LINE_LENGTH_SAFE_GAP = 3;
+
 export class LinerDetect extends AbstractDetect {
     protected enterFib = 0.62;
     protected takeFib = 2;
@@ -44,6 +46,10 @@ export class LinerDetect extends AbstractDetect {
             }
         }
 
+        if (firstCandleIndex + LINE_LENGTH_SAFE_GAP >= lastCandleIndex) {
+            return false;
+        }
+
         const allCandles = [...down2.candles, ...down1.candles];
         let found = false;
         let length = 0;
@@ -54,74 +60,52 @@ export class LinerDetect extends AbstractDetect {
         let currentLastCandleIndex = lastCandleIndex;
         let currentLastCandleMin = lastCandleMin;
 
-        /*while (!found) {
-            if (currentFirstCandleIndex >= lastCandleIndex) {
+        moveFirst: while (true) {
+            if (this.lt(currentFirstCandleMin, currentLastCandleMin)) {
+                while (true) {
+                    length = currentLastCandleIndex - currentFirstCandleIndex;
+                    stepDiff = Math.abs(currentLastCandleMin - currentFirstCandleMin) / length;
+
+                    let level = currentFirstCandleMin;
+                    let collision = false;
+
+                    for (let i = currentFirstCandleIndex + 1; i < allCandles.length; i++) {
+                        if (currentFirstCandleMin < currentLastCandleMin) {
+                            level += stepDiff;
+                        } else {
+                            level -= stepDiff;
+                        }
+
+                        if (this.lt(this.candleMin(allCandles[i]), level)) {
+                            collision = true;
+                            break;
+                        }
+                    }
+
+                    if (!collision) {
+                        found = true;
+                        break moveFirst;
+                    }
+
+                    currentLastCandleIndex++;
+
+                    if (currentLastCandleIndex === allCandles.length) {
+                        break;
+                    }
+
+                    currentLastCandleMin = this.candleMin(allCandles[currentLastCandleIndex]);
+                }
+            }
+
+            currentFirstCandleIndex++;
+
+            if (currentFirstCandleIndex + LINE_LENGTH_SAFE_GAP >= lastCandleIndex) {
                 break;
             }
 
-            moveLast: while (!found) {
-                if (currentLastCandleIndex >= allCandles.length) {
-                    break;
-                }
-
-                length = currentLastCandleIndex - currentFirstCandleIndex;
-                stepDiff = Math.abs(currentLastCandleMin - currentFirstCandleMin) / length;
-
-                let level = currentFirstCandleMin;
-
-                for (let i = currentFirstCandleIndex + 1; i < allCandles.length; i++) {
-                    if (currentFirstCandleMin < currentLastCandleMin) {
-                        level += stepDiff;
-                    } else {
-                        level -= stepDiff;
-                    }
-
-                    if (currentFirstCandleMin === 67070) {
-                        console.log('here');
-                    }
-
-                    if (this.lt(this.candleMin(allCandles[i]), level)) {
-                        currentLastCandleIndex++;
-
-                        if (currentLastCandleIndex >= allCandles.length) {
-                            break moveLast;
-                        }
-
-                        currentLastCandleMin = this.candleMin(allCandles[currentLastCandleIndex]);
-                        continue moveLast;
-                    }
-                }
-
-                if (this.lt(firstCandleMin, lastCandleMin)) {
-                    found = true;
-                }
-            }
-
-            if (!found) {
-                currentFirstCandleIndex++;
-
-                if (currentFirstCandleIndex >= lastCandleIndex) {
-                    break;
-                }
-
-                currentFirstCandleMin = this.candleMin(allCandles[currentFirstCandleIndex]);
-                currentLastCandleIndex = lastCandleIndex;
-                currentLastCandleMin = lastCandleMin;
-            }
-        }*/
-
-        if (this.debugHere('12-05-2024', false) && this.name === 'DownMidLiner') {
-            console.log(down2.min, down1.min);
-            console.log(firstCandleMin, lastCandleMin);
-            console.log(
-                found,
-                currentFirstCandleIndex,
-                currentFirstCandleMin,
-                currentLastCandleMin,
-                currentLastCandleIndex,
-                length,
-                stepDiff,
-            );
+            currentFirstCandleMin = this.candleMin(allCandles[currentFirstCandleIndex]);
+            currentLastCandleIndex = lastCandleIndex;
+            currentLastCandleMin = lastCandleMin;
         }
 
         return found;
