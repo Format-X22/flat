@@ -45,10 +45,10 @@ export class ReportUtil {
                     lines.push(`${date} Detection end [${item.detectorName}]`);
                     break;
                 case EReportItemType.ENTER_POSITION:
-                    lines.push(`${date} > Enter position`);
+                    lines.push(`${date} > Enter position [${item.detectorName}]`);
                     break;
                 case EReportItemType.EXIT_POSITION:
-                    lines.push(`${date} < Exit position`);
+                    lines.push(`${date} < Exit position [${item.detectorName}]`);
                     break;
                 case EReportItemType.DEAL_PROFIT:
                     lines.push(`${date} PROFIT - ${this.prettyNumber(item.value)}`);

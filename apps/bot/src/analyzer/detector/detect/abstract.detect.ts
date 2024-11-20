@@ -42,6 +42,9 @@ export abstract class AbstractDetect {
     protected readonly enterFib;
     protected readonly takeFib;
     protected readonly stopFib;
+    protected enterPrice: number;
+    protected stopPrice: number;
+    protected takePrice: number;
 
     private readonly reportSide: ESide;
     private readonly reportSize: ESize;
@@ -82,6 +85,10 @@ export abstract class AbstractDetect {
 
     handleOrder(): void {
         this.syncRisk();
+
+        if (this.debugHere('09-09-2024', false) && this.name === 'DownLiner') {
+            console.log(this.order);
+        }
 
         if (!this.order.isActive) {
             return;
@@ -166,21 +173,9 @@ export abstract class AbstractDetect {
         }
 
         if (this.isDetected) {
-            const [current, prev1, prev2] = this.getSegments(3);
-            let valA;
-            let valB;
-
-            if (this.isSegmentDown(current)) {
-                valA = this.max(current, prev1);
-                valB = this.segmentMin(current);
-            } else {
-                valA = this.max(prev1, prev2);
-                valB = this.min(current, prev1);
-            }
-
-            const stopFibPrice = this.getFibByValue(valA, valB, this.stopFib);
-            const enterFibPrice = this.getFibByValue(valA, valB, this.enterFib);
-            const takeFibPrice = this.getFibByValue(valA, valB, this.takeFib);
+            const stopFibPrice = this.stopPrice;
+            const enterFibPrice = this.enterPrice;
+            const takeFibPrice = this.takePrice;
 
             const isUp = this.isNotInverted;
             const isConcurrentUpOrder = this.detectorExecutor.isConcurrentUpOrder(this);

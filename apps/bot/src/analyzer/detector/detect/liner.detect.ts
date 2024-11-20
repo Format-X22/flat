@@ -1,11 +1,15 @@
 import { AbstractDetect } from './abstract.detect';
+import { Wave } from '../../wave/wave.util';
 
 const LINE_LENGTH_SAFE_GAP = 3;
 
 export class LinerDetect extends AbstractDetect {
-    protected enterFib = 0.62;
-    protected takeFib = 2;
-    protected stopFib = 0.33;
+    private lastDetectedEndWave: Wave = null;
+    private lastEndLinePoint: number;
+
+    protected enterFib = 1;
+    protected takeFib = 4;
+    protected stopFib = 0;
 
     protected waitDays = 365;
 
@@ -13,14 +17,16 @@ export class LinerDetect extends AbstractDetect {
         const [up0, down1, up1, down2] = this.getWaves(6, true);
 
         if (!down2) {
-            return false;
+            this.markEndDetection();
+            return;
         }
 
         const enterFib = this.getFibByValue(down1.min, up0.max, 0.5);
         const anyCandleUnderEnterFib = up0.candles.some((i) => this.gt(this.candleMin(i), enterFib));
 
         if (!anyCandleUnderEnterFib) {
-            return false;
+            this.markEndDetection();
+            return;
         }
 
         let firstCandleMin = this.candleMin(down2.candles[0]);
@@ -47,10 +53,11 @@ export class LinerDetect extends AbstractDetect {
         }
 
         if (firstCandleIndex + LINE_LENGTH_SAFE_GAP >= lastCandleIndex) {
-            return false;
+            this.markEndDetection();
+            return;
         }
 
-        const allCandles = [...down2.candles, ...down1.candles];
+        const allCandles = [...down2.candles, ...down1.candles, ...up0.rightCandles];
         let found = false;
         let length = 0;
         let stepDiff = 0;
@@ -76,7 +83,7 @@ export class LinerDetect extends AbstractDetect {
                             level -= stepDiff;
                         }
 
-                        if (this.lt(this.candleMin(allCandles[i]), level)) {
+                        if (this.lt(this.candleMin(allCandles[i]), level) && i !== currentLastCandleIndex) {
                             collision = true;
                             break;
                         }
@@ -84,6 +91,21 @@ export class LinerDetect extends AbstractDetect {
 
                     if (!collision) {
                         found = true;
+
+                        if (currentFirstCandleMin < currentLastCandleMin) {
+                            this.enterPrice = level + stepDiff;
+                        } else {
+                            this.enterPrice = level - stepDiff;
+                        }
+
+                        this.stopPrice = up0.max;
+
+                        if (this.isNotInverted) {
+                            this.takePrice = this.stopPrice - (this.stopPrice - this.enterPrice) * 4;
+                        } else {
+                            this.takePrice = this.stopPrice + (this.enterPrice - this.stopPrice) * 4;
+                        }
+
                         break moveFirst;
                     }
 
@@ -108,7 +130,17 @@ export class LinerDetect extends AbstractDetect {
             currentLastCandleMin = lastCandleMin;
         }
 
-        return found;
+        if (found) {
+            if (this.lastDetectedEndWave === up0 && this.lastEndLinePoint !== lastCandleMin) {
+                this.markEndDetection();
+            } else {
+                this.lastDetectedEndWave = up0;
+                this.lastEndLinePoint = lastCandleMin;
+                this.markDetection();
+            }
+        } else {
+            this.markEndDetection();
+        }
     }
 }
 

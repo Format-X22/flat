@@ -16,6 +16,8 @@ export class Wave implements TSegment {
     sizeLeft: number;
     sizeRight: number;
     candles: Array<CandleModel>;
+    leftCandles: Array<CandleModel>;
+    rightCandles: Array<CandleModel>;
 
     constructor(left: TSegment, right: TSegment | null, private isNotInverted: boolean) {
         this.inversion = new InversionUtil(this.isNotInverted);
@@ -29,7 +31,9 @@ export class Wave implements TSegment {
         this.sizeLeft = left.size;
         this.sizeRight = right?.size || 0;
         this.size = this.sizeLeft + this.sizeRight;
-        this.candles = [...left.candles, ...(right?.candles || [])];
+        this.leftCandles = [...left.candles];
+        this.rightCandles = [...(right?.candles || [])];
+        this.candles = [...this.leftCandles, ...this.rightCandles];
     }
 
     get isUp(): boolean {
