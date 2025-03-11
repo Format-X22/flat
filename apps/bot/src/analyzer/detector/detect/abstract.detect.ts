@@ -55,20 +55,15 @@ export abstract class AbstractDetect {
         const className: string = this.constructor.name;
         const detectorName: string = Object.getPrototypeOf(Object.getPrototypeOf(this)).constructor.name;
 
-        this.name = className + detectorName.replace('Detect', '');
+        this.name = detectorName.replace('Detect', '') + className;
         this.isNotInverted = className.includes('Up');
 
-        if (this.name.includes('Mid')) {
-            this.hmaType = EHmaType.MID_HMA;
-            this.reportSize = ESize.MID;
-        } else if (this.name.includes('Big')) {
-            this.hmaType = EHmaType.BIG_HMA;
-            this.reportSize = ESize.BIG;
-        } else {
-            this.hmaType = EHmaType.HMA;
-            this.reportSize = ESize.SMALL;
-        }
+        const hmaSize = Number(this.name.split('_')[1]);
 
+        console.log(this.name, 'HMA_' + hmaSize, EHmaType);
+
+        this.hmaType = EHmaType['HMA_' + hmaSize].toUpperCase();
+        this.reportSize = ESize['HMA_' + hmaSize].toUpperCase();
         this.inversion = new InversionUtil(this.isNotInverted);
 
         if (this.isNotInverted) {

@@ -90,7 +90,7 @@ export class ReportUtil {
         for (const item of this.data) {
             switch (item.type) {
                 case EReportItemType.ENTER_POSITION:
-                    lines.push(this.makeTWPlot(item.timestamp, item.detectorName, ETWColor.BLUE, 1.03));
+                    lines.push(this.makeTWPlotDetector(item.timestamp, item.detectorName, ETWColor.BLUE, 1.03));
                     break;
                 case EReportItemType.DEAL_PROFIT:
                     lines.push(this.makeTWPlot(item.timestamp, 'PR', ETWColor.GREEN, 1.1));
@@ -231,23 +231,17 @@ export class ReportUtil {
         const month = date.getMonth() + 1;
         const day = date.getDate();
 
-        text = text
-            .replace('Down', 'v')
-            .replace('Up', '^')
-            .replace('Mid', 'M:')
-            .replace('Big', 'B:')
-            .replace('Break', 'Brk')
-            .replace('Double', 'Dob')
-            .replace('Pennant', 'Pen')
-            .replace('Restart', 'Res')
-            .replace('Triangle', 'Tri')
-            .replace('Zigzag', 'Zig')
-            .replace('Flag', 'Fla')
-            .replace('Line', 'Lin');
-
         return [
             `if (time_tradingday == timestamp("UTC", ${year}, ${month}, ${day}))`,
             `    label.new(bar_index, high * ${offset}, '${text}', color = color.${color}, textcolor = color.white)`,
         ].join('\n');
+    }
+
+    private makeTWPlotDetector(timestamp: number, detector: string, color: ETWColor, offset: number): string {
+        const hmaSize = detector.split('_')[1];
+
+        detector = detector.replace('Down', 'v').replace('Up', '^').replace('Titan', `H${hmaSize}:`);
+
+        return this.makeTWPlot(timestamp, detector, color, offset);
     }
 }

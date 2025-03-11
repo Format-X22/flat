@@ -3,26 +3,26 @@ import { CandleModel, EHmaType } from '../../data/candle.model';
 import { TSegment } from './segment.dto';
 
 export class SegmentUtil {
-    private readonly segments: SegmentStorage;
-    private readonly midSegments: SegmentStorage;
-    private readonly bigSegments: SegmentStorage;
+    private readonly segmentsMap: Map<EHmaType, SegmentStorage> = new Map();
 
     candles: Array<CandleModel> = [];
     innerCandles: Array<Array<CandleModel>> = [];
 
     constructor() {
-        this.segments = new SegmentStorage(this.candles, EHmaType.HMA);
-        this.midSegments = new SegmentStorage(this.candles, EHmaType.MID_HMA);
-        this.bigSegments = new SegmentStorage(this.candles, EHmaType.BIG_HMA);
+        for (const typeName of Object.keys(EHmaType)) {
+            const type = typeName as EHmaType;
+
+            this.segmentsMap.set(type, new SegmentStorage(this.candles, EHmaType[type]));
+        }
     }
 
     addCandle(candle: CandleModel, innerCandles: Array<CandleModel>): void {
         this.candles.push(candle);
         this.innerCandles.push(innerCandles);
 
-        this.segments.addCandle(candle);
-        this.midSegments.addCandle(candle);
-        this.bigSegments.addCandle(candle);
+        for (const segments of this.segmentsMap.values()) {
+            segments.addCandle(candle);
+        }
     }
 
     getCurrentCandle(): CandleModel {
@@ -34,14 +34,7 @@ export class SegmentUtil {
     }
 
     getPrevSegment(index: number, type: EHmaType): TSegment {
-        switch (type) {
-            case EHmaType.HMA:
-                return this.segments.getPrevSegment(index);
-            case EHmaType.MID_HMA:
-                return this.midSegments.getPrevSegment(index);
-            case EHmaType.BIG_HMA:
-                return this.bigSegments.getPrevSegment(index);
-        }
+        return this.segmentsMap.get(type).getPrevSegment(index);
     }
 
     getSegments(count: number, type: EHmaType): Array<TSegment> {

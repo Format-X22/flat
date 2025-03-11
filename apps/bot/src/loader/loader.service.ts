@@ -7,15 +7,21 @@ import { Repository } from 'typeorm';
 import { sleep } from '../utils/sleep.util';
 import { DateTime } from 'luxon';
 import { config } from '../bot.config';
-import { HttpService } from '@nestjs/axios';
 import { BinanceLoader } from './source/binance';
 import { PolygonLoader } from './source/polygon';
 import { ILoader } from './loader.dto';
 import { BINANCE_TICKERS } from '../bot.types';
 
-const HMA_PERIOD = 7;
-const MID_HMA_PERIOD = 14;
-const BIG_HMA_PERIOD = 30;
+const HMA_3 = 3;
+const HMA_5 = 5;
+const HMA_7 = 7;
+const HMA_9 = 9;
+const HMA_14 = 14;
+const HMA_21 = 21;
+const HMA_30 = 30;
+const HMA_45 = 45;
+const HMA_60 = 60;
+const HMA_100 = 100;
 
 @Injectable()
 export class LoaderService {
@@ -23,7 +29,6 @@ export class LoaderService {
 
     constructor(
         @InjectRepository(CandleModel) private candleRepo: Repository<CandleModel>,
-        private httpService: HttpService,
         private binanceLoader: BinanceLoader,
         private polygonLoader: PolygonLoader,
     ) {}
@@ -36,13 +41,13 @@ export class LoaderService {
 
     async loadActual(): Promise<void> {
         const dayOffset = await this.candleRepo.find({
-            take: BIG_HMA_PERIOD * 2 + 1,
+            take: HMA_100 * 2 + 1,
             order: { timestamp: 'DESC' },
             select: ['timestamp'],
             where: { size: '1d', ticker: config.ticker },
         });
         const hoursOffset = await this.candleRepo.find({
-            take: BIG_HMA_PERIOD * 2 + 1,
+            take: (HMA_100 * 2 + 1) * 24,
             order: { timestamp: 'DESC' },
             select: ['timestamp'],
             where: { size: '1h', ticker: config.ticker },
@@ -81,12 +86,19 @@ export class LoaderService {
 
         sorted.pop();
 
-        this.addHma(HMA_PERIOD, sorted, EHmaType.HMA);
-        this.addHma(MID_HMA_PERIOD, sorted, EHmaType.MID_HMA);
-        this.addHma(BIG_HMA_PERIOD, sorted, EHmaType.BIG_HMA);
+        this.addHma(HMA_3, sorted, EHmaType.HMA_3);
+        this.addHma(HMA_5, sorted, EHmaType.HMA_5);
+        this.addHma(HMA_7, sorted, EHmaType.HMA_7);
+        this.addHma(HMA_9, sorted, EHmaType.HMA_9);
+        this.addHma(HMA_14, sorted, EHmaType.HMA_14);
+        this.addHma(HMA_21, sorted, EHmaType.HMA_21);
+        this.addHma(HMA_30, sorted, EHmaType.HMA_30);
+        this.addHma(HMA_45, sorted, EHmaType.HMA_45);
+        this.addHma(HMA_60, sorted, EHmaType.HMA_60);
+        this.addHma(HMA_100, sorted, EHmaType.HMA_100);
 
         const resultChunks = _.chunk(
-            sorted.filter((i) => i.bigHma),
+            sorted.filter((i) => i.hma_100),
             1000,
         );
 

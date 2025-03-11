@@ -22,9 +22,16 @@ export type TReportItem =
     | TReportCapital;
 
 export enum ESize {
-    SMALL = 'SMALL',
-    MID = 'MID',
-    BIG = 'BIG',
+    HMA_3 = 'HMA_3',
+    HMA_5 = 'HMA_5',
+    HMA_7 = 'HMA_7',
+    HMA_9 = 'HMA_9',
+    HMA_14 = 'HMA_14',
+    HMA_21 = 'HMA_21',
+    HMA_30 = 'HMA_30',
+    HMA_45 = 'HMA_45',
+    HMA_60 = 'HMA_60',
+    HMA_100 = 'HMA_100',
 }
 
 export enum ETWColor {

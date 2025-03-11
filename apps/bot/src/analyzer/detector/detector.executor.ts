@@ -10,8 +10,10 @@ import * as Restart from './detect/restart.detect';
 import * as Triangle from './detect/triangle.detect';
 import * as Double from './detect/double.detect';
 import * as Line from './detect/line.detect';
+import * as Titan from './detect/titan.detect';
 import { ReportUtil } from '../report/report.util';
 import { EReportItemType } from '../report/report.dto';
+import { TitanDetect } from './detect/titan.detect';
 
 export class DetectorExecutor {
     private readonly logger: Logger = new Logger(DetectorExecutor.name);
@@ -29,7 +31,28 @@ export class DetectorExecutor {
 
     constructor(private readonly segmentUtil: SegmentUtil, private readonly reportUtil: ReportUtil) {
         this.detects = [
-            Zigzag.UpMid,
+            Titan.Up_3,
+            Titan.Down_3,
+            Titan.Up_5,
+            Titan.Down_5,
+            Titan.Up_7,
+            Titan.Down_7,
+            Titan.Up_9,
+            Titan.Down_9,
+            Titan.Up_14,
+            Titan.Down_14,
+            Titan.Up_21,
+            Titan.Down_21,
+            Titan.Up_30,
+            Titan.Down_30,
+            Titan.Up_45,
+            Titan.Down_45,
+            Titan.Up_60,
+            Titan.Down_60,
+            Titan.Up_100,
+            Titan.Down_100,
+
+            /*Zigzag.UpMid,
             Zigzag.DownMid,
             Zigzag.Up,
             Zigzag.Down,
@@ -72,7 +95,7 @@ export class DetectorExecutor {
             Double.UpBig,
             Double.DownBig,
             Line.UpBig,
-            Line.DownBig,
+            Line.DownBig,*/
         ].map((D) => new D(this, this.segmentUtil, this.reportUtil));
     }
 
